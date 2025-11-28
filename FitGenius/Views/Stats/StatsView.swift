@@ -29,11 +29,6 @@ struct StatsView: View {
                 // 动作筛选
                 ExerciseFilterView(viewModel: viewModel)
                 
-                // 训练坚持情况（按日期）
-                if !viewModel.dailyStats.isEmpty {
-                    TrainingConsistencyView(viewModel: viewModel)
-                }
-                
                 // 训练容量趋势
                 if !viewModel.trainingData.isEmpty {
                     VolumeChartView(viewModel: viewModel)

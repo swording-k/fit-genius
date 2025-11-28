@@ -21,7 +21,7 @@ class OnboardingViewModel: ObservableObject {
     @Published var age: String = ""
     @Published var height: String = ""
     @Published var weight: String = ""
-    @Published var injuries: String = ""
+    @Published var notes: String = ""  // 备注（包括伤病、额外器械等）
     
     // 目标和环境
     @Published var selectedGoal: FitnessGoal = .buildMuscle
@@ -116,7 +116,7 @@ class OnboardingViewModel: ObservableObject {
                     goal: selectedGoal,
                     environment: selectedEnvironment,
                     availableEquipment: Array(selectedEquipment),
-                    injuries: injuries
+                    injuries: notes  // 使用 notes 字段
                 )
                 
                 // 更新进度

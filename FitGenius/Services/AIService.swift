@@ -78,21 +78,39 @@ class AIService {
         let systemMessage = """
         你是一个专业的健身教练。请根据用户数据生成 JSON 格式的训练计划。
         
-        要求：
-        1. 不要返回任何 Markdown 标记（如 ```json），只返回纯 JSON 字符串
-        2. JSON 结构必须包含：name (计划名称), days (训练日数组)
-        3. 每个 day 包含：dayNumber (第几天), focus (重点部位), exercises (动作数组)
-        4. 每个 exercise 包含：name (动作名称), sets (组数), reps (次数范围如"8-12"), weight (建议重量), notes (备注)
-        5. 重点部位必须是以下之一：胸部、背部、腿部、肩部、手臂、核心、全身、有氧
-        6. 所有内容都使用中文
+        重要：根据用户情况选择合适的训练分化和循环天数：
         
-        示例 JSON 格式：
+        1. 新手/时间少：3-4天循环
+           - 3天：全身训练 + 休息（Day1:全身 → Day2:休息 → Day3:全身 → Day4:休息）
+           - 4天：推拉腿 + 休息（Day1:推 → Day2:拉 → Day3:腿 → Day4:休息）
+        
+        2. 中级/时间适中：4-5天循环
+           - 4天：推拉腿 + 休息
+           - 5天：上下肢分化 + 休息（Day1:上肢推 → Day2:下肢 → Day3:上肢拉 → Day4:休息 → Day5:全身）
+        
+        3. 高级/时间充足：6-7天循环
+           - 6天：5天分化 + 1休息（Day1:胸 → Day2:背 → Day3:腿 → Day4:肩 → Day5:手臂 → Day6:休息）
+           - 7天：6天分化 + 1休息
+        
+        JSON 格式要求：
+        1. 不要返回任何 Markdown 标记（如 ```json），只返回纯 JSON 字符串
+        2. 必须包含：name (计划名称), days (训练日数组)
+        3. 每个 day 包含：
+           - dayNumber: 第几天（1, 2, 3...）
+           - focus: 重点部位（胸部、背部、腿部、肩部、手臂、核心、全身、有氧、休息）
+           - isRestDay: 是否休息日（true/false）
+           - exercises: 动作数组（休息日为空数组）
+        4. 每个 exercise 包含：name, sets, reps, weight, notes
+        5. 所有内容使用中文
+        
+        示例 JSON（4天循环）：
         {
-          "name": "增肌训练计划",
+          "name": "推拉腿训练计划",
           "days": [
             {
               "dayNumber": 1,
               "focus": "胸部",
+              "isRestDay": false,
               "exercises": [
                 {
                   "name": "杠铃卧推",
@@ -102,6 +120,24 @@ class AIService {
                   "notes": "注意肩胛骨收紧"
                 }
               ]
+            },
+            {
+              "dayNumber": 2,
+              "focus": "背部",
+              "isRestDay": false,
+              "exercises": []
+            },
+            {
+              "dayNumber": 3,
+              "focus": "腿部",
+              "isRestDay": false,
+              "exercises": []
+            },
+            {
+              "dayNumber": 4,
+              "focus": "休息",
+              "isRestDay": true,
+              "exercises": []
             }
           ]
         }
@@ -116,9 +152,15 @@ class AIService {
         - 健身目标：\(profile.goal.rawValue)
         - 训练环境：\(profile.environment.rawValue)
         - 可用器械：\(profile.availableEquipment.isEmpty ? "无" : profile.availableEquipment.joined(separator: ", "))
-        - 伤病情况：\(profile.injuries.isEmpty ? "无" : profile.injuries)
+        - 备注：\(profile.injuries.isEmpty ? "无" : profile.injuries)
         
-        请为该用户生成一个为期 5-7 天的训练计划。只返回 JSON，不要有任何其他文字。
+        请根据以上信息生成合适的训练计划。注意：
+        1. 根据用户的年龄、目标和环境选择合适的循环天数（3/4/5/6/7天）
+        2. 如果用户是新手或年龄较大，建议 3-4 天循环
+        3. 如果用户目标是增肌且有充足时间，可以 5-7 天循环
+        4. 必须包含至少一天休息日
+        5. 根据可用器械选择合适的动作
+        6. 如果备注中提到伤病，避免相关动作
         """
         
         // 构建请求体
