@@ -3,6 +3,7 @@ import SwiftData
 
 @Model
 final class WorkoutPlan {
+    var userId: String?  // 用户 ID（为用户系统预留）
     var creationDate: Date
     var name: String
     
@@ -13,6 +14,7 @@ final class WorkoutPlan {
     var days: [WorkoutDay] = []
     
     init(name: String = "My Workout Plan", creationDate: Date = Date()) {
+        self.userId = nil
         self.name = name
         self.creationDate = creationDate
     }

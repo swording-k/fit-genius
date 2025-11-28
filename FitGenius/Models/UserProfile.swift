@@ -3,6 +3,7 @@ import SwiftData
 
 @Model
 final class UserProfile {
+    var userId: String?  // 用户 ID（为用户系统预留）
     var name: String
     var age: Int
     var height: Double // in cm
@@ -21,6 +22,7 @@ final class UserProfile {
     var workoutPlan: WorkoutPlan?
     
     init(name: String, age: Int, height: Double, weight: Double, goal: FitnessGoal, environment: WorkoutEnvironment, availableEquipment: [String] = [], injuries: String = "") {
+        self.userId = nil
         self.name = name
         self.age = age
         self.height = height
