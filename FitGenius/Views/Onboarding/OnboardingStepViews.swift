@@ -52,14 +52,6 @@ struct BasicInfoView: View {
                         .keyboardType(.decimalPad)
                         .textFieldStyle(.roundedBorder)
                 }
-                
-                // 伤病情况（可选）
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("伤病情况（可选）")
-                        .font(.headline)
-                    TextField("如有伤病请说明，无则留空", text: $viewModel.injuries)
-                        .textFieldStyle(.roundedBorder)
-                }
             }
             
             Spacer()
