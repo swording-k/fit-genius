@@ -210,7 +210,130 @@ class AIService {
         let cleanedContent = cleanMarkdownCodeBlock(content)
         
         // 解析为 WorkoutPlan
-        return try parseWorkoutPlan(from: cleanedContent, profile: profile)
+        return try parsePlanJSON(jsonString: content)
+    }
+    
+    // MARK: - 根据用户要求重新生成训练计划
+    func regeneratePlan(profile: UserProfile, userRequest: String) async throws -> WorkoutPlan {
+        // 验证 API Key
+        guard let apiKey = apiKey else {
+            throw AIServiceError.missingAPIKey
+        }
+        
+        // 验证 URL
+        guard let url = URL(string: baseURL) else {
+            throw AIServiceError.invalidURL
+        }
+        
+        // 构建 Prompt
+        let systemMessage = """
+        你是一个专业的健身教练。用户想要修改训练计划的整体结构。
+        
+        请根据用户的要求重新生成完整的训练计划（JSON格式）。
+        
+        重要：根据用户要求选择合适的训练分化和循环天数：
+        
+        1. 新手/时间少：3-4天循环
+           - 3天：全身训练 + 休息
+           - 4天：推拉腿 + 休息
+        
+        2. 中级/时间适中：4-5天循环
+           - 4天：推拉腿 + 休息
+           - 5天：上下肢分化 + 休息
+        
+        3. 高级/时间充足：6-7天循环
+           - 6天：5天分化 + 1休息
+           - 7天：6天分化 + 1休息
+        
+        JSON 格式要求：
+        1. 不要返回任何 Markdown 标记，只返回纯 JSON
+        2. 必须包含：name, days
+        3. 每个 day 包含：dayNumber, focus, isRestDay, exercises
+        4. 休息日：isRestDay: true, exercises: []
+        5. 所有内容使用中文
+        
+        示例 JSON：
+        {
+          "name": "三分化训练计划",
+          "days": [
+            {
+              "dayNumber": 1,
+              "focus": "胸部",
+              "isRestDay": false,
+              "exercises": [...]
+            },
+            {
+              "dayNumber": 2,
+              "focus": "背部",
+              "isRestDay": false,
+              "exercises": [...]
+            },
+            {
+              "dayNumber": 3,
+              "focus": "腿部",
+              "isRestDay": false,
+              "exercises": [...]
+            },
+            {
+              "dayNumber": 4,
+              "focus": "休息",
+              "isRestDay": true,
+              "exercises": []
+            }
+          ]
+        }
+        """
+        
+        let userMessage = """
+        用户信息：
+        - 姓名：\(profile.name)
+        - 年龄：\(profile.age)
+        - 身高：\(profile.height) cm
+        - 体重：\(profile.weight) kg
+        - 健身目标：\(profile.goal.rawValue)
+        - 训练环境：\(profile.environment.rawValue)
+        - 可用器械：\(profile.availableEquipment.isEmpty ? "无" : profile.availableEquipment.joined(separator: ", "))
+        - 备注：\(profile.injuries.isEmpty ? "无" : profile.injuries)
+        
+        用户要求：
+        \(userRequest)
+        
+        请根据用户要求重新生成训练计划。只返回 JSON，不要有任何其他文字。
+        """
+        
+        // 构建请求体
+        let requestBody = ChatCompletionRequest(
+            model: model,
+            messages: [
+                ChatCompletionRequest.Message(role: "system", content: systemMessage),
+                ChatCompletionRequest.Message(role: "user", content: userMessage)
+            ]
+        )
+        
+        // 发送请求
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(requestBody)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        // 验证响应
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200...299).contains(httpResponse.statusCode) else {
+            throw AIServiceError.invalidResponse
+        }
+        
+        // 解析响应
+        let chatResponse = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
+        
+        guard let content = chatResponse.choices.first?.message.content else {
+            throw AIServiceError.emptyContent
+        }
+        
+        // 解析 JSON 并创建 WorkoutPlan
+        return try parsePlanJSON(jsonString: content)
     }
     
     // MARK: - AI 助手对话（支持计划修改）

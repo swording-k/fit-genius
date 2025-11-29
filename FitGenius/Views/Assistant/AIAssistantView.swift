@@ -113,10 +113,9 @@ struct AIAssistantView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(action: {
-                    // 清空聊天记录
                     viewModel.messages.removeAll()
                     let welcomeMessage = ChatMessage(
-                        content: "你好！我是你的 AI 健身助手。有什么可以帮你的吗？",
+                        content: "你好！我是你的 AI 健身助手。你可以向我咨询健身建议，或者让我帮你调整训练计划。",
                         isUser: false
                     )
                     viewModel.messages.append(welcomeMessage)
@@ -124,6 +123,21 @@ struct AIAssistantView: View {
                     Image(systemName: "trash")
                 }
             }
+        }
+        .alert("重新生成训练计划", isPresented: $viewModel.showPlanRegenerationAlert) {
+            Button("取消", role: .cancel) {
+                // 取消操作
+            }
+            Button("确认", role: .destructive) {
+                // 确认重新生成
+                if let profile = profile {
+                    Task {
+                        await viewModel.regeneratePlan(profile: profile)
+                    }
+                }
+            }
+        } message: {
+            Text("检测到您想要修改训练计划的整体结构（如循环天数）。\n\n这将重新生成完整的训练计划，您手动修改的内容将会丢失。\n\n是否继续？")
         }
     }
     
