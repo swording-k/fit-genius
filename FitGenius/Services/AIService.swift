@@ -210,7 +210,7 @@ class AIService {
         let cleanedContent = cleanMarkdownCodeBlock(content)
         
         // 解析为 WorkoutPlan
-        return try parsePlanJSON(jsonString: content)
+        return try parseWorkoutPlan(from: cleanedContent, profile: profile)
     }
     
     // MARK: - 根据用户要求重新生成训练计划
@@ -332,8 +332,11 @@ class AIService {
             throw AIServiceError.emptyContent
         }
         
+        // 清理 Markdown 标记
+        let cleanedContent = cleanMarkdownCodeBlock(content)
+        
         // 解析 JSON 并创建 WorkoutPlan
-        return try parsePlanJSON(jsonString: content)
+        return try parseWorkoutPlan(from: cleanedContent, profile: profile)
     }
     
     // MARK: - AI 助手对话（支持计划修改）
