@@ -97,15 +97,12 @@ struct EquipmentSelectionView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                TextEditor(text: $viewModel.notes)
-                    .frame(height: 100)
+                TextField("例如：我想要4分化训练，有膝盖伤病", text: $viewModel.notes, axis: .vertical)
+                    .lineLimit(3...5)
+                    .textFieldStyle(.roundedBorder)
                     .padding(8)
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(8)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                    )
             }
             
             // 导航按钮

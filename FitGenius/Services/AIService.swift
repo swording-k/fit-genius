@@ -229,9 +229,9 @@ class AIService {
         let systemMessage = """
         你是一个专业的健身教练。用户想要修改训练计划的整体结构。
         
-        请根据用户的要求重新生成完整的训练计划（JSON格式）。
+        请根据用户的要求重新生成完整的训练计划。
         
-        重要：根据用户要求选择合适的训练分化和循环天数：
+        **重要：根据用户要求选择合适的训练分化和循环天数**
         
         1. 新手/时间少：3-4天循环
            - 3天：全身训练 + 休息
@@ -245,43 +245,92 @@ class AIService {
            - 6天：5天分化 + 1休息
            - 7天：6天分化 + 1休息
         
-        JSON 格式要求：
-        1. 不要返回任何 Markdown 标记，只返回纯 JSON
-        2. 必须包含：name, days
-        3. 每个 day 包含：dayNumber, focus, isRestDay, exercises
-        4. 休息日：isRestDay: true, exercises: []
-        5. 所有内容使用中文
+        **JSON 格式要求（非常重要）**：
+        1. 只返回纯 JSON，不要有任何 Markdown 标记（如 ```json）
+        2. 不要有任何解释性文字，只返回 JSON
+        3. 必须包含：name, days
+        4. 每个 day 必须包含：dayNumber, focus, isRestDay, exercises
+        5. 休息日必须设置：isRestDay: true, exercises: []
+        6. 训练日必须设置：isRestDay: false
+        7. 所有字符串使用中文
         
-        示例 JSON：
+        **完整示例（4天循环：胸背肩腿）**：
         {
-          "name": "三分化训练计划",
+          "name": "四分化训练计划",
           "days": [
             {
               "dayNumber": 1,
               "focus": "胸部",
               "isRestDay": false,
-              "exercises": [...]
+              "exercises": [
+                {
+                  "name": "杠铃卧推",
+                  "sets": 4,
+                  "reps": "8-12",
+                  "weight": 60.0,
+                  "notes": "注意肩胛骨收紧"
+                },
+                {
+                  "name": "哑铃飞鸟",
+                  "sets": 3,
+                  "reps": "10-15",
+                  "weight": 15.0,
+                  "notes": "顶峰收缩"
+                }
+              ]
             },
             {
               "dayNumber": 2,
               "focus": "背部",
               "isRestDay": false,
-              "exercises": [...]
+              "exercises": [
+                {
+                  "name": "引体向上",
+                  "sets": 4,
+                  "reps": "6-10",
+                  "weight": 0.0,
+                  "notes": "可以使用辅助"
+                }
+              ]
             },
             {
               "dayNumber": 3,
-              "focus": "腿部",
+              "focus": "肩部",
               "isRestDay": false,
-              "exercises": [...]
+              "exercises": [
+                {
+                  "name": "哑铃推举",
+                  "sets": 4,
+                  "reps": "8-12",
+                  "weight": 20.0,
+                  "notes": "保持核心稳定"
+                }
+              ]
             },
             {
               "dayNumber": 4,
+              "focus": "腿部",
+              "isRestDay": false,
+              "exercises": [
+                {
+                  "name": "深蹲",
+                  "sets": 4,
+                  "reps": "8-12",
+                  "weight": 80.0,
+                  "notes": "膝盖不要超过脚尖"
+                }
+              ]
+            },
+            {
+              "dayNumber": 5,
               "focus": "休息",
               "isRestDay": true,
               "exercises": []
             }
           ]
         }
+        
+        请严格按照上述格式返回 JSON，不要有任何其他内容。
         """
         
         let userMessage = """
