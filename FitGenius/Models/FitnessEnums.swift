@@ -35,6 +35,7 @@ enum BodyPartFocus: String, Codable, CaseIterable, Identifiable {
     case core = "核心"
     case fullBody = "全身"
     case cardio = "有氧"
+    case rest = "休息"  // 休息日
     
     var id: String { self.rawValue }
     

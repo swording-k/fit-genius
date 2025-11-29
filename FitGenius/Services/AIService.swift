@@ -512,6 +512,7 @@ class AIService {
             struct DayJSON: Codable {
                 let dayNumber: Int
                 let focus: String
+                let isRestDay: Bool?  // 可选字段
                 let exercises: [ExerciseJSON]
                 
                 struct ExerciseJSON: Codable {
@@ -550,24 +551,36 @@ class AIService {
         // 创建 WorkoutDay 和 Exercise
         for dayJSON in planJSON.days {
             // 解析 focus
-            print("🔍 解析部位: \(dayJSON.focus)")
-            let focus = BodyPartFocus(rawValue: dayJSON.focus) ?? .fullBody
-            print("✅ 解析结果: \(focus.rawValue)")
+            print("🔍 解析部位: \(dayJSON.focus), isRestDay: \(dayJSON.isRestDay ?? false)")
             
-            let workoutDay = WorkoutDay(dayNumber: dayJSON.dayNumber, focus: focus)
+            // 如果是休息日，强制设置 focus 为 .rest
+            let focus: BodyPartFocus
+            let isRestDay = dayJSON.isRestDay ?? false
+            
+            if isRestDay || dayJSON.focus == "休息" || dayJSON.focus == "休息日" {
+                focus = .rest
+            } else {
+                focus = BodyPartFocus(rawValue: dayJSON.focus) ?? .fullBody
+            }
+            
+            print("✅ 解析结果: \(focus.rawValue), isRestDay: \(isRestDay)")
+            
+            let workoutDay = WorkoutDay(dayNumber: dayJSON.dayNumber, focus: focus, isRestDay: isRestDay)
             workoutDay.plan = workoutPlan
             
-            // 创建 Exercise
-            for exerciseJSON in dayJSON.exercises {
-                let exercise = Exercise(
-                    name: exerciseJSON.name,
-                    sets: exerciseJSON.sets,
-                    reps: exerciseJSON.reps,
-                    weight: exerciseJSON.weight,
-                    notes: exerciseJSON.notes ?? ""
-                )
-                exercise.workoutDay = workoutDay
-                workoutDay.exercises.append(exercise)
+            // 创建 Exercise（休息日不创建动作）
+            if !isRestDay {
+                for exerciseJSON in dayJSON.exercises {
+                    let exercise = Exercise(
+                        name: exerciseJSON.name,
+                        sets: exerciseJSON.sets,
+                        reps: exerciseJSON.reps,
+                        weight: exerciseJSON.weight,
+                        notes: exerciseJSON.notes ?? ""
+                    )
+                    exercise.workoutDay = workoutDay
+                    workoutDay.exercises.append(exercise)
+                }
             }
             
             workoutPlan.days.append(workoutDay)
