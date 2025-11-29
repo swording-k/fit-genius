@@ -73,25 +73,37 @@ struct WorkoutDayDetailView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // 标题
-            VStack(alignment: .leading, spacing: 4) {
-                Text("第 \(workoutDay.dayNumber) 天")
-                    .font(.title2)
-                    .bold()
-                
-                // 根据是否是休息日显示不同标题
-                if workoutDay.isRestDay {
-                    Text("休息日")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                } else {
-                    Text(workoutDay.focus.localizedName)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+            // 标题 + 新增动作
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("第 \(workoutDay.dayNumber) 天")
+                        .font(.title2)
+                        .bold()
                     
-                    Text("\(workoutDay.exercises.count) 个动作")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    // 根据是否是休息日显示不同标题
+                    if workoutDay.isRestDay {
+                        Text("休息日")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    } else {
+                        Text(workoutDay.focus.localizedName)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        
+                        Text("\(workoutDay.exercises.count) 个动作")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                Spacer()
+                if !workoutDay.isRestDay {
+                    Button(action: { showCreateSheet = true }) {
+                        Label("新增动作", systemImage: "plus.circle.fill")
+                            .labelStyle(.iconOnly)
+                            .font(.title2)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.trailing)
                 }
             }
             .padding(.horizontal)
@@ -148,6 +160,9 @@ struct WorkoutDayDetailView: View {
         .sheet(item: $editingExercise) { exercise in
             ExerciseEditSheet(exercise: exercise)
         }
+        .sheet(isPresented: $showCreateSheet) {
+            ExerciseCreateSheet(workoutDay: workoutDay)
+        }
         .onAppear {
             // 检查并重置昨天的完成状态
             for exercise in workoutDay.exercises {
@@ -156,6 +171,7 @@ struct WorkoutDayDetailView: View {
         }
     }
     
+    @State private var showCreateSheet = false
     private func deleteExercise(_ exercise: Exercise) {
         withAnimation {
             if let index = workoutDay.exercises.firstIndex(where: { $0.id == exercise.id }) {

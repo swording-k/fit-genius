@@ -11,6 +11,7 @@ class AIAssistantViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var showPlanRegenerationAlert: Bool = false
     @Published var pendingUserMessage: String = ""
+    @Published var suggestionOnly: Bool = true
     
     private let aiService = AIService()
     private let modelContext: ModelContext
@@ -56,16 +57,46 @@ class AIAssistantViewModel: ObservableObject {
         
         // 检测是否是计划级别修改
         if detectModificationType(userMessage: userMessage) {
-            // 显示确认对话框
-            pendingUserMessage = userMessage
-            showPlanRegenerationAlert = true
-            return
+            if suggestionOnly {
+                // 建议模式：提供文字建议，不进行计划改动
+                await provideSuggestionOnly(userMessage: userMessage, profile: profile, plan: plan)
+                return
+            } else {
+                // 编辑模式：显示确认对话框并可能重生成
+                pendingUserMessage = userMessage
+                showPlanRegenerationAlert = true
+                return
+            }
         }
         
         // 动作级别修改
         await processExerciseLevelModification(userMessage: userMessage, profile: profile, plan: plan)
     }
     
+    // MARK: - 建议模式：仅提供文字建议
+    private func provideSuggestionOnly(userMessage: String, profile: UserProfile, plan: WorkoutPlan) async {
+        isLoading = true
+        errorMessage = nil
+        do {
+            let (response, _) = try await aiService.chat(
+                userMessage: "【请只提供建议，不要返回任何 JSON 指令或修改计划】\n" + userMessage,
+                profile: profile,
+                plan: plan
+            )
+            let tip = ChatMessage(content: "已启用建议模式：我只会给出文字建议，你可在训练页自行调整。", isUser: false, isSystemAction: true)
+            messages.append(tip)
+            if !response.isEmpty {
+                let aiMessage = ChatMessage(content: response, isUser: false)
+                messages.append(aiMessage)
+            }
+            isLoading = false
+        } catch {
+            isLoading = false
+            errorMessage = error.localizedDescription
+            let errMsg = ChatMessage(content: "抱歉，生成建议失败：\(error.localizedDescription)", isUser: false)
+            messages.append(errMsg)
+        }
+    }
     // MARK: - 处理动作级别修改
     private func processExerciseLevelModification(userMessage: String, profile: UserProfile, plan: WorkoutPlan) async {
         isLoading = true
@@ -122,15 +153,19 @@ class AIAssistantViewModel: ObservableObject {
                 userRequest: pendingUserMessage
             )
             
-            // 删除旧计划
-            if let oldPlan = profile.workoutPlan {
-                modelContext.delete(oldPlan)
-            }
-            
-            // 设置新计划
-            profile.workoutPlan = newPlan
+            // 先持久化新计划，不改变现有链接，避免空状态闪断
             modelContext.insert(newPlan)
             try modelContext.save()
+            
+            // 验证新计划有效后再切换链接
+            let oldPlan = profile.workoutPlan
+            guard !newPlan.days.isEmpty else {
+                throw NSError(domain: "AIAssistant", code: -1, userInfo: [NSLocalizedDescriptionKey: "生成的计划为空，请稍后重试"])
+            }
+            profile.workoutPlan = newPlan
+            try modelContext.save()
+            
+            // 不删除旧计划，保留为备份
             
             // 添加成功消息
             let successMessage = ChatMessage(
@@ -199,9 +234,17 @@ class AIAssistantViewModel: ObservableObject {
             return "❌ 未找到第 \(dayNumber) 天的训练"
         }
         
-        // 找到要替换的动作
-        guard let exercise = day.exercises.first(where: { $0.name.contains(oldName) || oldName.contains($0.name) }) else {
-            return "❌ 在第 \(dayNumber) 天未找到动作：\(oldName)"
+        // 找到要替换的动作（优先精确匹配，失败时仅在唯一近似匹配时回退）
+        let exactMatches = day.exercises.filter { $0.name.caseInsensitiveCompare(oldName) == .orderedSame }
+        let targetExercise: Exercise?
+        if exactMatches.count == 1 {
+            targetExercise = exactMatches.first
+        } else {
+            let fuzzyMatches = day.exercises.filter { $0.name.localizedCaseInsensitiveContains(oldName) || oldName.localizedCaseInsensitiveContains($0.name) }
+            targetExercise = (fuzzyMatches.count == 1) ? fuzzyMatches.first : nil
+        }
+        guard let exercise = targetExercise else {
+            return "❌ 在第 \(dayNumber) 天未找到唯一匹配的动作：\(oldName)，请提供更精确的名称"
         }
         
         // 更新动作信息
@@ -241,6 +284,7 @@ class AIAssistantViewModel: ObservableObject {
         )
         newExercise.workoutDay = day
         day.exercises.append(newExercise)
+        modelContext.insert(newExercise)
         
         let reason = action.reason ?? "根据您的需求添加"
         return "✅ 已在第 \(dayNumber) 天添加动作「\(exerciseName)」\n原因：\(reason)"
@@ -258,9 +302,21 @@ class AIAssistantViewModel: ObservableObject {
             return "❌ 未找到第 \(dayNumber) 天的训练"
         }
         
-        // 找到要删除的动作
-        guard let index = day.exercises.firstIndex(where: { $0.name.contains(exerciseName) || exerciseName.contains($0.name) }) else {
-            return "❌ 在第 \(dayNumber) 天未找到动作：\(exerciseName)"
+        // 找到要删除的动作（优先精确匹配，失败时仅在唯一近似匹配时回退）
+        let exactIndexes = day.exercises.enumerated().compactMap { idx, ex in
+            ex.name.caseInsensitiveCompare(exerciseName) == .orderedSame ? idx : nil
+        }
+        var index: Int?
+        if exactIndexes.count == 1 {
+            index = exactIndexes.first
+        } else {
+            let fuzzyIndexes = day.exercises.enumerated().compactMap { idx, ex in
+                (ex.name.localizedCaseInsensitiveContains(exerciseName) || exerciseName.localizedCaseInsensitiveContains(ex.name)) ? idx : nil
+            }
+            index = (fuzzyIndexes.count == 1) ? fuzzyIndexes.first : nil
+        }
+        guard let index = index else {
+            return "❌ 在第 \(dayNumber) 天未找到唯一匹配的动作：\(exerciseName)，请提供更精确的名称"
         }
         
         let exercise = day.exercises[index]

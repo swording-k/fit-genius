@@ -4,6 +4,9 @@ import SwiftData
 // MARK: - 器械选择页面
 struct EquipmentSelectionView: View {
     @ObservedObject var viewModel: OnboardingViewModel
+    @FocusState private var notesFocused: Bool
+    @Environment(\.modelContext) private var modelContext
+    @AppStorage("hasOnboarded") private var hasOnboarded = false
     
     let columns = [
         GridItem(.flexible()),
@@ -97,9 +100,9 @@ struct EquipmentSelectionView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                TextField("例如：我想要4分化训练，有膝盖伤病", text: $viewModel.notes, axis: .vertical)
-                    .lineLimit(3...5)
-                    .textFieldStyle(.roundedBorder)
+                TextEditor(text: $viewModel.notes)
+                    .focused($notesFocused)
+                    .frame(minHeight: 80)
                     .padding(8)
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(8)
@@ -120,7 +123,13 @@ struct EquipmentSelectionView: View {
                 }
                 
                 Button(action: {
+                    notesFocused = false
                     viewModel.nextStep()
+                    viewModel.generatePlan(context: modelContext) { success in
+                        if success {
+                            hasOnboarded = true
+                        }
+                    }
                 }) {
                     Text("生成计划")
                         .font(.headline)
@@ -212,9 +221,7 @@ struct GeneratingView: View {
             Spacer()
         }
         .padding()
-        .onAppear {
-            startGeneration()
-        }
+        // 生成流程由按钮触发，保留重试按钮使用
     }
     
     private func startGeneration() {

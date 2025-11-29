@@ -112,15 +112,30 @@ struct AIAssistantView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button(action: {
-                    viewModel.messages.removeAll()
-                    let welcomeMessage = ChatMessage(
-                        content: "你好！我是你的 AI 健身助手。你可以向我咨询健身建议，或者让我帮你调整训练计划。",
-                        isUser: false
-                    )
-                    viewModel.messages.append(welcomeMessage)
-                }) {
-                    Image(systemName: "trash")
+                Menu {
+                    Button(action: {
+                        viewModel.messages.removeAll()
+                        let welcomeMessage = ChatMessage(
+                            content: "你好！我是你的 AI 健身助手。你可以向我咨询健身建议，或者让我帮你调整训练计划。",
+                            isUser: false
+                        )
+                        viewModel.messages.append(welcomeMessage)
+                    }) {
+                        Label("清空对话", systemImage: "trash")
+                    }
+                    Divider()
+                    Button(action: {
+                        viewModel.suggestionOnly = true
+                    }) {
+                        Label("建议模式（安全）", systemImage: viewModel.suggestionOnly ? "checkmark.circle.fill" : "circle")
+                    }
+                    Button(action: {
+                        viewModel.suggestionOnly = false
+                    }) {
+                        Label("编辑模式（改动计划）", systemImage: !viewModel.suggestionOnly ? "checkmark.circle.fill" : "circle")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
                 }
             }
         }
