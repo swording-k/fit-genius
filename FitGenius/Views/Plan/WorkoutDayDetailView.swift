@@ -79,18 +79,39 @@ struct WorkoutDayDetailView: View {
                     .font(.title2)
                     .bold()
                 
-                Text(workoutDay.focus.localizedName)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                
-                Text("\(workoutDay.exercises.count) 个动作")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                // 根据是否是休息日显示不同标题
+                if workoutDay.isRestDay {
+                    Text("休息日")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                } else {
+                    Text(workoutDay.focus.localizedName)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    Text("\(workoutDay.exercises.count) 个动作")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             }
             .padding(.horizontal)
             
-            // 动作列表
-            if workoutDay.exercises.isEmpty {
+            // 动作列表或休息日提示
+            if workoutDay.isRestDay {
+                // 休息日提示
+                VStack(spacing: 12) {
+                    Image(systemName: "bed.double.fill")
+                        .font(.system(size: 50))
+                        .foregroundColor(.orange)
+                    Text("今天是休息日")
+                        .font(.title3)
+                        .bold()
+                    Text("适当休息，强化肌肉恢复")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if workoutDay.exercises.isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "figure.run")
                         .font(.system(size: 50))

@@ -93,7 +93,7 @@ struct EquipmentSelectionView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("备注（可选）")
                     .font(.headline)
-                Text("可以填写伤病情况、额外器械或其他特殊要求")
+                Text("可以填写：伤病情况、额外器械、期望的训练分化（如3分化、4分化、5分化）等")
                     .font(.caption)
                     .foregroundColor(.secondary)
                 

@@ -9,6 +9,8 @@ class AIAssistantViewModel: ObservableObject {
     @Published var inputText: String = ""
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
+    @Published var showPlanRegenerationAlert: Bool = false
+    @Published var pendingUserMessage: String = ""
     
     private let aiService = AIService()
     private let modelContext: ModelContext
@@ -24,6 +26,23 @@ class AIAssistantViewModel: ObservableObject {
         messages.append(welcomeMessage)
     }
     
+    // MARK: - 检测修改类型
+    private func detectModificationType(userMessage: String) -> Bool {
+        // 计划级别修改的关键词
+        let planLevelKeywords = [
+            "分化", "循环", "天数", "改为.*天", "删除.*天", "增加.*天",
+            "变成.*天", "调整.*天", ".*分化.*改.*分化"
+        ]
+        
+        for keyword in planLevelKeywords {
+            if userMessage.range(of: keyword, options: .regularExpression) != nil {
+                return true
+            }
+        }
+        
+        return false
+    }
+    
     // MARK: - 发送消息
     func sendMessage(profile: UserProfile, plan: WorkoutPlan) async {
         guard !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
@@ -35,6 +54,20 @@ class AIAssistantViewModel: ObservableObject {
         let userChatMessage = ChatMessage(content: userMessage, isUser: true)
         messages.append(userChatMessage)
         
+        // 检测是否是计划级别修改
+        if detectModificationType(userMessage: userMessage) {
+            // 显示确认对话框
+            pendingUserMessage = userMessage
+            showPlanRegenerationAlert = true
+            return
+        }
+        
+        // 动作级别修改
+        await processExerciseLevelModification(userMessage: userMessage, profile: profile, plan: plan)
+    }
+    
+    // MARK: - 处理动作级别修改
+    private func processExerciseLevelModification(userMessage: String, profile: UserProfile, plan: WorkoutPlan) async {
         isLoading = true
         errorMessage = nil
         
@@ -71,6 +104,50 @@ class AIAssistantViewModel: ObservableObject {
             
             let errorChatMessage = ChatMessage(
                 content: "抱歉，出现了错误：\(error.localizedDescription)",
+                isUser: false
+            )
+            messages.append(errorChatMessage)
+        }
+    }
+    
+    // MARK: - 重新生成计划
+    func regeneratePlan(profile: UserProfile) async {
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            // 调用 AI 服务重新生成计划
+            let newPlan = try await aiService.regeneratePlan(
+                profile: profile,
+                userRequest: pendingUserMessage
+            )
+            
+            // 删除旧计划
+            if let oldPlan = profile.workoutPlan {
+                modelContext.delete(oldPlan)
+            }
+            
+            // 设置新计划
+            profile.workoutPlan = newPlan
+            modelContext.insert(newPlan)
+            try modelContext.save()
+            
+            // 添加成功消息
+            let successMessage = ChatMessage(
+                content: "✅ 已根据您的要求重新生成训练计划！新计划已应用。",
+                isUser: false,
+                isSystemAction: true
+            )
+            messages.append(successMessage)
+            
+            isLoading = false
+            
+        } catch {
+            isLoading = false
+            errorMessage = error.localizedDescription
+            
+            let errorChatMessage = ChatMessage(
+                content: "抱歉，重新生成计划失败：\(error.localizedDescription)",
                 isUser: false
             )
             messages.append(errorChatMessage)
