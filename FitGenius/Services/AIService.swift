@@ -638,4 +638,64 @@ class AIService {
         print("✅ 训练计划创建成功，共 \(workoutPlan.days.count) 天")
         return workoutPlan
     }
+
+    // MARK: - 饮食文本解析为 NutritionSummary（粗略估算）
+    func parseDietText(texts: [String]) async throws -> NutritionSummary {
+        guard let apiKey = apiKey else { throw AIServiceError.missingAPIKey }
+        guard let url = URL(string: baseURL) else { throw AIServiceError.invalidURL }
+
+        let systemMessage = """
+        你是营养师。根据用户今天的饮食文字描述，返回 JSON：
+        {
+          "calories": <number>,
+          "protein": <number>,
+          "carbs": <number>,
+          "fat": <number>,
+          "details": [
+            {"name": "食物名", "quantity": "份量", "calories": <number>, "protein": <number>, "carbs": <number>, "fat": <number>}
+          ]
+        }
+        要求：
+        - 只返回纯 JSON，无其他文字与 Markdown
+        - 数值单位：热量 kcal，宏量单位 g
+        - 如果信息不足，合理估算并在数量上体现保守估计
+        """
+
+        let userMessage = texts.isEmpty ? "今天未记录饮食" : texts.joined(separator: "\n")
+        let requestBody = ChatCompletionRequest(
+            model: model,
+            messages: [
+                .init(role: "system", content: systemMessage),
+                .init(role: "user", content: userMessage)
+            ]
+        )
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(requestBody)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else { throw AIServiceError.invalidResponse }
+        let chatResponse = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
+        guard let content = chatResponse.choices.first?.message.content else { throw AIServiceError.emptyContent }
+
+        let cleaned = cleanMarkdownCodeBlock(content)
+        struct SummaryJSON: Codable {
+            let calories: Double
+            let protein: Double
+            let carbs: Double
+            let fat: Double
+            let details: [FoodItem]
+            struct FoodItem: Codable { let name: String; let quantity: String?; let calories: Double?; let protein: Double?; let carbs: Double?; let fat: Double? }
+        }
+        guard let jsonData = cleaned.data(using: .utf8) else { throw AIServiceError.decodingError(NSError(domain: "AIService", code: -1)) }
+        let s = try JSONDecoder().decode(SummaryJSON.self, from: jsonData)
+        let summary = NutritionSummary(calories: s.calories, protein: s.protein, carbs: s.carbs, fat: s.fat)
+        summary.details = s.details.map { item in
+            FoodBreakdown(name: item.name, quantity: item.quantity ?? "", calories: item.calories ?? 0, protein: item.protein ?? 0, carbs: item.carbs ?? 0, fat: item.fat ?? 0)
+        }
+        return summary
+    }
 }

@@ -56,6 +56,11 @@
             value = "sk-35a1fadb0d0142cea09316274209184b"
             isEnabled = "YES">
          </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "ALIYUN_API_KEY"
+            value = "sk-90f57281c4644f10a122e42cf74e2e17"
+            isEnabled = "YES">
+         </EnvironmentVariable>
       </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
