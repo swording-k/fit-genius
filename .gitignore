@@ -1,32 +1,18 @@
-## macOS
+# macOS
 .DS_Store
 
-## Xcode
-DerivedData/
-build/
-*.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
+# Xcode user data
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
 *.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/
-*.xcodeproj/project.xcworkspace/xcuserdata/
 
-## Swift/SwiftPM
-.swiftpm/
-Packages/
-*.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
+# SwiftPM
+.build/
 
-## Carthage/CocoaPods (如无可忽略)
-Pods/
-Carthage/
+# Derived data
+DerivedData/
 
-## Archives & Artifacts
-*.ipa
-*.dSYM
-*.dSYM.zip
-*.framework
-
-## Logs
-*.log
-
-## App Data caches
-FitGenius.xcworkspace/xcuserdata/
-**/*.xcuserdata/
+# Trae workspace
+.trae/

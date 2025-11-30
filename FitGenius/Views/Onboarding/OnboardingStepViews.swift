@@ -3,8 +3,11 @@ import SwiftUI
 // MARK: - 基本信息输入页面
 struct BasicInfoView: View {
     @ObservedObject var viewModel: OnboardingViewModel
+    @FocusState private var focusedField: Field?
+    enum Field { case name, age, height, weight }
     
     var body: some View {
+        ScrollView {
         VStack(alignment: .leading, spacing: 24) {
             // 标题
             VStack(alignment: .leading, spacing: 8) {
@@ -24,6 +27,7 @@ struct BasicInfoView: View {
                         .font(.headline)
                     TextField("请输入您的姓名", text: $viewModel.name)
                         .textFieldStyle(.roundedBorder)
+                        .focused($focusedField, equals: .name)
                 }
                 
                 // 年龄
@@ -33,6 +37,7 @@ struct BasicInfoView: View {
                     TextField("请输入年龄", text: $viewModel.age)
                         .keyboardType(.numberPad)
                         .textFieldStyle(.roundedBorder)
+                        .focused($focusedField, equals: .age)
                 }
                 
                 // 身高
@@ -42,6 +47,7 @@ struct BasicInfoView: View {
                     TextField("请输入身高", text: $viewModel.height)
                         .keyboardType(.decimalPad)
                         .textFieldStyle(.roundedBorder)
+                        .focused($focusedField, equals: .height)
                 }
                 
                 // 体重
@@ -51,6 +57,7 @@ struct BasicInfoView: View {
                     TextField("请输入体重", text: $viewModel.weight)
                         .keyboardType(.decimalPad)
                         .textFieldStyle(.roundedBorder)
+                        .focused($focusedField, equals: .weight)
                 }
             }
             
@@ -71,6 +78,15 @@ struct BasicInfoView: View {
             .disabled(!viewModel.canProceedFromBasicInfo)
         }
         .padding()
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .onTapGesture { focusedField = nil }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("完成") { focusedField = nil }
+            }
+        }
     }
 }
 
@@ -156,7 +172,8 @@ struct GoalAndEnvironmentView: View {
                 }
                 .padding()
             }
-            
+            .scrollDismissesKeyboard(.interactively)
+        
             // 导航按钮（固定在底部）
             VStack(spacing: 0) {
                 Divider()

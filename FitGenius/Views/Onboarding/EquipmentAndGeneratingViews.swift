@@ -84,6 +84,8 @@ struct EquipmentSelectionView: View {
                     }
                 }
             }
+            .scrollDismissesKeyboard(.interactively)
+            .onTapGesture { notesFocused = false }
             
             // 已选择数量提示
             if !viewModel.selectedEquipment.isEmpty {
@@ -143,6 +145,12 @@ struct EquipmentSelectionView: View {
             }
         }
         .padding()
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("完成") { notesFocused = false }
+            }
+        }
     }
 }
 

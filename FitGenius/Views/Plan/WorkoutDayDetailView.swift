@@ -146,6 +146,11 @@ struct WorkoutDayDetailView: View {
                                     .padding(.leading, 60)
                             }
                             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button {
+                                    editingExercise = exercise
+                                } label: {
+                                    Label("编辑", systemImage: "pencil")
+                                }
                                 Button(role: .destructive) {
                                     deleteExercise(exercise)
                                 } label: {
