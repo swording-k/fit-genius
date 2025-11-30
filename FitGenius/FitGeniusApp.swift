@@ -14,7 +14,7 @@ struct FitGeniusApp: App {
         WindowGroup {
             ContentView()
         }
-        .modelContainer(for: [UserProfile.self, WorkoutPlan.self, WorkoutDay.self, Exercise.self, ExerciseLog.self, ChatMessage.self])
+        .modelContainer(for: [UserProfile.self, WorkoutPlan.self, WorkoutDay.self, Exercise.self, ExerciseLog.self, ChatMessage.self, MealEntry.self, MealDay.self, NutritionSummary.self])
     }
 }
 

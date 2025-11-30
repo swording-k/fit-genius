@@ -638,4 +638,89 @@ class AIService {
         print("✅ 训练计划创建成功，共 \(workoutPlan.days.count) 天")
         return workoutPlan
     }
+
+    func dietChat(userMessage: String) async throws -> String {
+        guard let apiKey = apiKey else { throw AIServiceError.missingAPIKey }
+        guard let url = URL(string: baseURL) else { throw AIServiceError.invalidURL }
+        let systemMessage = "你是一个专业的营养与饮食顾问。为用户提供饮食建议、营养科普，并可帮助规范化他们的饮食记录。回答使用中文，简洁可读。"
+        let requestBody = ChatCompletionRequest(
+            model: model,
+            messages: [
+                ChatCompletionRequest.Message(role: "system", content: systemMessage),
+                ChatCompletionRequest.Message(role: "user", content: userMessage)
+            ]
+        )
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(requestBody)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else { throw AIServiceError.invalidResponse }
+        let chatResponse = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
+        guard let content = chatResponse.choices.first?.message.content else { throw AIServiceError.emptyContent }
+        return content.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    struct DietAnalyzeResponse: Codable {
+        struct Item: Codable {
+            let name: String
+            let portion: Double
+            let unit: String
+            let calories: Double
+            let protein: Double
+            let carbs: Double
+            let fat: Double
+            let notes: String?
+            let mealType: String
+        }
+        struct Summary: Codable {
+            let totalCalories: Double
+            let protein: Double
+            let carbs: Double
+            let fat: Double
+            let notes: String?
+        }
+        let entries: [Item]
+        let summary: Summary
+    }
+
+    func analyzeMeals(entries: [MealEntry]) async throws -> DietAnalyzeResponse {
+        guard let apiKey = apiKey else { throw AIServiceError.missingAPIKey }
+        guard let url = URL(string: baseURL) else { throw AIServiceError.invalidURL }
+        let systemMessage = """
+        你是一个专业的营养师。请严格按照下述要求解析用户当天饮食：
+        
+        1) 仅返回纯 JSON（不包含任何 Markdown 代码块或解释性文字）
+        2) 数组 entries 的长度必须与用户输入的条目数完全一致，并与输入顺序一一对应
+        3) 每个条目的单位统一为：portion 使用克(g)，calories 使用千卡(kcal)
+        4) 每个 entries[i] 必须包含字段：name, portion, unit, calories, protein, carbs, fat, notes, mealType
+        5) summary 字段必须包含：totalCalories, protein, carbs, fat, notes
+        6) 若用户描述中为“一碗/一盘/一勺”等量词，请合理估算并换算为克(g)
+        7) 所有返回内容使用中文。
+        """
+        var description = "当天饮食记录（共" + String(entries.count) + "条）：\n"
+        for (index, e) in entries.enumerated() {
+            description += "\(index+1). 餐次=\(e.mealType.rawValue)，描述=\(e.text.isEmpty ? "无" : e.text)\n"
+        }
+        let requestBody = ChatCompletionRequest(
+            model: model,
+            messages: [
+                ChatCompletionRequest.Message(role: "system", content: systemMessage),
+                ChatCompletionRequest.Message(role: "user", content: description)
+            ]
+        )
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(requestBody)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else { throw AIServiceError.invalidResponse }
+        let chatResponse = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
+        guard let content = chatResponse.choices.first?.message.content else { throw AIServiceError.emptyContent }
+        let cleaned = cleanMarkdownCodeBlock(content)
+        guard let jsonData = cleaned.data(using: .utf8) else { throw AIServiceError.decodingError(NSError(domain: "AIService", code: -1)) }
+        return try JSONDecoder().decode(DietAnalyzeResponse.self, from: jsonData)
+    }
 }

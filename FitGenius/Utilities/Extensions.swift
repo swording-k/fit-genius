@@ -4,3 +4,8 @@ extension Array {
         return indices.contains(index) ? self[index] : nil
     }
 }
+
+import Foundation
+extension Notification.Name {
+    static let dietSummaryUpdated = Notification.Name("DietSummaryUpdated")
+}
