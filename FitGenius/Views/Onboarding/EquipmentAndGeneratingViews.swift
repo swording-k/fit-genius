@@ -4,9 +4,7 @@ import SwiftData
 // MARK: - 器械选择页面
 struct EquipmentSelectionView: View {
     @ObservedObject var viewModel: OnboardingViewModel
-    @FocusState private var notesFocused: Bool
     @Environment(\.modelContext) private var modelContext
-    @AppStorage("hasOnboarded") private var hasOnboarded = false
     
     let columns = [
         GridItem(.flexible()),
@@ -85,29 +83,12 @@ struct EquipmentSelectionView: View {
                 }
             }
             .scrollDismissesKeyboard(.interactively)
-            .onTapGesture { notesFocused = false }
             
             // 已选择数量提示
             if !viewModel.selectedEquipment.isEmpty {
                 Text("已选择 \(viewModel.selectedEquipment.count) 种器械")
                     .font(.caption)
                     .foregroundColor(.secondary)
-            }
-            
-            // 备注输入框
-            VStack(alignment: .leading, spacing: 8) {
-                Text("备注（可选）")
-                    .font(.headline)
-                Text("可以填写：伤病情况、额外器械、期望的训练分化（如3分化、4分化、5分化）等")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                TextEditor(text: $viewModel.notes)
-                    .focused($notesFocused)
-                    .frame(minHeight: 80)
-                    .padding(8)
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(8)
             }
             
             // 导航按钮
@@ -125,15 +106,9 @@ struct EquipmentSelectionView: View {
                 }
                 
                 Button(action: {
-                    notesFocused = false
                     viewModel.nextStep()
-                    viewModel.generatePlan(context: modelContext) { success in
-                        if success {
-                            hasOnboarded = true
-                        }
-                    }
                 }) {
-                    Text("生成计划")
+                    Text("下一步")
                         .font(.headline)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
@@ -145,12 +120,6 @@ struct EquipmentSelectionView: View {
             }
         }
         .padding()
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("完成") { notesFocused = false }
-            }
-        }
     }
 }
 
@@ -159,6 +128,7 @@ struct GeneratingView: View {
     @ObservedObject var viewModel: OnboardingViewModel
     @Environment(\.modelContext) private var modelContext
     @Binding var hasOnboarded: Bool
+    @State private var spin = false
     
     var body: some View {
         VStack(spacing: 32) {
@@ -174,11 +144,12 @@ struct GeneratingView: View {
                     .trim(from: 0, to: 0.7)
                     .stroke(Color.blue, style: StrokeStyle(lineWidth: 4, lineCap: .round))
                     .frame(width: 120, height: 120)
-                    .rotationEffect(.degrees(viewModel.isGenerating ? 360 : 0))
-                    .animation(
-                        viewModel.isGenerating ? .linear(duration: 1).repeatForever(autoreverses: false) : .default,
-                        value: viewModel.isGenerating
-                    )
+                    .rotationEffect(.degrees(spin ? 360 : 0))
+                    .onAppear {
+                        withAnimation(.linear(duration: 1).repeatForever(autoreverses: false)) {
+                            spin = true
+                        }
+                    }
                 
                 Image(systemName: "figure.run")
                     .font(.system(size: 50))
@@ -229,6 +200,7 @@ struct GeneratingView: View {
             Spacer()
         }
         .padding()
+        
         // 生成流程由按钮触发，保留重试按钮使用
     }
     
@@ -239,6 +211,65 @@ struct GeneratingView: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     hasOnboarded = true
                 }
+            }
+        }
+    }
+}
+
+// MARK: - 备注输入页面（与器械选择拆分）
+struct NotesView: View {
+    @ObservedObject var viewModel: OnboardingViewModel
+    @Environment(\.modelContext) private var modelContext
+    @AppStorage("hasOnboarded") private var hasOnboarded = false
+    @FocusState private var notesFocused: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("备注")
+                .font(.largeTitle)
+                .bold()
+            Text("可以填写：伤病情况、额外器械、期望的训练分化（如3分化、4分化、5分化）等")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            TextEditor(text: $viewModel.notes)
+                .focused($notesFocused)
+                .frame(minHeight: 160)
+                .padding(8)
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(8)
+            Spacer()
+            HStack(spacing: 12) {
+                Button(action: { viewModel.previousStep() }) {
+                    Text("上一步")
+                        .font(.headline)
+                        .foregroundColor(.blue)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue.opacity(0.1))
+                        .cornerRadius(12)
+                }
+                Button(action: {
+                    notesFocused = false
+                    viewModel.nextStep()
+                    viewModel.generatePlan(context: modelContext) { success in
+                        if success { hasOnboarded = true }
+                    }
+                }) {
+                    Text("生成计划")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue)
+                        .cornerRadius(12)
+                }
+            }
+        }
+        .padding()
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("完成") { notesFocused = false }
             }
         }
     }

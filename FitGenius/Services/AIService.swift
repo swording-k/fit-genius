@@ -77,10 +77,16 @@ class AIService {
     
     // MARK: - 生成初始训练计划
     func generateInitialPlan(profile: UserProfile) async throws -> WorkoutPlan {
+        print("🤖 [AIService] 开始生成训练计划...")
+        print("🤖 [AIService] 用户信息：\(profile.name), \(profile.age)岁, 目标：\(profile.goal.rawValue)")
+        
         // 验证 API Key（没有则返回本地兜底计划）
         guard let apiKey = apiKey else {
+            print("⚠️ [AIService] 未找到 API Key，使用兜底计划")
             return fallbackPlan(for: profile)
         }
+        
+        print("✅ [AIService] API Key 已配置")
         
         // 验证 URL
         guard let url = URL(string: baseURL) else {

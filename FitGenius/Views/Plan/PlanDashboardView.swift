@@ -13,7 +13,7 @@ struct PlanDashboardView: View {
     @State private var showDeleteDayAlert = false
     
     var workoutPlan: WorkoutPlan? {
-        profiles.first?.workoutPlan
+        profiles.reversed().first(where: { $0.workoutPlan != nil })?.workoutPlan
     }
     
     var sortedDays: [WorkoutDay] {
@@ -137,6 +137,14 @@ struct PlanDashboardView: View {
                                 .cornerRadius(10)
                         }
                         .padding(.top, 20)
+
+                        if let profile = profiles.last {
+                            Button(action: { createEmptyPlan(for: profile) }) {
+                                Text("创建空白计划")
+                                    .font(.headline)
+                                    .foregroundColor(.blue)
+                            }
+                        }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
@@ -248,6 +256,14 @@ struct PlanDashboardView: View {
         
         // 重置 Onboarding 状态
         hasOnboarded = false
+    }
+
+    private func createEmptyPlan(for profile: UserProfile) {
+        let plan = WorkoutPlan(name: "我的训练计划")
+        plan.userProfile = profile
+        profile.workoutPlan = plan
+        modelContext.insert(plan)
+        try? modelContext.save()
     }
 }
 
