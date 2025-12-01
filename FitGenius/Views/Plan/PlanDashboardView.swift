@@ -13,7 +13,19 @@ struct PlanDashboardView: View {
     @State private var showDeleteDayAlert = false
     
     var workoutPlan: WorkoutPlan? {
-        profiles.reversed().first(where: { $0.workoutPlan != nil })?.workoutPlan
+        print("📱 [PlanDashboard] 查询训练计划...")
+        print("📱 [PlanDashboard] profiles 数量: \(profiles.count)")
+        
+        for (index, profile) in profiles.enumerated() {
+            print("📱 [PlanDashboard] Profile \(index): \(profile.name), 有计划: \(profile.workoutPlan != nil)")
+            if let plan = profile.workoutPlan {
+                print("📱 [PlanDashboard] 计划名称: \(plan.name), 天数: \(plan.days.count)")
+            }
+        }
+        
+        let plan = profiles.first?.workoutPlan
+        print("📱 [PlanDashboard] 最终返回计划: \(plan != nil ? "有" : "无")")
+        return plan
     }
     
     var sortedDays: [WorkoutDay] {
@@ -34,9 +46,15 @@ struct PlanDashboardView: View {
     }
     
     var body: some View {
-        NavigationStack {
+        let _ = print("📱 [PlanDashboard] body 被调用")
+        let _ = print("📱 [PlanDashboard] profiles.count = \(profiles.count)")
+        let _ = print("📱 [PlanDashboard] workoutPlan = \(workoutPlan != nil ? "有" : "无")")
+        let _ = print("📱 [PlanDashboard] sortedDays.count = \(sortedDays.count)")
+        
+        return NavigationStack {
             VStack(spacing: 0) {
                 if let plan = workoutPlan, !sortedDays.isEmpty, let profile = profiles.first {
+                    print("📱 [PlanDashboard] 显示计划：\(plan.name)")
                     // 顶部计划信息
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
