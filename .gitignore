@@ -16,3 +16,6 @@ DerivedData/
 
 # Trae workspace
 .trae/
+
+# API Keys - DO NOT COMMIT
+Config.plist

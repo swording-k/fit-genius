@@ -57,9 +57,22 @@ class AIService {
     private let baseURL = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
     private let model = "qwen-plus"
     
-    // 从环境变量读取 API Key
+    // 从环境变量或配置文件读取 API Key
     private var apiKey: String? {
-        ProcessInfo.processInfo.environment["ALIYUN_API_KEY"]
+        // 1. 优先从环境变量读取（开发环境）
+        if let envKey = ProcessInfo.processInfo.environment["ALIYUN_API_KEY"] {
+            return envKey
+        }
+        
+        // 2. 从配置文件读取（生产环境）
+        if let path = Bundle.main.path(forResource: "Config", ofType: "plist"),
+           let config = NSDictionary(contentsOfFile: path),
+           let key = config["ALIYUN_API_KEY"] as? String,
+           !key.isEmpty && key != "YOUR_API_KEY_HERE" {
+            return key
+        }
+        
+        return nil
     }
     
     // MARK: - 生成初始训练计划
