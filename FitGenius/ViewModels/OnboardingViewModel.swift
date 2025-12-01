@@ -7,7 +7,8 @@ enum OnboardingStep: Int, CaseIterable {
     case basicInfo = 0
     case goalAndEnvironment = 1
     case equipment = 2
-    case generating = 3
+    case notes = 3
+    case generating = 4
 }
 
 // MARK: - Onboarding ViewModel
@@ -107,46 +108,81 @@ class OnboardingViewModel: ObservableObject {
         
         Task {
             do {
-                // 创建用户资料
-                let profile = UserProfile(
-                    name: name,
-                    age: ageInt,
-                    height: heightDouble,
-                    weight: weightDouble,
-                    goal: selectedGoal,
-                    environment: selectedEnvironment,
-                    availableEquipment: Array(selectedEquipment),
-                    injuries: notes  // 使用 notes 字段
-                )
+                // 查询是否已有用户资料，存在则更新，否则创建
+                let descriptor = FetchDescriptor<UserProfile>()
+                let existing = try? context.fetch(descriptor).first
+                let profile: UserProfile
+                if let p = existing {
+                    p.name = name
+                    p.age = ageInt
+                    p.height = heightDouble
+                    p.weight = weightDouble
+                    p.goal = selectedGoal
+                    p.environment = selectedEnvironment
+                    p.availableEquipment = Array(selectedEquipment)
+                    p.injuries = notes
+                    profile = p
+                } else {
+                    profile = UserProfile(
+                        name: name,
+                        age: ageInt,
+                        height: heightDouble,
+                        weight: weightDouble,
+                        goal: selectedGoal,
+                        environment: selectedEnvironment,
+                        availableEquipment: Array(selectedEquipment),
+                        injuries: notes
+                    )
+                    context.insert(profile)
+                }
                 
                 // 更新进度
                 await MainActor.run {
                     generationProgress = "正在向 AI 发送请求..."
                 }
                 
+                print("🔍 [Onboarding] 开始调用 AI 生成计划...")
+                
                 // 调用 AI 服务
                 let plan = try await aiService.generateInitialPlan(profile: profile)
+                
+                print("✅ [Onboarding] AI 返回计划：\(plan.name)，共 \(plan.days.count) 天")
                 
                 // 更新进度
                 await MainActor.run {
                     generationProgress = "正在保存训练计划..."
                 }
                 
-                // 保存到 SwiftData
+                print("💾 [Onboarding] 开始保存计划到 SwiftData...")
+                
+                // 保存到 SwiftData（建立关系并插入计划）
+                plan.userProfile = profile
                 profile.workoutPlan = plan
-                context.insert(profile)
                 context.insert(plan)
                 
+                print("💾 [Onboarding] 计划已插入，准备保存...")
+                
                 try context.save()
+                
+                print("✅ [Onboarding] SwiftData 保存成功！")
+                print("📊 [Onboarding] 计划详情：")
+                print("   - 计划名称：\(plan.name)")
+                print("   - 训练天数：\(plan.days.count)")
+                for day in plan.days {
+                    print("   - Day \(day.dayNumber): \(day.focus.localizedName), 动作数：\(day.exercises.count), 休息日：\(day.isRestDay)")
+                }
                 
                 // 完成
                 await MainActor.run {
                     generationProgress = "完成！"
                     isGenerating = false
-                    completion(true)
+                    completion(plan.days.count > 0)
                 }
                 
             } catch {
+                print("❌ [Onboarding] 生成计划失败：\(error)")
+                print("❌ [Onboarding] 错误详情：\(error.localizedDescription)")
+                
                 await MainActor.run {
                     isGenerating = false
                     errorMessage = error.localizedDescription

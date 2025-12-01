@@ -13,7 +13,7 @@ struct AIAssistantView: View {
     }
     
     var profile: UserProfile? {
-        profiles.first
+        profiles.reversed().first
     }
     
     var plan: WorkoutPlan? {
@@ -33,10 +33,16 @@ struct AIAssistantView: View {
                         .font(.title3)
                         .foregroundColor(.secondary)
                     
-                    Text("请先完成用户资料设置并生成训练计划")
+                    Text("请先完成用户资料设置或创建空白计划（建议模式可用）")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
+                    
+                    if profile != nil {
+                        SuggestionChatInput(viewModel: viewModel, isInputFocused: $isInputFocused) {
+                            sendSuggestionOnly()
+                        }
+                    }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -78,26 +84,9 @@ struct AIAssistantView: View {
                 
                 Divider()
                 
-                // 输入框
-                HStack(spacing: 12) {
-                    TextField("输入消息...", text: $viewModel.inputText, axis: .vertical)
-                        .textFieldStyle(.roundedBorder)
-                        .focused($isInputFocused)
-                        .lineLimit(1...5)
-                        .submitLabel(.send)
-                        .onSubmit {
-                            sendMessage()
-                        }
-                    
-                    Button(action: sendMessage) {
-                        Image(systemName: "arrow.up.circle.fill")
-                            .font(.title2)
-                            .foregroundColor(viewModel.inputText.isEmpty ? .gray : .blue)
-                    }
-                    .disabled(viewModel.inputText.isEmpty || viewModel.isLoading)
+                SuggestionChatInput(viewModel: viewModel, isInputFocused: $isInputFocused) {
+                    sendMessage()
                 }
-                .padding()
-                .background(Color(.systemBackground))
                 .toolbar {
                     ToolbarItemGroup(placement: .keyboard) {
                         Spacer()
@@ -164,6 +153,16 @@ struct AIAssistantView: View {
             await viewModel.sendMessage(profile: profile, plan: plan)
         }
     }
+
+    // 无计划时的建议模式发送
+    private func sendSuggestionOnly() {
+        guard let profile = profile else { return }
+        isInputFocused = false
+        Task {
+            await viewModel.provideSuggestionOnly(userMessage: viewModel.inputText, profile: profile, plan: WorkoutPlan(name: "临时计划"))
+            viewModel.inputText = ""
+        }
+    }
 }
 
 // MARK: - 消息气泡
@@ -222,4 +221,30 @@ struct MessageBubble: View {
         AIAssistantView(modelContext: container.mainContext)
     }
     .modelContainer(container)
+}
+
+// 底部输入组件（复用建议与编辑模式）
+private struct SuggestionChatInput: View {
+    @ObservedObject var viewModel: AIAssistantViewModel
+    let isInputFocused: FocusState<Bool>.Binding
+    let onSend: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            TextField("输入消息...", text: $viewModel.inputText, axis: .vertical)
+                .textFieldStyle(.roundedBorder)
+                .lineLimit(1...5)
+                .focused(isInputFocused)
+                .submitLabel(.send)
+                .onSubmit { onSend() }
+            Button(action: onSend) {
+                Image(systemName: "arrow.up.circle.fill")
+                    .font(.title2)
+                    .foregroundColor(viewModel.inputText.isEmpty ? .gray : .blue)
+            }
+            .disabled(viewModel.inputText.isEmpty || viewModel.isLoading)
+        }
+        .padding()
+        .background(Color(.systemBackground))
+    }
 }

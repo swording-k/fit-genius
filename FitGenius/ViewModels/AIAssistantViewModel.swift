@@ -74,7 +74,7 @@ class AIAssistantViewModel: ObservableObject {
     }
     
     // MARK: - 建议模式：仅提供文字建议
-    private func provideSuggestionOnly(userMessage: String, profile: UserProfile, plan: WorkoutPlan) async {
+    func provideSuggestionOnly(userMessage: String, profile: UserProfile, plan: WorkoutPlan) async {
         isLoading = true
         errorMessage = nil
         do {

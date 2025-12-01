@@ -34,6 +34,9 @@ struct OnboardingView: View {
                     EquipmentSelectionView(viewModel: viewModel)
                         .tag(OnboardingStep.equipment)
                     
+                    NotesView(viewModel: viewModel)
+                        .tag(OnboardingStep.notes)
+                    
                     GeneratingView(viewModel: viewModel, hasOnboarded: $hasOnboarded)
                         .tag(OnboardingStep.generating)
                 }
@@ -48,7 +51,7 @@ struct OnboardingView: View {
 struct ProgressIndicator: View {
     let currentStep: OnboardingStep
     
-    private let steps = ["基本信息", "目标设定", "器械选择"]
+    private let steps = ["基本信息", "目标设定", "器械选择", "备注"]
     
     var body: some View {
         HStack(spacing: 8) {
