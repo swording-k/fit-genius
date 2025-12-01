@@ -77,9 +77,9 @@ class AIService {
     
     // MARK: - 生成初始训练计划
     func generateInitialPlan(profile: UserProfile) async throws -> WorkoutPlan {
-        // 验证 API Key
+        // 验证 API Key（没有则返回本地兜底计划）
         guard let apiKey = apiKey else {
-            throw AIServiceError.missingAPIKey
+            return fallbackPlan(for: profile)
         }
         
         // 验证 URL
@@ -222,15 +222,19 @@ class AIService {
         // 清理 Markdown 标记
         let cleanedContent = cleanMarkdownCodeBlock(content)
         
-        // 解析为 WorkoutPlan
-        return try parseWorkoutPlan(from: cleanedContent, profile: profile)
+        // 解析为 WorkoutPlan；解析失败时使用本地兜底计划
+        do {
+            return try parseWorkoutPlan(from: cleanedContent, profile: profile)
+        } catch {
+            return fallbackPlan(for: profile)
+        }
     }
     
     // MARK: - 根据用户要求重新生成训练计划
     func regeneratePlan(profile: UserProfile, userRequest: String) async throws -> WorkoutPlan {
-        // 验证 API Key
+        // 验证 API Key（没有则返回本地兜底计划）
         guard let apiKey = apiKey else {
-            throw AIServiceError.missingAPIKey
+            return fallbackPlan(for: profile)
         }
         
         // 验证 URL
@@ -397,8 +401,12 @@ class AIService {
         // 清理 Markdown 标记
         let cleanedContent = cleanMarkdownCodeBlock(content)
         
-        // 解析 JSON 并创建 WorkoutPlan
-        return try parseWorkoutPlan(from: cleanedContent, profile: profile)
+        // 解析 JSON 并创建 WorkoutPlan；解析失败时使用本地兜底计划
+        do {
+            return try parseWorkoutPlan(from: cleanedContent, profile: profile)
+        } catch {
+            return fallbackPlan(for: profile)
+        }
     }
     
     // MARK: - AI 助手对话（支持计划修改）
@@ -650,6 +658,33 @@ class AIService {
         
         print("✅ 训练计划创建成功，共 \(workoutPlan.days.count) 天")
         return workoutPlan
+    }
+
+    private func fallbackPlan(for profile: UserProfile) -> WorkoutPlan {
+        let plan = WorkoutPlan(name: "基础训练计划")
+        plan.userProfile = profile
+        let day1 = WorkoutDay(dayNumber: 1, focus: .chest, isRestDay: false)
+        day1.plan = plan
+        day1.exercises = [
+            Exercise(name: "俯卧撑", sets: 4, reps: "12-15", weight: 0, notes: "保持核心稳定"),
+            Exercise(name: "哑铃卧推", sets: 3, reps: "8-12", weight: 15, notes: "肩胛收紧")
+        ]
+        let day2 = WorkoutDay(dayNumber: 2, focus: .back, isRestDay: false)
+        day2.plan = plan
+        day2.exercises = [
+            Exercise(name: "引体向上/高位下拉", sets: 4, reps: "8-12", weight: 0),
+            Exercise(name: "坐姿划船", sets: 3, reps: "10-12", weight: 35)
+        ]
+        let day3 = WorkoutDay(dayNumber: 3, focus: .legs, isRestDay: false)
+        day3.plan = plan
+        day3.exercises = [
+            Exercise(name: "深蹲/腿举", sets: 4, reps: "8-12", weight: 40),
+            Exercise(name: "弓步蹲", sets: 3, reps: "12-15", weight: 0)
+        ]
+        let day4 = WorkoutDay(dayNumber: 4, focus: .rest, isRestDay: true)
+        day4.plan = plan
+        plan.days = [day1, day2, day3, day4]
+        return plan
     }
 
     func dietChat(userMessage: String) async throws -> String {
