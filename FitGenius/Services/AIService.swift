@@ -663,26 +663,38 @@ class AIService {
     private func fallbackPlan(for profile: UserProfile) -> WorkoutPlan {
         let plan = WorkoutPlan(name: "基础训练计划")
         plan.userProfile = profile
+        
+        // Day 1: 胸部
         let day1 = WorkoutDay(dayNumber: 1, focus: .chest, isRestDay: false)
         day1.plan = plan
-        day1.exercises = [
-            Exercise(name: "俯卧撑", sets: 4, reps: "12-15", weight: 0, notes: "保持核心稳定"),
-            Exercise(name: "哑铃卧推", sets: 3, reps: "8-12", weight: 15, notes: "肩胛收紧")
-        ]
+        let ex1_1 = Exercise(name: "俯卧撑", sets: 4, reps: "12-15", weight: 0, notes: "保持核心稳定")
+        ex1_1.workoutDay = day1
+        let ex1_2 = Exercise(name: "哑铃卧推", sets: 3, reps: "8-12", weight: 15, notes: "肩胛收紧")
+        ex1_2.workoutDay = day1
+        day1.exercises = [ex1_1, ex1_2]
+        
+        // Day 2: 背部
         let day2 = WorkoutDay(dayNumber: 2, focus: .back, isRestDay: false)
         day2.plan = plan
-        day2.exercises = [
-            Exercise(name: "引体向上/高位下拉", sets: 4, reps: "8-12", weight: 0),
-            Exercise(name: "坐姿划船", sets: 3, reps: "10-12", weight: 35)
-        ]
+        let ex2_1 = Exercise(name: "引体向上/高位下拉", sets: 4, reps: "8-12", weight: 0)
+        ex2_1.workoutDay = day2
+        let ex2_2 = Exercise(name: "坐姿划船", sets: 3, reps: "10-12", weight: 35)
+        ex2_2.workoutDay = day2
+        day2.exercises = [ex2_1, ex2_2]
+        
+        // Day 3: 腿部
         let day3 = WorkoutDay(dayNumber: 3, focus: .legs, isRestDay: false)
         day3.plan = plan
-        day3.exercises = [
-            Exercise(name: "深蹲/腿举", sets: 4, reps: "8-12", weight: 40),
-            Exercise(name: "弓步蹲", sets: 3, reps: "12-15", weight: 0)
-        ]
+        let ex3_1 = Exercise(name: "深蹲/腿举", sets: 4, reps: "8-12", weight: 40)
+        ex3_1.workoutDay = day3
+        let ex3_2 = Exercise(name: "弓步蹲", sets: 3, reps: "12-15", weight: 0)
+        ex3_2.workoutDay = day3
+        day3.exercises = [ex3_1, ex3_2]
+        
+        // Day 4: 休息日
         let day4 = WorkoutDay(dayNumber: 4, focus: .rest, isRestDay: true)
         day4.plan = plan
+        
         plan.days = [day1, day2, day3, day4]
         return plan
     }
