@@ -589,7 +589,7 @@ class AIService {
                 let dayNumber: Int
                 let focus: String
                 let isRestDay: Bool?  // 可选字段
-                let exercises: [ExerciseJSON]
+                let exercises: [ExerciseJSON]?
                 
                 struct ExerciseJSON: Codable {
                     let name: String
