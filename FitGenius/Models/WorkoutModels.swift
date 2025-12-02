@@ -34,7 +34,7 @@ final class WorkoutPlan {
     // 获取今天的训练日
     func getTodayWorkout() -> WorkoutDay? {
         let position = getTodayCyclePosition()
-        let sortedDays = days.sorted(by: { $0.dayNumber < $1.dayNumber })
+        let sortedDays = (days ?? []).sorted(by: { $0.dayNumber < $1.dayNumber })
         return sortedDays[safe: position]
     }
     
@@ -113,7 +113,8 @@ final class Exercise {
                 actualReps: reps
             )
             log.exercise = self
-            logs.append(log)
+            if logs == nil { logs = [] }
+            logs?.append(log)
             context.insert(log)
         }
     }
