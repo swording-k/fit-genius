@@ -72,7 +72,8 @@ struct ExerciseCreateSheet: View {
             notes: notes
         )
         ex.workoutDay = workoutDay
-        workoutDay.exercises.append(ex)
+        if workoutDay.exercises == nil { workoutDay.exercises = [] }
+        workoutDay.exercises?.append(ex)
         modelContext.insert(ex)
         try? modelContext.save()
     }

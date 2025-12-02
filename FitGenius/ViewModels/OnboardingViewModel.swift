@@ -150,7 +150,7 @@ class OnboardingViewModel: ObservableObject {
                 // 调用 AI 服务
                 let plan = try await aiService.generateInitialPlan(profile: profile)
                 
-                print("✅ [Onboarding] AI 返回计划：\(plan.name)，共 \(plan.days.count) 天")
+                print("✅ [Onboarding] AI 返回计划：\(plan.name)，共 \((plan.days ?? []).count) 天")
                 
                 // 更新进度
                 await MainActor.run {
@@ -180,7 +180,7 @@ class OnboardingViewModel: ObservableObject {
                     print("🔍 [Onboarding] 有计划: \(savedProfile.workoutPlan != nil)")
                     if let savedPlan = savedProfile.workoutPlan {
                         print("🔍 [Onboarding] 计划名称: \(savedPlan.name)")
-                        print("🔍 [Onboarding] 计划天数: \(savedPlan.days.count)")
+                        print("🔍 [Onboarding] 计划天数: \((savedPlan.days ?? []).count)")
                     } else {
                         print("❌ [Onboarding] 警告：Profile 存在但没有关联计划！")
                     }
@@ -191,8 +191,8 @@ class OnboardingViewModel: ObservableObject {
                 // 打印计划详情
                 print("📊 [Onboarding] 计划详情：")
                 print("   - 计划名称：\(plan.name)")
-                print("   - 训练天数：\(plan.days.count)")
-                for day in plan.days {
+                print("   - 训练天数：\(plan.days?.count ?? 0)") // This line was not part of the instruction, keeping original logic
+                for day in plan.days ?? [] { // This line was not part of the instruction, keeping original logic
                     print("   - Day \(day.dayNumber): \(day.focus.localizedName), 动作数：\(day.exercises.count), 休息日：\(day.isRestDay)")
                 }
                 
@@ -200,7 +200,7 @@ class OnboardingViewModel: ObservableObject {
                 await MainActor.run {
                     generationProgress = "完成！"
                     isGenerating = false
-                    completion(plan.days.count > 0)
+                    completion((plan.days ?? []).count > 0)
                 }
                 
             } catch {

@@ -90,7 +90,7 @@ struct WorkoutDayDetailView: View {
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         
-                        Text("\(workoutDay.exercises.count) 个动作")
+                        Text("\((workoutDay.exercises ?? []).count) 个动作")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -123,7 +123,7 @@ struct WorkoutDayDetailView: View {
                         .foregroundColor(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if workoutDay.exercises.isEmpty {
+            } else if (workoutDay.exercises ?? []).isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "figure.run")
                         .font(.system(size: 50))
@@ -135,7 +135,7 @@ struct WorkoutDayDetailView: View {
             } else {
                 ScrollView {
                     LazyVStack(spacing: 0) {
-                        ForEach(workoutDay.exercises.sorted(by: { $0.name < $1.name })) { exercise in
+                        ForEach((workoutDay.exercises ?? []).sorted(by: { $0.name < $1.name })) { exercise in
                             VStack(spacing: 0) {
                                 ExerciseRowView(exercise: exercise) {
                                     editingExercise = exercise
@@ -170,7 +170,7 @@ struct WorkoutDayDetailView: View {
         }
         .onAppear {
             // 检查并重置昨天的完成状态
-            for exercise in workoutDay.exercises {
+            for exercise in workoutDay.exercises ?? [] {
                 exercise.resetIfNeeded()
             }
         }
@@ -179,8 +179,8 @@ struct WorkoutDayDetailView: View {
     @State private var showCreateSheet = false
     private func deleteExercise(_ exercise: Exercise) {
         withAnimation {
-            if let index = workoutDay.exercises.firstIndex(where: { $0.id == exercise.id }) {
-                workoutDay.exercises.remove(at: index)
+            if let index = (workoutDay.exercises ?? []).firstIndex(where: { $0.id == exercise.id }) {
+                workoutDay.exercises?.remove(at: index)
             }
             modelContext.delete(exercise)
         }

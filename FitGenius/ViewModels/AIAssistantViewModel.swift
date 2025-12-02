@@ -159,7 +159,7 @@ class AIAssistantViewModel: ObservableObject {
             
             // 验证新计划有效后再切换链接
             let oldPlan = profile.workoutPlan
-            guard !newPlan.days.isEmpty else {
+            guard !(newPlan.days ?? []).isEmpty else {
                 throw NSError(domain: "AIAssistant", code: -1, userInfo: [NSLocalizedDescriptionKey: "生成的计划为空，请稍后重试"])
             }
             profile.workoutPlan = newPlan
@@ -230,17 +230,17 @@ class AIAssistantViewModel: ObservableObject {
         }
         
         // 找到对应的训练日
-        guard let day = plan.days.first(where: { $0.dayNumber == dayNumber }) else {
+        guard let day = (plan.days ?? []).first(where: { $0.dayNumber == dayNumber }) else {
             return "❌ 未找到第 \(dayNumber) 天的训练"
         }
         
         // 找到要替换的动作（优先精确匹配，失败时仅在唯一近似匹配时回退）
-        let exactMatches = day.exercises.filter { $0.name.caseInsensitiveCompare(oldName) == .orderedSame }
+        let exactMatches = (day.exercises ?? []).filter { $0.name.caseInsensitiveCompare(oldName) == .orderedSame }
         let targetExercise: Exercise?
         if exactMatches.count == 1 {
             targetExercise = exactMatches.first
         } else {
-            let fuzzyMatches = day.exercises.filter { $0.name.localizedCaseInsensitiveContains(oldName) || oldName.localizedCaseInsensitiveContains($0.name) }
+            let fuzzyMatches = (day.exercises ?? []).filter { $0.name.localizedCaseInsensitiveContains(oldName) || oldName.localizedCaseInsensitiveContains($0.name) }
             targetExercise = (fuzzyMatches.count == 1) ? fuzzyMatches.first : nil
         }
         guard let exercise = targetExercise else {
@@ -271,7 +271,7 @@ class AIAssistantViewModel: ObservableObject {
         }
         
         // 找到对应的训练日
-        guard let day = plan.days.first(where: { $0.dayNumber == dayNumber }) else {
+        guard let day = (plan.days ?? []).first(where: { $0.dayNumber == dayNumber }) else {
             return "❌ 未找到第 \(dayNumber) 天的训练"
         }
         
@@ -283,7 +283,8 @@ class AIAssistantViewModel: ObservableObject {
             weight: action.weight ?? 0
         )
         newExercise.workoutDay = day
-        day.exercises.append(newExercise)
+        if day.exercises == nil { day.exercises = [] }
+        day.exercises?.append(newExercise)
         modelContext.insert(newExercise)
         
         let reason = action.reason ?? "根据您的需求添加"
@@ -298,19 +299,19 @@ class AIAssistantViewModel: ObservableObject {
         }
         
         // 找到对应的训练日
-        guard let day = plan.days.first(where: { $0.dayNumber == dayNumber }) else {
+        guard let day = (plan.days ?? []).first(where: { $0.dayNumber == dayNumber }) else {
             return "❌ 未找到第 \(dayNumber) 天的训练"
         }
         
         // 找到要删除的动作（优先精确匹配，失败时仅在唯一近似匹配时回退）
-        let exactIndexes = day.exercises.enumerated().compactMap { idx, ex in
+        let exactIndexes = (day.exercises ?? []).enumerated().compactMap { idx, ex in
             ex.name.caseInsensitiveCompare(exerciseName) == .orderedSame ? idx : nil
         }
         var index: Int?
         if exactIndexes.count == 1 {
             index = exactIndexes.first
         } else {
-            let fuzzyIndexes = day.exercises.enumerated().compactMap { idx, ex in
+            let fuzzyIndexes = (day.exercises ?? []).enumerated().compactMap { idx, ex in
                 (ex.name.localizedCaseInsensitiveContains(exerciseName) || exerciseName.localizedCaseInsensitiveContains(ex.name)) ? idx : nil
             }
             index = (fuzzyIndexes.count == 1) ? fuzzyIndexes.first : nil
@@ -319,8 +320,8 @@ class AIAssistantViewModel: ObservableObject {
             return "❌ 在第 \(dayNumber) 天未找到唯一匹配的动作：\(exerciseName)，请提供更精确的名称"
         }
         
-        let exercise = day.exercises[index]
-        day.exercises.remove(at: index)
+        let exercise = (day.exercises ?? [])[index]
+        day.exercises?.remove(at: index)
         modelContext.delete(exercise)
         
         let reason = action.reason ?? "根据您的需求删除"
