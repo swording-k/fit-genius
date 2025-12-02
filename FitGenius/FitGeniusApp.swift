@@ -28,9 +28,11 @@ struct FitGeniusApp: App {
                 NutritionSummary.self
             ])
             
+            // 禁用 CloudKit，只使用本地持久化
             let modelConfiguration = ModelConfiguration(
                 schema: schema,
-                isStoredInMemoryOnly: false  // ✅ 确保持久化到磁盘
+                isStoredInMemoryOnly: false,
+                cloudKitDatabase: .none  // ✅ 禁用 CloudKit
             )
             
             modelContainer = try ModelContainer(
@@ -43,6 +45,7 @@ struct FitGeniusApp: App {
                 print("✅ [App] 数据库路径: \(url.path)")
             }
         } catch {
+            print("❌ [App] ModelContainer 初始化失败: \(error)")
             fatalError("无法初始化 ModelContainer: \(error)")
         }
     }
