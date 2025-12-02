@@ -13,7 +13,16 @@ struct PlanDashboardView: View {
     @State private var showDeleteDayAlert = false
     
     var workoutPlan: WorkoutPlan? {
-        profiles.first?.workoutPlan
+        print("📱 [PlanDashboard] 查询训练计划...")
+        print("📱 [PlanDashboard] ModelContext: \(modelContext)")
+        print("📱 [PlanDashboard] ModelContainer: \(modelContext.container)")
+        if let url = modelContext.container.configurations.first?.url {
+            print("📱 [PlanDashboard] Container URL: \(url.path)")
+        } else {
+            print("📱 [PlanDashboard] Container URL: nil")
+        }
+        print("📱 [PlanDashboard] profiles 数量: \(profiles.count)")
+        return profiles.first?.workoutPlan
     }
     
     var sortedDays: [WorkoutDay] {
