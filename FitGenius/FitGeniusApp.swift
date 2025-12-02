@@ -10,11 +10,47 @@ import SwiftData
 
 @main
 struct FitGeniusApp: App {
+    // 创建持久化的 ModelContainer
+    let modelContainer: ModelContainer
+    
+    init() {
+        do {
+            // 显式配置 ModelContainer，确保数据持久化到磁盘
+            let schema = Schema([
+                UserProfile.self,
+                WorkoutPlan.self,
+                WorkoutDay.self,
+                Exercise.self,
+                ExerciseLog.self,
+                ChatMessage.self,
+                MealEntry.self,
+                MealDay.self,
+                NutritionSummary.self
+            ])
+            
+            let modelConfiguration = ModelConfiguration(
+                schema: schema,
+                isStoredInMemoryOnly: false  // ✅ 确保持久化到磁盘
+            )
+            
+            modelContainer = try ModelContainer(
+                for: schema,
+                configurations: [modelConfiguration]
+            )
+            
+            print("✅ [App] ModelContainer 初始化成功")
+            if let url = modelContainer.configurations.first?.url {
+                print("✅ [App] 数据库路径: \(url.path)")
+            }
+        } catch {
+            fatalError("无法初始化 ModelContainer: \(error)")
+        }
+    }
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
         }
-        .modelContainer(for: [UserProfile.self, WorkoutPlan.self, WorkoutDay.self, Exercise.self, ExerciseLog.self, ChatMessage.self, MealEntry.self, MealDay.self, NutritionSummary.self])
+        .modelContainer(modelContainer)
     }
 }
-

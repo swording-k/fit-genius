@@ -131,6 +131,13 @@ class OnboardingViewModel: ObservableObject {
                 )
                 context.insert(profile)
                 print("✅ [Onboarding] Profile 已插入到 context")
+                print("🔍 [Onboarding] ModelContext: \(context)")
+                print("🔍 [Onboarding] ModelContainer: \(context.container)")
+                if let url = context.container.configurations.first?.url {
+                    print("🔍 [Onboarding] Container URL: \(url.path)")
+                } else {
+                    print("🔍 [Onboarding] Container URL: nil")
+                }
                 
                 
                 // 更新进度
