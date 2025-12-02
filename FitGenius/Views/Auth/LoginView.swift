@@ -31,6 +31,9 @@ struct LoginView: View {
             }
         }
         .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(uiColor: .systemBackground))
+        .ignoresSafeArea(edges: .top)  // 覆盖顶部的 safeAreaInset
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
