@@ -5,6 +5,7 @@ struct ProfileView: View {
     @EnvironmentObject var auth: AuthViewModel
     @Environment(\.modelContext) private var modelContext
     @Query private var profiles: [UserProfile]
+    @State private var showLoginSheet = false
 
     var body: some View {
         NavigationStack {
@@ -25,7 +26,9 @@ struct ProfileView: View {
                     
                     // 登录/退出按钮
                     if !auth.isSignedIn {
-                        NavigationLink(destination: LoginView()) {
+                        Button {
+                            showLoginSheet = true
+                        } label: {
                             Text("登录/注册")
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 8)
@@ -63,6 +66,9 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle("我的")
+            .sheet(isPresented: $showLoginSheet) {
+                LoginView()
+            }
         }
     }
 
