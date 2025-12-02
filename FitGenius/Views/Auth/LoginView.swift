@@ -31,5 +31,12 @@ struct LoginView: View {
             }
         }
         .padding()
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text("登录")
+                    .font(.headline)
+            }
+        }
     }
 }
