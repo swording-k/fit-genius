@@ -11,7 +11,7 @@ final class WorkoutPlan {
     var userProfile: UserProfile?
     
     @Relationship(deleteRule: .cascade)
-    var days: [WorkoutDay] = []
+    var days: [WorkoutDay]? = []  // ✅ CloudKit 兼容：可选数组
     
     init(name: String = "My Workout Plan", creationDate: Date = Date()) {
         self.userId = nil
@@ -21,7 +21,7 @@ final class WorkoutPlan {
     
     // 循环天数
     var cycleDays: Int {
-        return days.count
+        return days?.count ?? 0  // ✅ 处理可选
     }
     
     // 获取今天在循环中的位置（0-based）
@@ -65,7 +65,7 @@ final class WorkoutDay {
     var plan: WorkoutPlan?
     
     @Relationship(deleteRule: .cascade)
-    var exercises: [Exercise] = []
+    var exercises: [Exercise]? = []  // ✅ CloudKit 兼容：可选数组
     
     init(dayNumber: Int, focus: BodyPartFocus, isRestDay: Bool = false) {
         self.dayNumber = dayNumber
@@ -88,7 +88,7 @@ final class Exercise {
     var workoutDay: WorkoutDay?
     
     @Relationship(deleteRule: .cascade)
-    var logs: [ExerciseLog] = []
+    var logs: [ExerciseLog]? = []  // ✅ CloudKit 兼容：可选数组
     
     init(name: String, sets: Int, reps: String, weight: Double = 0, notes: String = "", isCompleted: Bool = false) {
         self.name = name

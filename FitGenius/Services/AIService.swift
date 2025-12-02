@@ -533,11 +533,11 @@ class AIService {
     // MARK: - 序列化计划为 Context
     private func serializePlanToContext(plan: WorkoutPlan, profile: UserProfile) -> String {
         var context = "计划名称：\(plan.name)\n"
-        context += "训练天数：\(plan.days.count) 天\n\n"
+        context += "训练天数：\((plan.days ?? []).count) 天\n\n"
         
-        for day in plan.days.sorted(by: { $0.dayNumber < $1.dayNumber }) {
+        for day in (plan.days ?? []).sorted(by: { $0.dayNumber < $1.dayNumber }) {
             context += "第 \(day.dayNumber) 天 - \(day.focus.rawValue)：\n"
-            for exercise in day.exercises {
+            for exercise in day.exercises ?? [] {
                 context += "  - \(exercise.name): \(exercise.sets)组 x \(exercise.reps)"
                 if exercise.weight > 0 {
                     context += " @ \(exercise.weight)kg"
@@ -644,9 +644,9 @@ class AIService {
             let workoutDay = WorkoutDay(dayNumber: dayJSON.dayNumber, focus: focus, isRestDay: isRestDay)
             workoutDay.plan = workoutPlan
             
-            // 创建 Exercise（休息日不创建动作）
-            if !isRestDay {
-                for exerciseJSON in dayJSON.exercises {
+            // 解析动作
+            if let exercisesJSON = dayJSON.exercises {
+                for exerciseJSON in exercisesJSON {
                     let exercise = Exercise(
                         name: exerciseJSON.name,
                         sets: exerciseJSON.sets,
@@ -655,14 +655,21 @@ class AIService {
                         notes: exerciseJSON.notes ?? ""
                     )
                     exercise.workoutDay = workoutDay
-                    workoutDay.exercises.append(exercise)
+                    
+                    if workoutDay.exercises == nil {
+                        workoutDay.exercises = []
+                    }
+                    workoutDay.exercises?.append(exercise)
                 }
             }
             
-            workoutPlan.days.append(workoutDay)
+            if workoutPlan.days == nil {
+                workoutPlan.days = []
+            }
+            workoutPlan.days?.append(workoutDay)
         }
         
-        print("✅ 训练计划创建成功，共 \(workoutPlan.days.count) 天")
+        print("✅ 训练计划创建成功，共 \((workoutPlan.days ?? []).count) 天")
         return workoutPlan
     }
 
