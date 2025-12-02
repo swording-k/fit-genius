@@ -31,11 +31,11 @@ struct FitGeniusApp: App {
                 NutritionSummary.self
             ])
             
-            // 禁用 CloudKit，只使用本地持久化
+            // 启用 CloudKit 云同步
             let modelConfiguration = ModelConfiguration(
                 schema: schema,
                 isStoredInMemoryOnly: false,
-                cloudKitDatabase: .none  // ✅ 禁用 CloudKit
+                cloudKitDatabase: .automatic  // ✅ 启用 CloudKit
             )
             
             modelContainer = try ModelContainer(
