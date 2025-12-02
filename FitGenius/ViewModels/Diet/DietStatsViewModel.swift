@@ -37,10 +37,10 @@ class DietStatsViewModel: ObservableObject {
         var tF: Double = 0
         var tNotes: String = ""
         for day in days {
-            let c = day.summary?.totalCalories ?? day.entries.reduce(0) { $0 + $1.calories }
-            let p = day.summary?.protein ?? day.entries.reduce(0) { $0 + $1.protein }
-            let carb = day.summary?.carbs ?? day.entries.reduce(0) { $0 + $1.carbs }
-            let f = day.summary?.fat ?? day.entries.reduce(0) { $0 + $1.fat }
+            let c = day.summary?.totalCalories ?? (day.entries ?? []).reduce(0) { $0 + $1.calories }
+            let p = day.summary?.protein ?? (day.entries ?? []).reduce(0) { $0 + $1.protein }
+            let carb = day.summary?.carbs ?? (day.entries ?? []).reduce(0) { $0 + $1.carbs }
+            let f = day.summary?.fat ?? (day.entries ?? []).reduce(0) { $0 + $1.fat }
             pts.append(DailyNutritionPoint(date: day.date, calories: c, protein: p, carbs: carb, fat: f))
             if Calendar.current.isDate(day.date, inSameDayAs: today) {
                 tC = c; tP = p; tCarb = carb; tF = f

@@ -38,7 +38,7 @@ struct DietHomeView: View {
                             }
                         }
                     }
-                    ForEach(day.entries) { entry in
+                    ForEach(day.entries ?? []) { entry in
                         VStack(alignment: .leading, spacing: 6) {
                             HStack {
                                 Text(entry.mealType.rawValue)

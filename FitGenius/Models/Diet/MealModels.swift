@@ -43,11 +43,12 @@ enum MealType: String, Codable, CaseIterable {
 
 @Model final class MealDay {
     var date: Date
-    var entries: [MealEntry]
+    @Relationship(deleteRule: .cascade)
+    var entries: [MealEntry]? = []  // ✅ CloudKit 兼容：可选数组
     var submitted: Bool
     var summary: NutritionSummary?
 
-    init(date: Date = Calendar.current.startOfDay(for: Date()), entries: [MealEntry] = [], submitted: Bool = false) {
+    init(date: Date = Calendar.current.startOfDay(for: Date()), entries: [MealEntry]? = [], submitted: Bool = false) {
         self.date = date
         self.entries = entries
         self.submitted = submitted

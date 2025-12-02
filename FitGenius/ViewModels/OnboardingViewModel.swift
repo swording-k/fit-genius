@@ -193,7 +193,7 @@ class OnboardingViewModel: ObservableObject {
                 print("   - 计划名称：\(plan.name)")
                 print("   - 训练天数：\(plan.days?.count ?? 0)") // This line was not part of the instruction, keeping original logic
                 for day in plan.days ?? [] { // This line was not part of the instruction, keeping original logic
-                    print("   - Day \(day.dayNumber): \(day.focus.localizedName), 动作数：\(day.exercises.count), 休息日：\(day.isRestDay)")
+                    print("   - Day \(day.dayNumber): \(day.focus.localizedName), 动作数：\((day.exercises ?? []).count), 休息日：\(day.isRestDay)")
                 }
                 
                 // 完成
