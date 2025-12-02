@@ -48,13 +48,13 @@ final class UserProfile {
         let todayDayNumber = weekday == 1 ? 7 : weekday - 1
         
         // 获取今天的训练
-        guard let todayWorkout = plan.days.first(where: { $0.dayNumber == todayDayNumber }) else {
+        guard let todayWorkout = (plan.days ?? []).first(where: { $0.dayNumber == todayDayNumber }) else {
             return
         }
         
         // 检查今天是否全部完成
-        let allCompleted = !todayWorkout.exercises.isEmpty && 
-                          todayWorkout.exercises.allSatisfy { $0.isCompleted }
+        let allCompleted = !(todayWorkout.exercises ?? []).isEmpty &&
+                          (todayWorkout.exercises ?? []).allSatisfy { $0.isCompleted }
         
         if allCompleted {
             // 如果今天还没有记录完成，增加天数
