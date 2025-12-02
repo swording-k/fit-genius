@@ -26,6 +26,14 @@ struct MainView: View {
                     .tabItem {
                         Label("统计", systemImage: "chart.xyaxis.line")
                     }
+                    
+                    // ✅ 添加"我的" Tab
+                    NavigationStack {
+                        ProfileView()
+                    }
+                    .tabItem {
+                        Label("我的", systemImage: "person.circle")
+                    }
                 }
             } else {
                 TabView {
@@ -46,6 +54,14 @@ struct MainView: View {
                     }
                     .tabItem {
                         Label("统计", systemImage: "chart.xyaxis.line")
+                    }
+                    
+                    // ✅ 添加"我的" Tab
+                    NavigationStack {
+                        ProfileView()
+                    }
+                    .tabItem {
+                        Label("我的", systemImage: "person.circle")
                     }
                 }
             }

@@ -11,15 +11,24 @@ struct ProfileView: View {
             List {
                 Section(header: Text("账户")) {
                     HStack(spacing: 12) {
-                        Image(systemName: "person.circle.fill")
+                        Image(systemName: auth.isSignedIn ? "person.circle.fill" : "person.circle")
                             .font(.system(size: 40))
-                            .foregroundColor(.blue)
+                            .foregroundColor(auth.isSignedIn ? .blue : .gray)
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("已登录")
+                            Text(auth.isSignedIn ? "已登录" : "未登录")
                                 .font(.headline)
-                            Text(maskedUserId)
+                            Text(auth.isSignedIn ? maskedUserId : "点击下方按钮登录")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    // 登录/退出按钮
+                    if !auth.isSignedIn {
+                        NavigationLink(destination: LoginView()) {
+                            Text("登录/注册")
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 8)
                         }
                     }
                 }
