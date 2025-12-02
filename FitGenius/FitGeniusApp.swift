@@ -13,6 +13,9 @@ struct FitGeniusApp: App {
     // 创建持久化的 ModelContainer
     let modelContainer: ModelContainer
     
+    // ✅ 恢复 AuthViewModel
+    @StateObject private var auth = AuthViewModel()
+    
     init() {
         do {
             // 显式配置 ModelContainer，确保数据持久化到磁盘
@@ -53,6 +56,7 @@ struct FitGeniusApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(auth)  // ✅ 恢复
         }
         .modelContainer(modelContainer)
     }
