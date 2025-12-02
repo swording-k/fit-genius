@@ -108,33 +108,30 @@ class OnboardingViewModel: ObservableObject {
         
         Task {
             do {
-                // 查询是否已有用户资料，存在则更新，否则创建
+                // 🔧 修复：删除所有旧 profile，总是创建新的
+                print("🗑️ [Onboarding] 删除所有旧 profile...")
                 let descriptor = FetchDescriptor<UserProfile>()
-                let existing = try? context.fetch(descriptor).first
-                let profile: UserProfile
-                if let p = existing {
-                    p.name = name
-                    p.age = ageInt
-                    p.height = heightDouble
-                    p.weight = weightDouble
-                    p.goal = selectedGoal
-                    p.environment = selectedEnvironment
-                    p.availableEquipment = Array(selectedEquipment)
-                    p.injuries = notes
-                    profile = p
-                } else {
-                    profile = UserProfile(
-                        name: name,
-                        age: ageInt,
-                        height: heightDouble,
-                        weight: weightDouble,
-                        goal: selectedGoal,
-                        environment: selectedEnvironment,
-                        availableEquipment: Array(selectedEquipment),
-                        injuries: notes
-                    )
-                    context.insert(profile)
+                let existing = try? context.fetch(descriptor)
+                existing?.forEach { oldProfile in
+                    print("🗑️ [Onboarding] 删除旧 profile: \(oldProfile.name)")
+                    context.delete(oldProfile)
                 }
+                
+                // 创建新 profile
+                print("✨ [Onboarding] 创建新 profile...")
+                let profile = UserProfile(
+                    name: name,
+                    age: ageInt,
+                    height: heightDouble,
+                    weight: weightDouble,
+                    goal: selectedGoal,
+                    environment: selectedEnvironment,
+                    availableEquipment: Array(selectedEquipment),
+                    injuries: notes
+                )
+                context.insert(profile)
+                print("✅ [Onboarding] Profile 已插入到 context")
+                
                 
                 // 更新进度
                 await MainActor.run {
@@ -159,12 +156,32 @@ class OnboardingViewModel: ObservableObject {
                 plan.userProfile = profile
                 profile.workoutPlan = plan
                 context.insert(plan)
-                
                 print("💾 [Onboarding] 计划已插入，准备保存...")
                 
                 try context.save()
                 
                 print("✅ [Onboarding] SwiftData 保存成功！")
+                
+                // 🔍 立即验证数据是否真的保存了
+                print("🔍 [Onboarding] 开始验证数据...")
+                let verifyDescriptor = FetchDescriptor<UserProfile>()
+                let savedProfiles = try context.fetch(verifyDescriptor)
+                print("🔍 [Onboarding] 查询到 \(savedProfiles.count) 个 profile")
+                
+                if let savedProfile = savedProfiles.first {
+                    print("🔍 [Onboarding] Profile: \(savedProfile.name)")
+                    print("🔍 [Onboarding] 有计划: \(savedProfile.workoutPlan != nil)")
+                    if let savedPlan = savedProfile.workoutPlan {
+                        print("🔍 [Onboarding] 计划名称: \(savedPlan.name)")
+                        print("🔍 [Onboarding] 计划天数: \(savedPlan.days.count)")
+                    } else {
+                        print("❌ [Onboarding] 警告：Profile 存在但没有关联计划！")
+                    }
+                } else {
+                    print("❌ [Onboarding] 严重错误：保存后立即查询不到 Profile！")
+                }
+                
+                // 打印计划详情
                 print("📊 [Onboarding] 计划详情：")
                 print("   - 计划名称：\(plan.name)")
                 print("   - 训练天数：\(plan.days.count)")
