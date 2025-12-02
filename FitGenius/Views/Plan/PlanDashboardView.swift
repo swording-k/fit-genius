@@ -13,19 +13,7 @@ struct PlanDashboardView: View {
     @State private var showDeleteDayAlert = false
     
     var workoutPlan: WorkoutPlan? {
-        print("📱 [PlanDashboard] 查询训练计划...")
-        print("📱 [PlanDashboard] profiles 数量: \(profiles.count)")
-        
-        for (index, profile) in profiles.enumerated() {
-            print("📱 [PlanDashboard] Profile \(index): \(profile.name), 有计划: \(profile.workoutPlan != nil)")
-            if let plan = profile.workoutPlan {
-                print("📱 [PlanDashboard] 计划名称: \(plan.name), 天数: \(plan.days.count)")
-            }
-        }
-        
-        let plan = profiles.first?.workoutPlan
-        print("📱 [PlanDashboard] 最终返回计划: \(plan != nil ? "有" : "无")")
-        return plan
+        profiles.first?.workoutPlan
     }
     
     var sortedDays: [WorkoutDay] {
@@ -46,15 +34,9 @@ struct PlanDashboardView: View {
     }
     
     var body: some View {
-        let _ = print("📱 [PlanDashboard] body 被调用")
-        let _ = print("📱 [PlanDashboard] profiles.count = \(profiles.count)")
-        let _ = print("📱 [PlanDashboard] workoutPlan = \(workoutPlan != nil ? "有" : "无")")
-        let _ = print("📱 [PlanDashboard] sortedDays.count = \(sortedDays.count)")
-        
-        return NavigationStack {
+        NavigationStack {
             VStack(spacing: 0) {
                 if let plan = workoutPlan, !sortedDays.isEmpty, let profile = profiles.first {
-                    print("📱 [PlanDashboard] 显示计划：\(plan.name)")
                     // 顶部计划信息
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
@@ -155,14 +137,6 @@ struct PlanDashboardView: View {
                                 .cornerRadius(10)
                         }
                         .padding(.top, 20)
-
-                        if let profile = profiles.last {
-                            Button(action: { createEmptyPlan(for: profile) }) {
-                                Text("创建空白计划")
-                                    .font(.headline)
-                                    .foregroundColor(.blue)
-                            }
-                        }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
@@ -274,14 +248,6 @@ struct PlanDashboardView: View {
         
         // 重置 Onboarding 状态
         hasOnboarded = false
-    }
-
-    private func createEmptyPlan(for profile: UserProfile) {
-        let plan = WorkoutPlan(name: "我的训练计划")
-        plan.userProfile = profile
-        profile.workoutPlan = plan
-        modelContext.insert(plan)
-        try? modelContext.save()
     }
 }
 
