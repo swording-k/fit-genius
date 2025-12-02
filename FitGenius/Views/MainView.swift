@@ -8,24 +8,46 @@ struct MainView: View {
     
     var body: some View {
         Group {
-            TabView {
-                if appMode == "training" {
+            if appMode == "training" {
+                TabView {
                     PlanDashboardView()
-                        .tabItem { Label("训练", systemImage: "figure.run") }
-                    NavigationStack { AIAssistantView(modelContext: modelContext) }
-                        .tabItem { Label("AI 助手", systemImage: "bubble.left.and.bubble.right") }
-                    NavigationStack { StatsView(modelContext: modelContext) }
-                        .tabItem { Label("统计", systemImage: "chart.xyaxis.line") }
-                } else {
-                    NavigationStack { DietHomeView(modelContext: modelContext) }
-                        .tabItem { Label("饮食", systemImage: "fork.knife") }
-                    NavigationStack { DietAIAssistantView(modelContext: modelContext) }
-                        .tabItem { Label("AI 助手", systemImage: "bubble.left.and.bubble.right") }
-                    NavigationStack { DietStatsView(modelContext: modelContext) }
-                        .tabItem { Label("统计", systemImage: "chart.xyaxis.line") }
+                        .tabItem {
+                            Label("训练", systemImage: "figure.run")
+                        }
+                    NavigationStack {
+                        AIAssistantView(modelContext: modelContext)
+                    }
+                    .tabItem {
+                        Label("AI 助手", systemImage: "bubble.left.and.bubble.right")
+                    }
+                    NavigationStack {
+                        StatsView(modelContext: modelContext)
+                    }
+                    .tabItem {
+                        Label("统计", systemImage: "chart.xyaxis.line")
+                    }
                 }
-                NavigationStack { ProfileView() }
-                    .tabItem { Label("我的", systemImage: "person.crop.circle") }
+            } else {
+                TabView {
+                    NavigationStack {
+                        DietHomeView(modelContext: modelContext)
+                    }
+                    .tabItem {
+                        Label("饮食", systemImage: "fork.knife")
+                    }
+                    NavigationStack {
+                        DietAIAssistantView(modelContext: modelContext)
+                    }
+                    .tabItem {
+                        Label("AI 助手", systemImage: "bubble.left.and.bubble.right")
+                    }
+                    NavigationStack {
+                        DietStatsView(modelContext: modelContext)
+                    }
+                    .tabItem {
+                        Label("统计", systemImage: "chart.xyaxis.line")
+                    }
+                }
             }
         }
         .safeAreaInset(edge: .top) {
