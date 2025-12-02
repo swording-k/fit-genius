@@ -53,7 +53,8 @@ class DietViewModel: ObservableObject {
                               fat: 0,
                               source: "user")
         entry.day = day
-        day.entries.append(entry)
+        if day.entries == nil { day.entries = [] }
+        day.entries?.append(entry)
         inputText = ""
         selectedImagesData = []
         isPresentingAddSheet = false
@@ -82,18 +83,18 @@ class DietViewModel: ObservableObject {
 
     func deleteEntry(_ entry: MealEntry) {
         guard let day = day else { return }
-        if let idx = day.entries.firstIndex(where: { $0 === entry }) {
-            day.entries.remove(at: idx)
+        if let idx = (day.entries ?? []).firstIndex(where: { $0 === entry }) {
+            day.entries?.remove(at: idx)
             modelContext.delete(entry)
         }
     }
 
     func submitDayForAnalysis() async {
-        guard let day = day, !day.entries.isEmpty else { return }
+        guard let day = day, !(day.entries ?? []).isEmpty else { return }
         isSubmitting = true
         defer { isSubmitting = false }
         do {
-            let result = try await service.analyzeMeals(entries: day.entries)
+            let result = try await service.analyzeMeals(entries: day.entries ?? [])
             // 先按餐次聚合 AI 返回的营养，避免一个餐次包含多项食物导致不一致
             var agg: [String: (cal: Double, pro: Double, carb: Double, fat: Double)] = [:]
             for item in result.entries {
@@ -102,12 +103,12 @@ class DietViewModel: ObservableObject {
                 agg[key] = (cur.cal + item.calories, cur.pro + item.protein, cur.carb + item.carbs, cur.fat + item.fat)
             }
             // 将聚合结果回填到当天每个餐次条目中；若同餐次存在多个条目则均匀分配
-            let groups = Dictionary(grouping: day.entries.indices) { day.entries[$0].mealType.rawValue }
+            let groups = Dictionary(grouping: (day.entries ?? []).indices) { (day.entries ?? [])[$0].mealType.rawValue }
             for (mealKey, indices) in groups {
                 guard let sum = agg[mealKey] else { continue }
                 let count = Double(indices.count)
                 for idx in indices {
-                    let entry = day.entries[idx]
+                    let entry = (day.entries ?? [])[idx]
                     entry.calories = sum.cal / count
                     entry.protein = sum.pro / count
                     entry.carbs = sum.carb / count
@@ -116,10 +117,10 @@ class DietViewModel: ObservableObject {
             }
             let summary = NutritionSummary(
                 date: day.date,
-                totalCalories: day.entries.reduce(0) { $0 + $1.calories },
-                protein: day.entries.reduce(0) { $0 + $1.protein },
-                carbs: day.entries.reduce(0) { $0 + $1.carbs },
-                fat: day.entries.reduce(0) { $0 + $1.fat },
+                totalCalories: (day.entries ?? []).reduce(0) { $0 + $1.calories },
+                protein: (day.entries ?? []).reduce(0) { $0 + $1.protein },
+                carbs: (day.entries ?? []).reduce(0) { $0 + $1.carbs },
+                fat: (day.entries ?? []).reduce(0) { $0 + $1.fat },
                 notes: result.summary.notes ?? ""
             )
             summary.day = day
@@ -130,10 +131,10 @@ class DietViewModel: ObservableObject {
             NotificationCenter.default.post(name: .dietSummaryUpdated, object: nil)
         } catch {
             // 降级：对已有数值求和生成汇总
-            let c = day.entries.reduce(0) { $0 + $1.calories }
-            let p = day.entries.reduce(0) { $0 + $1.protein }
-            let carb = day.entries.reduce(0) { $0 + $1.carbs }
-            let f = day.entries.reduce(0) { $0 + $1.fat }
+            let c = (day.entries ?? []).reduce(0) { $0 + $1.calories }
+            let p = (day.entries ?? []).reduce(0) { $0 + $1.protein }
+            let carb = (day.entries ?? []).reduce(0) { $0 + $1.carbs }
+            let f = (day.entries ?? []).reduce(0) { $0 + $1.fat }
             let summary = NutritionSummary(date: day.date, totalCalories: c, protein: p, carbs: carb, fat: f, notes: "AI 不可用，使用本地汇总")
             summary.day = day
             day.summary = summary
