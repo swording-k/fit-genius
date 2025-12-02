@@ -207,8 +207,8 @@ struct GeneratingView: View {
     private func startGeneration() {
         viewModel.generatePlan(context: modelContext) { success in
             if success {
-                // 延迟一下让用户看到完成状态
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                // 延迟 2 秒确保 SwiftData 完全刷新
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                     hasOnboarded = true
                 }
             }
