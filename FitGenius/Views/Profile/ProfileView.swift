@@ -6,6 +6,9 @@ struct ProfileView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var profiles: [UserProfile]
     @State private var showLoginSheet = false
+    @AppStorage("notificationsEnabled") private var notificationsEnabled = false
+    @State private var apiKeyText: String = ""
+    @State private var showAPIKey: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -45,6 +48,51 @@ struct ProfileView: View {
                     }
                 }
 
+                Section(header: Text("提醒")) {
+                    Toggle(isOn: $notificationsEnabled) {
+                        Label("每日训练提醒", systemImage: "bell")
+                    }
+                    .onChange(of: notificationsEnabled) { _, newValue in
+                        if newValue {
+                            Task {
+                                let granted = await NotificationService.requestAuthorization()
+                                if granted, let plan = profiles.first?.workoutPlan {
+                                    NotificationService.scheduleTrainingReminders(plan: plan, hour: 19)
+                                } else {
+                                    notificationsEnabled = false
+                                }
+                            }
+                        } else {
+                            NotificationService.cancelAll()
+                        }
+                    }
+                }
+
+                Section(header: Text("AI 服务")) {
+                    HStack {
+                        if showAPIKey {
+                            TextField("ALIYUN_API_KEY", text: $apiKeyText)
+                                .textInputAutocapitalization(.never)
+                                .disableAutocorrection(true)
+                        } else {
+                            SecureField("ALIYUN_API_KEY", text: $apiKeyText)
+                        }
+                        Button(showAPIKey ? "隐藏" : "显示") { showAPIKey.toggle() }
+                    }
+                    HStack {
+                        Button("保存 API Key") {
+                            _ = Keychain.save(apiKeyText, for: "aliyun_api_key")
+                        }
+                        .disabled(apiKeyText.isEmpty)
+                        Spacer()
+                        Button("清除") {
+                            Keychain.delete("aliyun_api_key")
+                            apiKeyText = ""
+                        }
+                        .foregroundColor(.red)
+                    }
+                }
+
                 Section(header: Text("设置")) {
                     Button(role: .destructive) {
                         resetAllData()
@@ -68,6 +116,9 @@ struct ProfileView: View {
             .navigationTitle("我的")
             .sheet(isPresented: $showLoginSheet) {
                 LoginView()
+            }
+            .onAppear {
+                apiKeyText = Keychain.read("aliyun_api_key") ?? ""
             }
         }
     }

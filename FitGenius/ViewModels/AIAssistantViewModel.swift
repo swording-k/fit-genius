@@ -158,7 +158,6 @@ class AIAssistantViewModel: ObservableObject {
             try modelContext.save()
             
             // 验证新计划有效后再切换链接
-            let oldPlan = profile.workoutPlan
             guard !(newPlan.days ?? []).isEmpty else {
                 throw NSError(domain: "AIAssistant", code: -1, userInfo: [NSLocalizedDescriptionKey: "生成的计划为空，请稍后重试"])
             }
@@ -284,6 +283,7 @@ class AIAssistantViewModel: ObservableObject {
         )
         newExercise.workoutDay = day
         if day.exercises == nil { day.exercises = [] }
+        newExercise.orderIndex = (day.exercises ?? []).count
         day.exercises?.append(newExercise)
         modelContext.insert(newExercise)
         

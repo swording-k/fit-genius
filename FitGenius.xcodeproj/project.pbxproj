@@ -15,9 +15,22 @@
 		7E9BCCF82EDCA14E0034928F /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		7EF784422EF1BC1C00D22BA2 /* Exceptions for "FitGenius" folder in "FitGenius" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 7E92B2972ED588E500290F84 /* FitGenius */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		7E92B29A2ED588E500290F84 /* FitGenius */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				7EF784422EF1BC1C00D22BA2 /* Exceptions for "FitGenius" folder in "FitGenius" target */,
+			);
 			path = FitGenius;
 			sourceTree = "<group>";
 		};
@@ -262,6 +275,7 @@
 		7E92B2A62ED588E600290F84 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALIYUN_API_KEY = "sk-35a1fadb0d0142cea09316274209184b";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
@@ -271,6 +285,7 @@
 				DEVELOPMENT_TEAM = NV5R86Q3MS;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FitGenius/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -282,6 +297,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = "sk-35a1fadb0d0142cea09316274209184b";
 				PRODUCT_BUNDLE_IDENTIFIER = com.swordingk.fitgenius;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -297,6 +313,7 @@
 		7E92B2A72ED588E600290F84 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALIYUN_API_KEY = "sk-35a1fadb0d0142cea09316274209184b";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
@@ -306,6 +323,7 @@
 				DEVELOPMENT_TEAM = NV5R86Q3MS;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FitGenius/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -317,6 +335,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = "sk-35a1fadb0d0142cea09316274209184b";
 				PRODUCT_BUNDLE_IDENTIFIER = com.swordingk.fitgenius;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;

@@ -6,6 +6,7 @@ struct PlanDashboardView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var profiles: [UserProfile]
     @AppStorage("hasOnboarded") private var hasOnboarded = false
+    @StateObject private var viewModel: PlanDashboardViewModel
     
     @State private var selectedDayIndex = 0
     @State private var showResetAlert = false
@@ -185,14 +186,14 @@ struct PlanDashboardView: View {
             .alert("删除当前天", isPresented: $showDeleteDayAlert) {
                 Button("取消", role: .cancel) { }
                 Button("删除", role: .destructive) {
-                    deleteCurrentDay()
+                    viewModel.deleteCurrentDay(plan: workoutPlan, selectedIndex: &selectedDayIndex)
                 }
             } message: {
                 Text("将删除当前选中的训练日，并自动重排天数。")
             }
             .sheet(isPresented: $showAddDaySheet) {
                 AddDaySheet(plan: workoutPlan) { focus, isRest in
-                    addDay(focus: focus, isRestDay: isRest)
+                    selectedDayIndex = viewModel.addDay(plan: workoutPlan, focus: focus, isRestDay: isRest)
                 }
             }
             .onAppear {
@@ -213,51 +214,16 @@ struct PlanDashboardView: View {
         }
     }
     
-    // 新增训练日
-    private func addDay(focus: BodyPartFocus, isRestDay: Bool) {
-        guard let plan = workoutPlan else { return }
-        let nextNumber = ((plan.days ?? []).map { $0.dayNumber }.max() ?? 0) + 1
-        let day = WorkoutDay(dayNumber: nextNumber, focus: isRestDay ? .rest : focus, isRestDay: isRestDay)
-        day.plan = plan
-        if plan.days == nil { plan.days = [] }
-        plan.days?.append(day)
-        try? modelContext.save()
-        selectedDayIndex = max(0, (plan.days ?? []).count - 1)
-    }
-    
-    // 删除当前训练日并重排 dayNumber
-    private func deleteCurrentDay() {
-        guard let plan = workoutPlan else { return }
-        let sorted = (plan.days ?? []).sorted(by: { $0.dayNumber < $1.dayNumber })
-        guard sorted.indices.contains(selectedDayIndex) else { return }
-        let day = sorted[selectedDayIndex]
-        modelContext.delete(day)
-        let remaining = (plan.days ?? []).sorted(by: { $0.dayNumber < $1.dayNumber })
-        for (idx, d) in remaining.enumerated() { d.dayNumber = idx + 1 }
-        selectedDayIndex = min(selectedDayIndex, max(0, remaining.count - 1))
-    }
-    
-    // 开始新循环：重置起始日期与所有勾选
     private func startNewCycle() {
-        guard let plan = workoutPlan else { return }
-        plan.creationDate = Date()
-        for day in plan.days ?? [] {
-            for ex in day.exercises ?? [] {
-                ex.isCompleted = false
-                ex.lastCompletedDate = nil
-            }
-        }
+        viewModel.startNewCycle(plan: workoutPlan)
     }
     
-    // 重置 Onboarding
     private func resetOnboarding() {
-        // 删除所有用户数据
-        for profile in profiles {
-            modelContext.delete(profile)
-        }
-        
-        // 重置 Onboarding 状态
-        hasOnboarded = false
+        viewModel.resetOnboarding(profiles: profiles, hasOnboarded: &hasOnboarded)
+    }
+
+    init(modelContext: ModelContext) {
+        _viewModel = StateObject(wrappedValue: PlanDashboardViewModel(modelContext: modelContext))
     }
 }
 
@@ -370,6 +336,6 @@ struct DayTabButton: View {
     plan.days = [day1, day2]
     container.mainContext.insert(profile)
     
-    return PlanDashboardView()
+    return PlanDashboardView(modelContext: container.mainContext)
         .modelContainer(container)
 }

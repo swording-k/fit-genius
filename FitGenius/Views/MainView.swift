@@ -10,7 +10,7 @@ struct MainView: View {
         Group {
             if appMode == "training" {
                 TabView {
-                    PlanDashboardView()
+                    PlanDashboardView(modelContext: modelContext)
                         .tabItem {
                             Label("训练", systemImage: "figure.run")
                         }
