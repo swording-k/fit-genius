@@ -73,6 +73,7 @@ struct ExerciseCreateSheet: View {
         )
         ex.workoutDay = workoutDay
         if workoutDay.exercises == nil { workoutDay.exercises = [] }
+        ex.orderIndex = (workoutDay.exercises ?? []).count
         workoutDay.exercises?.append(ex)
         modelContext.insert(ex)
         try? modelContext.save()

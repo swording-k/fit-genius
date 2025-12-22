@@ -70,6 +70,7 @@ struct WorkoutDayDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Bindable var workoutDay: WorkoutDay
     @State private var editingExercise: Exercise?
+    @State private var editMode: EditMode = .inactive
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -103,7 +104,15 @@ struct WorkoutDayDetailView: View {
                             .font(.title2)
                     }
                     .buttonStyle(.plain)
-                    .padding(.trailing)
+                    .padding(.trailing, 8)
+                    Button(action: {
+                        editMode = (editMode == .active ? .inactive : .active)
+                    }) {
+                        Image(systemName: editMode == .active ? "trash.circle.fill" : "trash.circle")
+                            .font(.title2)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.trailing, 8)
                 }
             }
             .padding(.horizontal)
@@ -133,33 +142,17 @@ struct WorkoutDayDetailView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                ScrollView {
-                    LazyVStack(spacing: 0) {
-                        ForEach((workoutDay.exercises ?? []).sorted(by: { $0.name < $1.name })) { exercise in
-                            VStack(spacing: 0) {
-                                ExerciseRowView(exercise: exercise) {
-                                    editingExercise = exercise
-                                }
-                                .padding(.horizontal)
-                                
-                                Divider()
-                                    .padding(.leading, 60)
-                            }
-                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                Button {
-                                    editingExercise = exercise
-                                } label: {
-                                    Label("编辑", systemImage: "pencil")
-                                }
-                                Button(role: .destructive) {
-                                    deleteExercise(exercise)
-                                } label: {
-                                    Label("删除", systemImage: "trash")
-                                }
-                            }
+                List {
+                    ForEach((workoutDay.exercises ?? []).sorted(by: { $0.orderIndex < $1.orderIndex })) { exercise in
+                        ExerciseRowView(exercise: exercise) {
+                            editingExercise = exercise
                         }
+                        .padding(.vertical, 4)
                     }
+                    .onDelete(perform: onDelete)
+                    .onMove(perform: onMove)
                 }
+                .environment(\.editMode, $editMode)
             }
         }
         .sheet(item: $editingExercise) { exercise in
@@ -173,6 +166,7 @@ struct WorkoutDayDetailView: View {
             for exercise in workoutDay.exercises ?? [] {
                 exercise.resetIfNeeded()
             }
+            ensureOrderIndices()
         }
     }
     
@@ -183,8 +177,45 @@ struct WorkoutDayDetailView: View {
                 workoutDay.exercises?.remove(at: index)
             }
             modelContext.delete(exercise)
+            normalizeOrder()
         }
     }
+
+    private func onDelete(_ offsets: IndexSet) {
+        withAnimation {
+            for i in offsets {
+                if let ex = (workoutDay.exercises ?? [])[safe: i] {
+                    modelContext.delete(ex)
+                }
+            }
+            workoutDay.exercises?.remove(atOffsets: offsets)
+            normalizeOrder()
+        }
+    }
+
+    private func onMove(_ source: IndexSet, _ destination: Int) {
+        withAnimation {
+            workoutDay.exercises?.move(fromOffsets: source, toOffset: destination)
+            normalizeOrder()
+        }
+    }
+
+    private func normalizeOrder() {
+        let sorted = (workoutDay.exercises ?? [])
+        for (idx, ex) in sorted.enumerated() {
+            ex.orderIndex = idx
+        }
+        try? modelContext.save()
+    }
+
+    private func ensureOrderIndices() {
+        let list = workoutDay.exercises ?? []
+        let unique = Set(list.map { $0.orderIndex })
+        if unique.count != list.count || unique.contains(0) {
+            normalizeOrder()
+        }
+    }
+
 }
 
 #Preview {

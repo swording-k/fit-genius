@@ -31,32 +31,45 @@ struct FitGeniusApp: App {
                 NutritionSummary.self
             ])
             
-            // 启用 CloudKit 云同步
-            let modelConfiguration = ModelConfiguration(
+            let persistentConfig = ModelConfiguration(
                 schema: schema,
                 isStoredInMemoryOnly: false,
-                cloudKitDatabase: .automatic  // ✅ 启用 CloudKit
+                cloudKitDatabase: .none
             )
             
-            modelContainer = try ModelContainer(
-                for: schema,
-                configurations: [modelConfiguration]
-            )
-            
-            print("✅ [App] ModelContainer 初始化成功")
-            if let url = modelContainer.configurations.first?.url {
-                print("✅ [App] 数据库路径: \(url.path)")
+            do {
+                modelContainer = try ModelContainer(
+                    for: schema,
+                    configurations: [persistentConfig]
+                )
+                print("✅ [App] ModelContainer 初始化成功")
+                if let url = modelContainer.configurations.first?.url {
+                    print("✅ [App] 数据库路径: \(url.path)")
+                }
+            } catch {
+                print("⚠️ [App] 持久化容器加载失败，将回退到内存容器: \(error)")
+                let memoryConfig = ModelConfiguration(
+                    schema: schema,
+                    isStoredInMemoryOnly: true,
+                    cloudKitDatabase: .none
+                )
+                do {
+                    modelContainer = try ModelContainer(
+                        for: schema,
+                        configurations: [memoryConfig]
+                    )
+                    print("✅ [App] 使用内存容器运行，数据将在退出后清空")
+                } catch {
+                    fatalError("无法加载内存 ModelContainer: \(error)")
+                }
             }
-        } catch {
-            print("❌ [App] ModelContainer 初始化失败: \(error)")
-            fatalError("无法初始化 ModelContainer: \(error)")
         }
     }
     
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(auth)  // ✅ 恢复
+                .environmentObject(auth)  // 恢复
         }
         .modelContainer(modelContainer)
     }

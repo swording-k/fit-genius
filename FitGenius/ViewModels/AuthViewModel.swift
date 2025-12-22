@@ -20,7 +20,7 @@ final class AuthViewModel: ObservableObject {
     func signIn(context: ModelContext) async {
         do {
             let id = try await service.signInWithApple()
-            Keychain.save(id, for: keyKey)
+            _ = Keychain.save(id, for: keyKey)
             currentUserId = id
             isSignedIn = true
             try updateUserProfileId(context: context, userId: id)
@@ -75,11 +75,4 @@ final class AuthViewModel: ObservableObject {
         } catch { }
     }
 
-    func applyAppleCredential(userId: String, context: ModelContext) async {
-        Keychain.save(userId, for: keyKey)
-        currentUserId = userId
-        isSignedIn = true
-        try? updateUserProfileId(context: context, userId: userId)
-        await syncAfterSignIn(context: context, userId: userId)
-    }
 }
