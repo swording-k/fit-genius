@@ -9,13 +9,19 @@ final class ChatMessage {
     var isUser: Bool
     var timestamp: Date
     var isSystemAction: Bool // 是否是系统操作反馈
+    var mediaData: Data?
+    var mediaType: String?
+    var topic: String // "fitness" 或 "diet"
     
-    init(content: String, isUser: Bool, isSystemAction: Bool = false) {
+    init(content: String, isUser: Bool, isSystemAction: Bool = false, mediaData: Data? = nil, mediaType: String? = nil, topic: String = "fitness") {
         self.id = UUID()
         self.content = content
         self.isUser = isUser
         self.timestamp = Date()
         self.isSystemAction = isSystemAction
+        self.mediaData = mediaData
+        self.mediaType = mediaType
+        self.topic = topic
     }
 }
 

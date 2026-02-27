@@ -5,6 +5,8 @@ import SwiftData
 final class UserProfile {
     var userId: String?  // 用户 ID（为用户系统预留）
     var name: String
+    var nickname: String?  // 用户自定义昵称
+    var avatarData: Data?  // 用户头像图片数据
     var age: Int
     var height: Double // in cm
     var weight: Double // in kg
@@ -24,6 +26,8 @@ final class UserProfile {
     init(name: String, age: Int, height: Double, weight: Double, goal: FitnessGoal, environment: WorkoutEnvironment, availableEquipment: [String] = [], injuries: String = "") {
         self.userId = nil
         self.name = name
+        self.nickname = nil
+        self.avatarData = nil
         self.age = age
         self.height = height
         self.weight = weight

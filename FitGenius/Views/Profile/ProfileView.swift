@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import PhotosUI
 
 struct ProfileView: View {
     @EnvironmentObject var auth: AuthViewModel
@@ -9,23 +10,54 @@ struct ProfileView: View {
     @AppStorage("notificationsEnabled") private var notificationsEnabled = false
     @State private var apiKeyText: String = ""
     @State private var showAPIKey: Bool = false
+    @State private var showProfileEditor = false
+    
+    var currentProfile: UserProfile? {
+        profiles.first
+    }
 
     var body: some View {
         NavigationStack {
             List {
                 Section(header: Text("账户")) {
-                    HStack(spacing: 12) {
-                        Image(systemName: auth.isSignedIn ? "person.circle.fill" : "person.circle")
-                            .font(.system(size: 40))
-                            .foregroundColor(auth.isSignedIn ? .blue : .gray)
+                    // 用户头像和昵称
+                    HStack(spacing: 16) {
+                        // 头像
+                        if let avatarData = currentProfile?.avatarData,
+                           let uiImage = UIImage(data: avatarData) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 60, height: 60)
+                                .clipShape(Circle())
+                        } else {
+                            Image(systemName: "person.circle.fill")
+                                .font(.system(size: 60))
+                                .foregroundColor(.gray)
+                        }
+                        
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(auth.isSignedIn ? "已登录" : "未登录")
+                            Text(currentProfile?.nickname ?? currentProfile?.name ?? "用户")
                                 .font(.headline)
-                            Text(auth.isSignedIn ? maskedUserId : "点击下方按钮登录")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            if let profile = currentProfile {
+                                Text("\(profile.age)岁 · \(String(format: "%.0f", profile.height))cm · \(String(format: "%.1f", profile.weight))kg")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        // 编辑按钮
+                        Button {
+                            showProfileEditor = true
+                        } label: {
+                            Image(systemName: "pencil.circle.fill")
+                                .font(.title3)
+                                .foregroundColor(.blue)
                         }
                     }
+                    .padding(.vertical, 4)
                     
                     // 登录/退出按钮
                     if !auth.isSignedIn {
@@ -116,6 +148,11 @@ struct ProfileView: View {
             .navigationTitle("我的")
             .sheet(isPresented: $showLoginSheet) {
                 LoginView()
+            }
+            .sheet(isPresented: $showProfileEditor) {
+                if let profile = currentProfile {
+                    ProfileEditorSheet(profile: profile)
+                }
             }
             .onAppear {
                 apiKeyText = Keychain.read("aliyun_api_key") ?? ""

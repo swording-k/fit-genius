@@ -4,5 +4,9 @@
 <dict>
 	<key>ALIYUN_API_KEY</key>
 	<string>sk-35a1fadb0d0142cea09316274209184b</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>FitGenius 需要访问您的麦克风以实现语音转文字功能</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>FitGenius 需要使用语音识别服务以实现语音转文字功能</string>
 </dict>
 </plist>

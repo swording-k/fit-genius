@@ -89,40 +89,36 @@ class DietViewModel: ObservableObject {
         }
     }
 
-    func submitDayForAnalysis() async {
-        guard let day = day, !(day.entries ?? []).isEmpty else { return }
-        isSubmitting = true
-        defer { isSubmitting = false }
-        do {
-            let result = try await service.analyzeMeals(entries: day.entries ?? [])
-            // 先按餐次聚合 AI 返回的营养，避免一个餐次包含多项食物导致不一致
-            var agg: [String: (cal: Double, pro: Double, carb: Double, fat: Double)] = [:]
-            for item in result.entries {
-                let key = item.mealType
-                let cur = agg[key] ?? (0,0,0,0)
-                agg[key] = (cur.cal + item.calories, cur.pro + item.protein, cur.carb + item.carbs, cur.fat + item.fat)
-            }
-            // 将聚合结果回填到当天每个餐次条目中；若同餐次存在多个条目则均匀分配
-            let groups = Dictionary(grouping: (day.entries ?? []).indices) { (day.entries ?? [])[$0].mealType.rawValue }
-            for (mealKey, indices) in groups {
-                guard let sum = agg[mealKey] else { continue }
-                let count = Double(indices.count)
-                for idx in indices {
-                    let entry = (day.entries ?? [])[idx]
-                    entry.calories = sum.cal / count
-                    entry.protein = sum.pro / count
-                    entry.carbs = sum.carb / count
-                    entry.fat = sum.fat / count
-                }
-            }
-            let summary = NutritionSummary(
-                date: day.date,
-                totalCalories: (day.entries ?? []).reduce(0) { $0 + $1.calories },
-                protein: (day.entries ?? []).reduce(0) { $0 + $1.protein },
-                carbs: (day.entries ?? []).reduce(0) { $0 + $1.carbs },
-                fat: (day.entries ?? []).reduce(0) { $0 + $1.fat },
-                notes: result.summary.notes ?? ""
-            )
+	func submitDayForAnalysis() async {
+		guard let day = day, !(day.entries ?? []).isEmpty else { return }
+		isSubmitting = true
+		defer { isSubmitting = false }
+		do {
+			let entries = day.entries ?? []
+			let hasImages = entries.contains { !$0.images.isEmpty }
+			let result: AIService.DietAnalyzeResponse
+			if hasImages {
+				result = try await service.analyzeMealsWithImages(entries: entries)
+			} else {
+				result = try await service.analyzeMeals(entries: entries)
+			}
+			let count = min(entries.count, result.entries.count)
+			for index in 0..<count {
+				let aiItem = result.entries[index]
+				let entry = entries[index]
+				entry.calories = aiItem.calories
+				entry.protein = aiItem.protein
+				entry.carbs = aiItem.carbs
+				entry.fat = aiItem.fat
+			}
+			let summary = NutritionSummary(
+				date: day.date,
+				totalCalories: result.summary.totalCalories,
+				protein: result.summary.protein,
+				carbs: result.summary.carbs,
+				fat: result.summary.fat,
+				notes: result.summary.notes ?? ""
+			)
             summary.day = day
             day.summary = summary
             day.submitted = true

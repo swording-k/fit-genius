@@ -1,5 +1,8 @@
 import SwiftUI
 import SwiftData
+import PhotosUI
+import UniformTypeIdentifiers
+import AVFoundation
 
 // MARK: - AI 助手聊天界面
 struct AIAssistantView: View {
@@ -39,8 +42,50 @@ struct AIAssistantView: View {
                         .multilineTextAlignment(.center)
                     
                     if profile != nil {
-                        SuggestionChatInput(viewModel: viewModel, isInputFocused: $isInputFocused) {
-                            sendSuggestionOnly()
+                        VStack(spacing: 4) {
+                            if viewModel.pendingMediaData != nil {
+                                HStack(spacing: 8) {
+                                    ZStack {
+                                        if let thumb = viewModel.pendingThumbnail {
+                                            Image(uiImage: thumb)
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(width: 64, height: 64)
+                                                .clipped()
+                                                .cornerRadius(8)
+                                        } else {
+                                            Rectangle()
+                                                .fill(Color.gray.opacity(0.2))
+                                                .frame(width: 64, height: 64)
+                                                .cornerRadius(8)
+                                        }
+                                        if viewModel.pendingMediaType == "video" {
+                                            Image(systemName: "play.circle.fill")
+                                                .font(.title)
+                                                .foregroundColor(.white)
+                                        }
+                                    }
+                                    Button {
+                                        viewModel.clearPendingMedia()
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .font(.title3)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                                .padding(.horizontal)
+                            }
+                            EnhancedInputControlsView(
+                                configuration: .fitnessAssistant,
+                                inputText: $viewModel.inputText,
+                                isFocused: $isInputFocused,
+                                isLoading: viewModel.isLoading,
+                                onSend: sendSuggestionOnly,
+                                onCameraCapture: nil,
+                                onPhotoSelected: { item in
+                                    viewModel.handleMediaSelection(item: item)
+                                }
+                            )
                         }
                     }
                 }
@@ -60,7 +105,7 @@ struct AIAssistantView: View {
                                 HStack {
                                     ProgressView()
                                         .progressViewStyle(CircularProgressViewStyle())
-                                    Text("AI 正在思考...")
+                                    Text(viewModel.loadingText)
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
@@ -83,9 +128,52 @@ struct AIAssistantView: View {
                 }
                 
                 Divider()
-                
-                SuggestionChatInput(viewModel: viewModel, isInputFocused: $isInputFocused) {
-                    sendMessage()
+
+                VStack(spacing: 4) {
+                    if viewModel.pendingMediaData != nil {
+                        HStack(spacing: 8) {
+                            ZStack {
+                                if let thumb = viewModel.pendingThumbnail {
+                                    Image(uiImage: thumb)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 64, height: 64)
+                                        .clipped()
+                                        .cornerRadius(8)
+                                } else {
+                                    Rectangle()
+                                        .fill(Color.gray.opacity(0.2))
+                                        .frame(width: 64, height: 64)
+                                        .cornerRadius(8)
+                                }
+                                if viewModel.pendingMediaType == "video" {
+                                    Image(systemName: "play.circle.fill")
+                                        .font(.title)
+                                        .foregroundColor(.white)
+                                }
+                            }
+                            Button {
+                                viewModel.clearPendingMedia()
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.title3)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                        }
+                        .padding(.horizontal)
+                    }
+                    EnhancedInputControlsView(
+                        configuration: .fitnessAssistant,
+                        inputText: $viewModel.inputText,
+                        isFocused: $isInputFocused,
+                        isLoading: viewModel.isLoading,
+                        onSend: sendMessage,
+                        onCameraCapture: nil,
+                        onPhotoSelected: { item in
+                            viewModel.handleMediaSelection(item: item)
+                        }
+                    )
                 }
                 .toolbar {
                     ToolbarItemGroup(placement: .keyboard) {
@@ -102,31 +190,37 @@ struct AIAssistantView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
-                    Button(action: {
-                        viewModel.messages.removeAll()
-                        let welcomeMessage = ChatMessage(
-                            content: "你好！我是你的 AI 健身助手。你可以向我咨询健身建议，或者让我帮你调整训练计划。",
-                            isUser: false
-                        )
-                        viewModel.messages.append(welcomeMessage)
-                    }) {
-                        Label("清空对话", systemImage: "trash")
+                    Button(role: .destructive) {
+                        viewModel.showClearHistoryAlert = true
+                    } label: {
+                        Label("清空聊天记录", systemImage: "trash")
                     }
+                    
                     Divider()
-                    Button(action: {
+                    
+                    Button {
                         viewModel.suggestionOnly = true
-                    }) {
+                    } label: {
                         Label("建议模式（安全）", systemImage: viewModel.suggestionOnly ? "checkmark.circle.fill" : "circle")
                     }
-                    Button(action: {
+                    
+                    Button {
                         viewModel.suggestionOnly = false
-                    }) {
+                    } label: {
                         Label("编辑模式（改动计划）", systemImage: !viewModel.suggestionOnly ? "checkmark.circle.fill" : "circle")
                     }
                 } label: {
                     Image(systemName: "ellipsis.circle")
                 }
             }
+        }
+        .alert("清空记录", isPresented: $viewModel.showClearHistoryAlert) {
+            Button("取消", role: .cancel) {}
+            Button("清空", role: .destructive) {
+                viewModel.clearHistory()
+            }
+        } message: {
+            Text("确定要清空所有聊天记录吗？此操作无法撤销。")
         }
         .alert("重新生成训练计划", isPresented: $viewModel.showPlanRegenerationAlert) {
             Button("取消", role: .cancel) {
@@ -154,13 +248,21 @@ struct AIAssistantView: View {
         }
     }
 
-    // 无计划时的建议模式发送
     private func sendSuggestionOnly() {
         guard let profile = profile else { return }
         isInputFocused = false
-        Task {
-            await viewModel.provideSuggestionOnly(userMessage: viewModel.inputText, profile: profile, plan: WorkoutPlan(name: "临时计划"))
-            viewModel.inputText = ""
+        if let mediaData = viewModel.pendingMediaData, let type = viewModel.pendingMediaType {
+            let isVideo = (type == "video")
+            Task {
+                await viewModel.sendMediaMessage(profile: profile, plan: nil, mediaData: mediaData, isVideo: isVideo, userText: viewModel.inputText)
+                viewModel.clearPendingMedia()
+                viewModel.inputText = ""
+            }
+        } else {
+            Task {
+                await viewModel.provideSuggestionOnly(userMessage: viewModel.inputText, profile: profile, plan: WorkoutPlan(name: "临时计划"))
+                viewModel.inputText = ""
+            }
         }
     }
 }
@@ -168,6 +270,7 @@ struct AIAssistantView: View {
 // MARK: - 消息气泡
 struct MessageBubble: View {
     let message: ChatMessage
+    @State private var thumbnail: UIImage?
     
     var body: some View {
         HStack {
@@ -176,13 +279,55 @@ struct MessageBubble: View {
             }
             
             VStack(alignment: message.isUser ? .trailing : .leading, spacing: 4) {
-                Text(message.content)
-                    .padding(12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(bubbleColor)
-                    )
-                    .foregroundColor(message.isUser ? .white : .primary)
+				if let data = message.mediaData, let type = message.mediaType {
+					if type == "image", let uiImage = UIImage(data: data) {
+						Image(uiImage: uiImage)
+							.resizable()
+							.scaledToFill()
+							.frame(width: 160, height: 160)
+							.clipped()
+							.cornerRadius(12)
+					} else if type == "video" {
+                        ZStack {
+                            if let thumb = thumbnail {
+                                Image(uiImage: thumb)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 160, height: 160)
+                                    .clipped()
+                                    .cornerRadius(12)
+                                    .overlay(
+                                        Image(systemName: "play.circle.fill")
+                                            .font(.largeTitle)
+                                            .foregroundColor(.white.opacity(0.8))
+                                    )
+                            } else {
+                                HStack(spacing: 8) {
+                                    ProgressView()
+                                        .tint(.white)
+                                    Text("正在生成预览...")
+                                        .font(.caption)
+                                        .foregroundColor(.white)
+                                }
+                                .frame(width: 160, height: 90)
+                                .background(Color.black.opacity(0.6))
+                                .cornerRadius(12)
+                            }
+                        }
+                        .task {
+                            if thumbnail == nil {
+                                thumbnail = await generateThumbnail(from: data)
+                            }
+                        }
+					}
+				}
+				Text(message.content)
+					.padding(12)
+					.background(
+						RoundedRectangle(cornerRadius: 16)
+							.fill(bubbleColor)
+						)
+					.foregroundColor(message.isUser ? .white : .primary)
                 
                 Text(formatTime(message.timestamp))
                     .font(.caption2)
@@ -206,10 +351,26 @@ struct MessageBubble: View {
         }
     }
     
-    private func formatTime(_ date: Date) -> String {
+	private func formatTime(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
         return formatter.string(from: date)
+    }
+
+    private func generateThumbnail(from data: Data) async -> UIImage? {
+        let tempFile = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".mp4")
+        do {
+            try data.write(to: tempFile)
+            let asset = AVAsset(url: tempFile)
+            let generator = AVAssetImageGenerator(asset: asset)
+            generator.appliesPreferredTrackTransform = true
+            let time = CMTime(seconds: 0.0, preferredTimescale: 600)
+            let imageRef = try await generator.image(at: time).image
+            try? FileManager.default.removeItem(at: tempFile)
+            return UIImage(cgImage: imageRef)
+        } catch {
+            return nil
+        }
     }
 }
 
@@ -221,30 +382,4 @@ struct MessageBubble: View {
         AIAssistantView(modelContext: container.mainContext)
     }
     .modelContainer(container)
-}
-
-// 底部输入组件（复用建议与编辑模式）
-private struct SuggestionChatInput: View {
-    @ObservedObject var viewModel: AIAssistantViewModel
-    let isInputFocused: FocusState<Bool>.Binding
-    let onSend: () -> Void
-
-    var body: some View {
-        HStack(spacing: 12) {
-            TextField("输入消息...", text: $viewModel.inputText, axis: .vertical)
-                .textFieldStyle(.roundedBorder)
-                .lineLimit(1...5)
-                .focused(isInputFocused)
-                .submitLabel(.send)
-                .onSubmit { onSend() }
-            Button(action: onSend) {
-                Image(systemName: "arrow.up.circle.fill")
-                    .font(.title2)
-                    .foregroundColor(viewModel.inputText.isEmpty ? .gray : .blue)
-            }
-            .disabled(viewModel.inputText.isEmpty || viewModel.isLoading)
-        }
-        .padding()
-        .background(Color(.systemBackground))
-    }
 }
