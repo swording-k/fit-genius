@@ -88,24 +88,13 @@ struct PlanDashboardView: View {
                     .padding()
                     .background(Color.blue.opacity(0.1))
                     
-                    // 天数选择器（横向滚动）
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
-                            ForEach(Array(sortedDays.enumerated()), id: \.element.id) { index, day in
-                                DayTabButton(
-                                    day: day,
-                                    plan: plan,
-                                    isSelected: selectedDayIndex == index
-                                ) {
-                                    withAnimation {
-                                        selectedDayIndex = index
-                                    }
-                                }
-                            }
-                        }
-                        .padding(.horizontal)
-                        .padding(.vertical, 12)
-                    }
+                    // 天数选择器
+                    TrainingDaySelector(
+                        sortedDays: sortedDays,
+                        plan: plan,
+                        selectedDayIndex: $selectedDayIndex,
+                        modelContext: modelContext
+                    )
                     .background(Color(.systemBackground))
                     
                     Divider()

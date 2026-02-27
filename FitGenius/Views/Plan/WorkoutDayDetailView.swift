@@ -1,67 +1,133 @@
 import SwiftUI
 import SwiftData
 
-// MARK: - 单个动作行视图
+// MARK: - 单个动作行视图（侧滑编辑删除）
 struct ExerciseRowView: View {
     @Environment(\.modelContext) private var modelContext
     @Bindable var exercise: Exercise
     let onEdit: () -> Void
+    let onDelete: () -> Void
+    
+    // 控制侧滑状态
+    @State private var isExpanded = false
     
     var body: some View {
-        HStack(spacing: 12) {
-            // 完成状态 Checkbox
-            Button(action: {
-                exercise.toggleCompletion(context: modelContext)
-            }) {
-                Image(systemName: exercise.isCompleted ? "checkmark.circle.fill" : "circle")
-                    .font(.title2)
-                    .foregroundColor(exercise.isCompleted ? .green : .gray)
-            }
-            .buttonStyle(.plain)
-            
-            // 动作信息
-            VStack(alignment: .leading, spacing: 4) {
-                Text(exercise.name)
-                    .font(.headline)
-                    .strikethrough(exercise.isCompleted)
-                    .foregroundColor(exercise.isCompleted ? .secondary : .primary)
+        ZStack(alignment: .trailing) {
+            // 背景：编辑和删除按钮
+            HStack(spacing: 0) {
+                Spacer()
                 
-                HStack(spacing: 16) {
-                    Label("\(exercise.sets) 组", systemImage: "repeat")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                // 编辑按钮
+                Button(action: {
+                    // 先收起侧滑
+                    withAnimation {
+                        isExpanded = false
+                    }
+                    // 延迟执行编辑，等动画完成
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        onEdit()
+                    }
+                }) {
+                    VStack(spacing: 4) {
+                        Image(systemName: "pencil")
+                            .font(.headline)
+                        Text("编辑")
+                            .font(.caption2)
+                    }
+                    .foregroundColor(.white)
+                    .frame(width: 70, height: 70)
+                    .background(Color.blue)
+                }
+                .buttonStyle(.plain)
+                
+                // 删除按钮
+                Button(action: {
+                    // 先收起侧滑
+                    withAnimation {
+                        isExpanded = false
+                    }
+                    // 延迟执行删除，等动画完成
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        onDelete()
+                    }
+                }) {
+                    VStack(spacing: 4) {
+                        Image(systemName: "trash")
+                            .font(.headline)
+                        Text("删除")
+                            .font(.caption2)
+                    }
+                    .foregroundColor(.white)
+                    .frame(width: 70, height: 70)
+                    .background(Color.red)
+                }
+                .buttonStyle(.plain)
+            }
+            .frame(height: 70)
+            
+            // 前景：动作信息卡片
+            HStack(spacing: 12) {
+                // 完成状态 Checkbox
+                Button(action: {
+                    exercise.toggleCompletion(context: modelContext)
+                }) {
+                    Image(systemName: exercise.isCompleted ? "checkmark.circle.fill" : "circle")
+                        .font(.title2)
+                        .foregroundColor(exercise.isCompleted ? .green : .gray)
+                }
+                .buttonStyle(.plain)
+                
+                // 动作信息
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(exercise.name)
+                        .font(.headline)
+                        .strikethrough(exercise.isCompleted)
+                        .foregroundColor(exercise.isCompleted ? .secondary : .primary)
                     
-                    Label(exercise.reps, systemImage: "number")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    if exercise.weight > 0 {
-                        Label("\(String(format: "%.1f", exercise.weight)) kg", systemImage: "scalemass")
+                    HStack(spacing: 16) {
+                        Label("\(exercise.sets) 组", systemImage: "repeat")
                             .font(.caption)
                             .foregroundColor(.secondary)
+                        
+                        Label(exercise.reps, systemImage: "number")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        if exercise.weight > 0 {
+                            Label("\(String(format: "%.1f", exercise.weight)) kg", systemImage: "scalemass")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    if !exercise.notes.isEmpty {
+                        Text(exercise.notes)
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
                     }
                 }
                 
-                if !exercise.notes.isEmpty {
-                    Text(exercise.notes)
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
+                Spacer()
+                
+                // 触发按钮
+                Button(action: {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        isExpanded.toggle()
+                    }
+                }) {
+                    Image(systemName: isExpanded ? "chevron.left" : "ellipsis.circle")
+                        .font(.title3)
+                        .foregroundColor(.blue)
                 }
+                .buttonStyle(.plain)
             }
-            
-            Spacer()
-            
-            // 编辑按钮
-            Button(action: onEdit) {
-                Image(systemName: "pencil.circle.fill")
-                    .font(.title3)
-                    .foregroundColor(.blue)
-            }
-            .buttonStyle(.plain)
+            .padding(.vertical, 8)
+            .padding(.horizontal, 12)
+            .background(Color(.systemBackground))
+            .offset(x: isExpanded ? -140 : 0)  // 左移 140 点（两个按钮的宽度）
         }
-        .padding(.vertical, 8)
-        .contentShape(Rectangle())
+        .clipped()  // 裁剪超出部分
     }
 }
 
@@ -70,7 +136,6 @@ struct WorkoutDayDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Bindable var workoutDay: WorkoutDay
     @State private var editingExercise: Exercise?
-    @State private var editMode: EditMode = .inactive
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -101,14 +166,6 @@ struct WorkoutDayDetailView: View {
                     Button(action: { showCreateSheet = true }) {
                         Label("新增动作", systemImage: "plus.circle.fill")
                             .labelStyle(.iconOnly)
-                            .font(.title2)
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.trailing, 8)
-                    Button(action: {
-                        editMode = (editMode == .active ? .inactive : .active)
-                    }) {
-                        Image(systemName: editMode == .active ? "trash.circle.fill" : "trash.circle")
                             .font(.title2)
                     }
                     .buttonStyle(.plain)
@@ -144,15 +201,21 @@ struct WorkoutDayDetailView: View {
             } else {
                 List {
                     ForEach((workoutDay.exercises ?? []).sorted(by: { $0.orderIndex < $1.orderIndex })) { exercise in
-                        ExerciseRowView(exercise: exercise) {
-                            editingExercise = exercise
-                        }
-                        .padding(.vertical, 4)
+                        ExerciseRowView(
+                            exercise: exercise,
+                            onEdit: {
+                                editingExercise = exercise
+                            },
+                            onDelete: {
+                                deleteExercise(exercise)
+                            }
+                        )
+                        .listRowInsets(EdgeInsets()) // Remove default list row padding
+                        .listRowSeparator(.hidden) // Hide default list row separator
                     }
-                    .onDelete(perform: onDelete)
                     .onMove(perform: onMove)
                 }
-                .environment(\.editMode, $editMode)
+                .listStyle(.plain)
             }
         }
         .sheet(item: $editingExercise) { exercise in
@@ -181,31 +244,19 @@ struct WorkoutDayDetailView: View {
         }
     }
 
-    private func onDelete(_ offsets: IndexSet) {
-        withAnimation {
-            for i in offsets {
-                if let ex = (workoutDay.exercises ?? [])[safe: i] {
-                    modelContext.delete(ex)
-                }
-            }
-            workoutDay.exercises?.remove(atOffsets: offsets)
-            normalizeOrder()
-        }
-    }
-
-    private func onMove(_ source: IndexSet, _ destination: Int) {
-        withAnimation {
-            workoutDay.exercises?.move(fromOffsets: source, toOffset: destination)
-            normalizeOrder()
-        }
-    }
-
     private func normalizeOrder() {
         let sorted = (workoutDay.exercises ?? [])
         for (idx, ex) in sorted.enumerated() {
             ex.orderIndex = idx
         }
         try? modelContext.save()
+    }
+    
+    private func onMove(_ source: IndexSet, _ destination: Int) {
+        withAnimation {
+            workoutDay.exercises?.move(fromOffsets: source, toOffset: destination)
+            normalizeOrder()
+        }
     }
 
     private func ensureOrderIndices() {

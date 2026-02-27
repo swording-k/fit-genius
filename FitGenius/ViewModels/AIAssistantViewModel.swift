@@ -1,6 +1,9 @@
 import Foundation
 import SwiftData
 import Combine
+import PhotosUI
+import SwiftUI
+import AVFoundation
 
 // MARK: - AI 助手 ViewModel
 @MainActor
@@ -8,23 +11,62 @@ class AIAssistantViewModel: ObservableObject {
     @Published var messages: [ChatMessage] = []
     @Published var inputText: String = ""
     @Published var isLoading: Bool = false
+    @Published var loadingText: String = "AI 正在思考..."
     @Published var errorMessage: String?
     @Published var showPlanRegenerationAlert: Bool = false
+    @Published var showClearHistoryAlert: Bool = false
     @Published var pendingUserMessage: String = ""
     @Published var suggestionOnly: Bool = true
+    
+    // 待发送的媒体
+    @Published var pendingMediaData: Data?
+    @Published var pendingMediaType: String? // "image" or "video"
+    @Published var pendingThumbnail: UIImage?
     
     private let aiService = AIService()
     private let modelContext: ModelContext
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
-        
-        // 添加欢迎消息
-        let welcomeMessage = ChatMessage(
-            content: "你好！我是你的 AI 健身助手。你可以向我咨询健身建议，或者让我帮你调整训练计划。例如：\n\n• \"我膝盖疼，能把深蹲换掉吗？\"\n• \"增加一个练背的动作\"\n• \"第三天太累了，删掉一个动作\"",
-            isUser: false
+        // 只加载健身相关的聊天记录
+        let descriptor = FetchDescriptor<ChatMessage>(
+            predicate: #Predicate { $0.topic == "fitness" },
+            sortBy: [SortDescriptor(\.timestamp)]
         )
-        messages.append(welcomeMessage)
+        if let stored = try? modelContext.fetch(descriptor), !stored.isEmpty {
+            messages = stored
+        } else {
+            let welcomeMessage = ChatMessage(
+                content: "你好！我是你的 AI 健身助手。你可以向我咨询健身建议，或者让我帮你调整训练计划。例如：\n\n• \"我膝盖疼，能把深蹲换掉吗？\"\n• \"增加一个练背的动作\"\n• \"第三天太累了，删掉一个动作\"",
+                isUser: false,
+                topic: "fitness"
+            )
+            modelContext.insert(welcomeMessage)
+            messages.append(welcomeMessage)
+        }
+    }
+    
+    // MARK: - 清空历史记录
+    func clearHistory() {
+        do {
+            let descriptor = FetchDescriptor<ChatMessage>(predicate: #Predicate { $0.topic == "fitness" })
+            let items = try modelContext.fetch(descriptor)
+            for item in items {
+                modelContext.delete(item)
+            }
+            messages.removeAll()
+            
+            // 重新添加欢迎语
+            let welcomeMessage = ChatMessage(
+                content: "你好！我是你的 AI 健身助手。你可以向我咨询健身建议，或者让我帮你调整训练计划。",
+                isUser: false,
+                topic: "fitness"
+            )
+            modelContext.insert(welcomeMessage)
+            messages.append(welcomeMessage)
+        } catch {
+            print("Failed to clear fitness chat history: \(error)")
+        }
     }
     
     // MARK: - 检测修改类型
@@ -44,16 +86,69 @@ class AIAssistantViewModel: ObservableObject {
         return false
     }
     
+    // MARK: - 媒体处理
+    func handleMediaSelection(item: PhotosPickerItem) {
+        Task {
+            // 1. 判断类型
+            if item.supportedContentTypes.contains(where: { $0.conforms(to: .movie) }) {
+                // 视频
+                if let data = try? await item.loadTransferable(type: Data.self) {
+                    await MainActor.run {
+                        self.pendingMediaData = data
+                        self.pendingMediaType = "video"
+                        self.pendingThumbnail = nil // 先置空，异步生成
+                    }
+                    
+                    // 生成缩略图
+                    let tempFile = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".mp4")
+                    try? data.write(to: tempFile)
+                    let asset = AVAsset(url: tempFile)
+                    let generator = AVAssetImageGenerator(asset: asset)
+                    generator.appliesPreferredTrackTransform = true
+                    if let imageRef = try? await generator.image(at: .zero).image {
+                        await MainActor.run {
+                            self.pendingThumbnail = UIImage(cgImage: imageRef)
+                        }
+                    }
+                    try? FileManager.default.removeItem(at: tempFile)
+                }
+            } else {
+                // 图片
+                if let data = try? await item.loadTransferable(type: Data.self), let image = UIImage(data: data) {
+                    await MainActor.run {
+                        self.pendingMediaData = data
+                        self.pendingMediaType = "image"
+                        self.pendingThumbnail = image
+                    }
+                }
+            }
+        }
+    }
+    
+    func clearPendingMedia() {
+        pendingMediaData = nil
+        pendingMediaType = nil
+        pendingThumbnail = nil
+    }
+
     // MARK: - 发送消息
     func sendMessage(profile: UserProfile, plan: WorkoutPlan) async {
+        // 1. 检查是否有待发送的媒体
+        if let mediaData = pendingMediaData, let type = pendingMediaType {
+            let isVideo = (type == "video")
+            await sendMediaMessage(profile: profile, plan: plan, mediaData: mediaData, isVideo: isVideo, userText: inputText)
+            clearPendingMedia()
+            return
+        }
+        
         guard !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         
         let userMessage = inputText
         inputText = ""
         
-        // 添加用户消息
-        let userChatMessage = ChatMessage(content: userMessage, isUser: true)
-        messages.append(userChatMessage)
+		let userChatMessage = ChatMessage(content: userMessage, isUser: true)
+		modelContext.insert(userChatMessage)
+		messages.append(userChatMessage)
         
         // 检测是否是计划级别修改
         if detectModificationType(userMessage: userMessage) {
@@ -74,29 +169,74 @@ class AIAssistantViewModel: ObservableObject {
     }
     
     // MARK: - 建议模式：仅提供文字建议
-    func provideSuggestionOnly(userMessage: String, profile: UserProfile, plan: WorkoutPlan) async {
+	func provideSuggestionOnly(userMessage: String, profile: UserProfile, plan: WorkoutPlan) async {
         isLoading = true
         errorMessage = nil
-        do {
-            let (response, _) = try await aiService.chat(
+		do {
+			let (response, _) = try await aiService.chat(
                 userMessage: "【请只提供建议，不要返回任何 JSON 指令或修改计划】\n" + userMessage,
                 profile: profile,
                 plan: plan
             )
-            let tip = ChatMessage(content: "已启用建议模式：我只会给出文字建议，你可在训练页自行调整。", isUser: false, isSystemAction: true)
-            messages.append(tip)
-            if !response.isEmpty {
-                let aiMessage = ChatMessage(content: response, isUser: false)
-                messages.append(aiMessage)
+			let tip = ChatMessage(content: "已启用建议模式：我只会给出文字建议，你可在训练页自行调整。", isUser: false, isSystemAction: true)
+			modelContext.insert(tip)
+			messages.append(tip)
+			if !response.isEmpty {
+				let aiMessage = ChatMessage(content: response, isUser: false)
+				modelContext.insert(aiMessage)
+				messages.append(aiMessage)
             }
             isLoading = false
-        } catch {
-            isLoading = false
-            errorMessage = error.localizedDescription
-            let errMsg = ChatMessage(content: "抱歉，生成建议失败：\(error.localizedDescription)", isUser: false)
-            messages.append(errMsg)
-        }
+		} catch {
+			isLoading = false
+			errorMessage = error.localizedDescription
+			let errMsg = ChatMessage(content: "抱歉，生成建议失败：\(error.localizedDescription)", isUser: false)
+			modelContext.insert(errMsg)
+			messages.append(errMsg)
+		}
     }
+
+	func sendMediaMessage(profile: UserProfile, plan: WorkoutPlan?, mediaData: Data, isVideo: Bool, userText: String) async {
+		let trimmed = userText.trimmingCharacters(in: .whitespacesAndNewlines)
+		let contentText: String
+		if trimmed.isEmpty {
+			contentText = isVideo ? "分析训练视频动作" : "分析身材照片"
+		} else {
+			contentText = trimmed
+		}
+		let mediaType = isVideo ? "video" : "image"
+		let userMessage = ChatMessage(content: contentText, isUser: true, isSystemAction: false, mediaData: mediaData, mediaType: mediaType, topic: "fitness")
+		modelContext.insert(userMessage)
+		messages.append(userMessage)
+        inputText = ""
+        
+        isLoading = true
+        loadingText = isVideo ? "正在压缩和上传视频..." : "AI 正在分析图片..."
+        errorMessage = nil
+        
+		do {
+			let response = try await aiService.analyzeFitnessMedia(
+                userMessage: contentText,
+                profile: profile,
+                plan: plan,
+                images: isVideo ? [] : [mediaData],
+                videos: isVideo ? [mediaData] : []
+            )
+			let aiMessage = ChatMessage(content: response, isUser: false)
+			modelContext.insert(aiMessage)
+			messages.append(aiMessage)
+            isLoading = false
+            loadingText = "AI 正在思考..."
+		} catch {
+			isLoading = false
+            loadingText = "AI 正在思考..."
+			errorMessage = error.localizedDescription
+			let errMsg = ChatMessage(content: "抱歉，分析失败：\(error.localizedDescription)", isUser: false)
+			modelContext.insert(errMsg)
+			messages.append(errMsg)
+		}
+	}
+
     // MARK: - 处理动作级别修改
     private func processExerciseLevelModification(userMessage: String, profile: UserProfile, plan: WorkoutPlan) async {
         isLoading = true

@@ -7,6 +7,8 @@ struct DietHomeView: View {
     @Environment(\.modelContext) private var modelContext
     @StateObject private var viewModel: DietViewModel
     @State private var photoItems: [PhotosPickerItem] = []
+    @State private var showCamera = false
+    @State private var capturedImage: UIImage?
 
     init(modelContext: ModelContext) {
         _viewModel = StateObject(wrappedValue: DietViewModel(modelContext: modelContext))
@@ -131,11 +133,35 @@ struct DietHomeView: View {
                         }
                     }
                     TextField("描述（可选）", text: $viewModel.inputText, axis: .vertical)
-                    PhotosPicker(selection: $photoItems, maxSelectionCount: 6, matching: .images) {
+                    
+                    Section {
                         HStack {
-                            Image(systemName: "photo")
-                            Text("选择图片")
+                            PhotosPicker(selection: $photoItems, maxSelectionCount: 6, matching: .images) {
+                                HStack {
+                                    Image(systemName: "photo")
+                                    Text("选择图片")
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.borderless)
                         }
+                        
+                        HStack {
+                            Button {
+                                showCamera = true
+                            } label: {
+                                HStack {
+                                    Image(systemName: "camera")
+                                    Text("拍照")
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.borderless)
+                        }
+                    } header: {
+                        Text("图片")
                     }
                     if !viewModel.selectedImagesData.isEmpty {
                         ScrollView(.horizontal, showsIndicators: false) {
@@ -161,8 +187,12 @@ struct DietHomeView: View {
                     }
                     ToolbarItem(placement: .confirmationAction) {
                         Button("保存") { viewModel.addMealEntry() }
-                            .disabled(photoItems.isEmpty && viewModel.inputText.isEmpty)
+                            .disabled(viewModel.selectedImagesData.isEmpty && viewModel.inputText.isEmpty)
                     }
+                }
+                .onAppear {
+                    photoItems = []
+                    viewModel.selectedImagesData = []
                 }
                 .onChange(of: photoItems) { _, items in
                     Task {
@@ -173,6 +203,15 @@ struct DietHomeView: View {
                             }
                         }
                         viewModel.selectedImagesData = datas
+                    }
+                }
+                .sheet(isPresented: $showCamera) {
+                    CameraPicker(selectedImage: $capturedImage)
+                }
+                .onChange(of: capturedImage) { _, newImage in
+                    if let image = newImage, let data = image.jpegData(compressionQuality: 0.8) {
+                        viewModel.selectedImagesData.append(data)
+                        capturedImage = nil
                     }
                 }
             }
