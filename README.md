@@ -14,7 +14,18 @@
 
 ---
 
-## 📱 应用简介
+## App 预览
+
+<div align="center">
+  <img src="README_assets/IMG_7130.PNG" width="240" />
+  <img src="README_assets/IMG_7131.PNG" width="240" />
+  <img src="README_assets/IMG_7132.PNG" width="240" />
+  <br/>
+  <img src="README_assets/IMG_7134.PNG" width="240" />
+  <img src="README_assets/IMG_7135.PNG" width="240" />
+</div>
+
+## 应用简介
 
 FitGenius 是一款原生 iOS 健身应用，通过 AI 技术为用户生成个性化训练计划，并提供智能训练管理和数据统计功能。
 
