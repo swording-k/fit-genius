@@ -1,39 +1,123 @@
 import Foundation
 import SwiftData
 import Combine
+import UIKit
 
 @MainActor
 class DietAssistantViewModel: ObservableObject {
     @Published var messages: [ChatMessage] = []
-    @Published var inputText: String = ""
-    @Published var isLoading: Bool = false
-    @Published var errorMessage: String?
+	@Published var inputText: String = ""
+	@Published var isLoading: Bool = false
+    @Published var loadingText: String = "AI 正在思考..."
+	@Published var errorMessage: String?
+
+    // 待发送的媒体
+    @Published var pendingMediaData: Data?
+    @Published var pendingMediaType: String? // "image"
+    @Published var pendingThumbnail: UIImage?
 
     private let modelContext: ModelContext
     private let service = AIService()
 
-    init(modelContext: ModelContext) {
-        self.modelContext = modelContext
-        let welcome = ChatMessage(content: "你好！我是你的 AI 饮食助手。你可以向我咨询饮食建议，或者让我帮你规范化并计算你的饮食数据。", isUser: false)
+	init(modelContext: ModelContext) {
+		self.modelContext = modelContext
+        loadHistory()
+	}
+    
+    func loadHistory() {
+        let descriptor = FetchDescriptor<ChatMessage>(
+            predicate: #Predicate { $0.topic == "diet" },
+            sortBy: [SortDescriptor(\.timestamp)]
+        )
+        do {
+            messages = try modelContext.fetch(descriptor)
+            if messages.isEmpty {
+                addWelcomeMessage()
+            }
+        } catch {
+            print("Failed to load diet chat history: \(error)")
+        }
+    }
+    
+    private func addWelcomeMessage() {
+        let welcome = ChatMessage(content: "你好！我是你的 AI 饮食助手。你可以向我咨询饮食建议，或者发照片让我帮你分析营养。", isUser: false, topic: "diet")
+        modelContext.insert(welcome)
         messages.append(welcome)
     }
 
     func sendMessage() async {
         let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { return }
+        if text.isEmpty && pendingMediaData == nil { return }
+        
+        let currentText = text
+        let currentMedia = pendingMediaData
+        let currentMediaType = pendingMediaType
+        
+        // 清空输入状态
         inputText = ""
-        let userMsg = ChatMessage(content: text, isUser: true)
+        clearPendingMedia()
+        
+        // 构造用户消息
+        var content = currentText
+        if currentMedia != nil {
+            if content.isEmpty {
+                content = "请分析这张图片"
+            }
+            // content += "（已附加图片）" // 视觉上不需要在文本里加这个，MessageBubble 会显示图片
+        }
+        
+        let userMsg = ChatMessage(content: content, isUser: true, mediaData: currentMedia, mediaType: currentMediaType, topic: "diet")
+        modelContext.insert(userMsg)
         messages.append(userMsg)
-        isLoading = true
-        do {
-            let reply = try await service.dietChat(userMessage: text)
-            let aiMsg = ChatMessage(content: reply, isUser: false)
-            messages.append(aiMsg)
+        
+		isLoading = true
+        errorMessage = nil
+        
+		do {
+            let reply: String
+            if let media = currentMedia, currentMediaType == "image" {
+                reply = try await service.dietChatWithImages(userMessage: currentText.isEmpty ? "请分析这张图片" : currentText, images: [media])
+            } else {
+                reply = try await service.dietChat(userMessage: currentText)
+            }
+            
+			let aiMsg = ChatMessage(content: reply, isUser: false, topic: "diet")
+            modelContext.insert(aiMsg)
+			messages.append(aiMsg)
         } catch {
             errorMessage = error.localizedDescription
-            let errMsg = ChatMessage(content: error.localizedDescription, isUser: false)
+            let errMsg = ChatMessage(content: "出错了: \(error.localizedDescription)", isUser: false, topic: "diet")
+            modelContext.insert(errMsg)
             messages.append(errMsg)
+		}
+		isLoading = false
+	}
+	
+    func handleMediaSelection(data: Data) {
+        pendingMediaData = data
+        pendingMediaType = "image"
+        if let image = UIImage(data: data) {
+            pendingThumbnail = image
         }
-        isLoading = false
+    }
+    
+    func clearPendingMedia() {
+        pendingMediaData = nil
+        pendingMediaType = nil
+        pendingThumbnail = nil
+    }
+    
+    func clearHistory() {
+        do {
+            let descriptor = FetchDescriptor<ChatMessage>(predicate: #Predicate { $0.topic == "diet" })
+            let items = try modelContext.fetch(descriptor)
+            for item in items {
+                modelContext.delete(item)
+            }
+            messages.removeAll()
+            addWelcomeMessage()
+        } catch {
+            print("Failed to clear history: \(error)")
+        }
     }
 }

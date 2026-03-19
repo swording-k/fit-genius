@@ -1,26 +1,93 @@
 import Foundation
 
-// MARK: - API 请求和响应模型
 struct ChatCompletionRequest: Codable {
-    let model: String
-    let messages: [Message]
-    
-    struct Message: Codable {
-        let role: String
-        let content: String
+	let model: String
+	let messages: [Message]
+	let stream: Bool?
+	
+	struct Message: Codable {
+		let role: String
+		let content: String
+	}
+	
+	init(model: String, messages: [Message], stream: Bool? = nil) {
+		self.model = model
+		self.messages = messages
+		self.stream = stream
+	}
+}
+
+struct VisionChatCompletionRequest: Codable {
+	let model: String
+	let messages: [Message]
+	let stream: Bool?
+	
+	struct Message: Codable {
+		let role: String
+		let content: [Content]
+	}
+	
+	struct Content: Codable {
+		let type: String
+		let text: String?
+		let image_url: ImageURL?
+		let video_url: VideoURL?
+        
+        private enum CodingKeys: String, CodingKey {
+            case type, text, image_url, video_url
+        }
+        
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(type, forKey: .type)
+            if let text = text {
+                try container.encode(text, forKey: .text)
+            }
+            if let image_url = image_url {
+                try container.encode(image_url, forKey: .image_url)
+            }
+            if let video_url = video_url {
+                try container.encode(video_url, forKey: .video_url)
+            }
+        }
+	}
+	
+	struct ImageURL: Codable {
+		let url: String
+	}
+
+    struct VideoURL: Codable {
+        let url: String
     }
+	
+	init(model: String, messages: [Message], stream: Bool? = nil) {
+		self.model = model
+		self.messages = messages
+		self.stream = stream
+	}
 }
 
 struct ChatCompletionResponse: Codable {
-    let choices: [Choice]
-    
-    struct Choice: Codable {
-        let message: Message
-        
-        struct Message: Codable {
-            let content: String
-        }
-    }
+	let choices: [Choice]
+	
+	struct Choice: Codable {
+		let message: Message
+		
+		struct Message: Codable {
+			let content: String
+		}
+	}
+}
+
+struct ChatCompletionStreamChunk: Codable {
+	struct Choice: Codable {
+		struct Delta: Codable {
+			let content: String?
+		}
+		let delta: Delta
+		let finish_reason: String?
+	}
+	let choices: [Choice]
 }
 
 // MARK: - AI 服务错误类型
@@ -28,7 +95,7 @@ enum AIServiceError: Error, LocalizedError {
     case missingAPIKey
     case invalidURL
     case networkError(Error)
-    case invalidResponse
+    case invalidResponse(String)
     case decodingError(Error)
     case emptyContent
     
@@ -40,8 +107,8 @@ enum AIServiceError: Error, LocalizedError {
             return "无效的 API URL"
         case .networkError(let error):
             return "网络错误: \(error.localizedDescription)"
-        case .invalidResponse:
-            return "无效的服务器响应"
+        case .invalidResponse(let message):
+            return "分析失败：\(message)"
         case .decodingError(let error):
             return "数据解析错误: \(error.localizedDescription)"
         case .emptyContent:
@@ -55,10 +122,10 @@ enum AIServiceError: Error, LocalizedError {
 class AIService {
     // 阿里云 OpenAI 兼容接口
     private let baseURL = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
-    private let model = "qwen-plus"
+    private let model = "qwen3-omni-flash"
     
     // 从 Keychain / 环境变量 / 配置文件读取 API Key
-    private var apiKey: String? {
+	private var apiKey: String? {
         if let key = Keychain.read("aliyun_api_key"), !key.isEmpty {
             return key
         }
@@ -75,26 +142,71 @@ class AIService {
            !infoKey.isEmpty && infoKey != "YOUR_API_KEY_HERE" {
             return infoKey
         }
-        return nil
-    }
+		return nil
+	}
+	
+	private func sendStreamingRequest<T: Encodable>(body: T) async throws -> String {
+		guard let apiKey = apiKey else { throw AIServiceError.missingAPIKey }
+		guard let url = URL(string: baseURL) else { throw AIServiceError.invalidURL }
+		var request = URLRequest(url: url)
+		request.httpMethod = "POST"
+		request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+		request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+		let encoder = JSONEncoder()
+		request.httpBody = try encoder.encode(body)
+		let (bytes, response): (URLSession.AsyncBytes, URLResponse)
+		do {
+			(bytes, response) = try await URLSession.shared.bytes(for: request)
+		} catch {
+			throw AIServiceError.networkError(error)
+		}
+		guard let httpResponse = response as? HTTPURLResponse,
+				(200...299).contains(httpResponse.statusCode) else {
+            var errorText = ""
+            for try await line in bytes.lines {
+                errorText += line
+            }
+            print("❌ [AIService] Error: \(errorText)")
+			throw AIServiceError.invalidResponse(errorText.isEmpty ? "无效的服务器响应" : errorText)
+		}
+		var fullText = ""
+		for try await line in bytes.lines {
+			if line.hasPrefix("data: ") {
+				let dataPart = String(line.dropFirst(6))
+				if dataPart == "[DONE]" {
+					break
+				}
+				guard let jsonData = dataPart.data(using: .utf8) else { continue }
+				if let chunk = try? JSONDecoder().decode(ChatCompletionStreamChunk.self, from: jsonData),
+					let delta = chunk.choices.first?.delta.content {
+					fullText.append(delta)
+				}
+			}
+		}
+		let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)
+		if trimmed.isEmpty {
+			throw AIServiceError.emptyContent
+		}
+		return trimmed
+	}
     
     // MARK: - 生成初始训练计划
-    func generateInitialPlan(profile: UserProfile) async throws -> WorkoutPlan {
-        print("🤖 [AIService] 开始生成训练计划...")
-        print("🤖 [AIService] 用户信息：\(profile.name), \(profile.age)岁, 目标：\(profile.goal.rawValue)")
-        
-        // 验证 API Key（没有则返回本地兜底计划）
-        guard let apiKey = apiKey else {
-            print("⚠️ [AIService] 未找到 API Key，使用兜底计划")
-            return fallbackPlan(for: profile)
-        }
-        
-        print("✅ [AIService] API Key 已配置")
-        
-        // 验证 URL
-        guard let url = URL(string: baseURL) else {
-            throw AIServiceError.invalidURL
-        }
+	func generateInitialPlan(profile: UserProfile) async throws -> WorkoutPlan {
+		print("🤖 [AIService] 开始生成训练计划...")
+		print("🤖 [AIService] 用户信息：\(profile.name), \(profile.age)岁, 目标：\(profile.goal.rawValue)")
+		
+		// 验证 API Key（没有则返回本地兜底计划）
+		guard let apiKey = apiKey else {
+			print("⚠️ [AIService] 未找到 API Key，使用兜底计划")
+			return fallbackPlan(for: profile)
+		}
+		
+		print("✅ [AIService] API Key 已配置")
+		
+		// 验证 URL
+		guard let url = URL(string: baseURL) else {
+			throw AIServiceError.invalidURL
+		}
         
         // 构建 Prompt
         let systemMessage = """
@@ -185,50 +297,15 @@ class AIService {
         6. 如果备注中提到伤病，避免相关动作
         """
         
-        // 构建请求体
         let requestBody = ChatCompletionRequest(
             model: model,
             messages: [
                 ChatCompletionRequest.Message(role: "system", content: systemMessage),
                 ChatCompletionRequest.Message(role: "user", content: userMessage)
-            ]
+            ],
+            stream: true
         )
-        
-        // 创建请求
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(requestBody)
-        
-        // 发送请求
-        let (data, response): (Data, URLResponse)
-        do {
-            (data, response) = try await URLSession.shared.data(for: request)
-        } catch {
-            throw AIServiceError.networkError(error)
-        }
-        
-        // 验证响应
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw AIServiceError.invalidResponse
-        }
-        
-        // 解析响应
-        let chatResponse: ChatCompletionResponse
-        do {
-            chatResponse = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
-        } catch {
-            throw AIServiceError.decodingError(error)
-        }
-        
-        // 获取内容
-        guard let content = chatResponse.choices.first?.message.content else {
-            throw AIServiceError.emptyContent
-        }
-        
-        // 清理 Markdown 标记
+        let content = try await sendStreamingRequest(body: requestBody)
         let cleanedContent = cleanMarkdownCodeBlock(content)
         
         // 解析为 WorkoutPlan；解析失败时使用本地兜底计划
@@ -240,17 +317,12 @@ class AIService {
     }
     
     // MARK: - 根据用户要求重新生成训练计划
-    func regeneratePlan(profile: UserProfile, userRequest: String) async throws -> WorkoutPlan {
-        // 验证 API Key（没有则返回本地兜底计划）
-        guard let apiKey = apiKey else {
-            return fallbackPlan(for: profile)
-        }
-        
-        // 验证 URL
-        guard let url = URL(string: baseURL) else {
-            throw AIServiceError.invalidURL
-        }
-        
+	func regeneratePlan(profile: UserProfile, userRequest: String) async throws -> WorkoutPlan {
+		// 验证 API Key（没有则返回本地兜底计划）
+		guard apiKey != nil else {
+			return fallbackPlan(for: profile)
+		}
+		
         // 构建 Prompt
         let systemMessage = """
         你是一个专业的健身教练。用户想要修改训练计划的整体结构。
@@ -376,39 +448,16 @@ class AIService {
         请根据用户要求重新生成训练计划。只返回 JSON，不要有任何其他文字。
         """
         
-        // 构建请求体
-        let requestBody = ChatCompletionRequest(
-            model: model,
-            messages: [
-                ChatCompletionRequest.Message(role: "system", content: systemMessage),
-                ChatCompletionRequest.Message(role: "user", content: userMessage)
-            ]
-        )
-        
-        // 发送请求
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(requestBody)
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        // 验证响应
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw AIServiceError.invalidResponse
-        }
-        
-        // 解析响应
-        let chatResponse = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
-        
-        guard let content = chatResponse.choices.first?.message.content else {
-            throw AIServiceError.emptyContent
-        }
-        
-        // 清理 Markdown 标记
-        let cleanedContent = cleanMarkdownCodeBlock(content)
+		let requestBody = ChatCompletionRequest(
+			model: model,
+			messages: [
+				ChatCompletionRequest.Message(role: "system", content: systemMessage),
+				ChatCompletionRequest.Message(role: "user", content: userMessage)
+			],
+			stream: true
+		)
+		let content = try await sendStreamingRequest(body: requestBody)
+		let cleanedContent = cleanMarkdownCodeBlock(content)
         
         // 解析 JSON 并创建 WorkoutPlan；解析失败时使用本地兜底计划
         do {
@@ -419,18 +468,8 @@ class AIService {
     }
     
     // MARK: - AI 助手对话（支持计划修改）
-    func chat(userMessage: String, profile: UserProfile, plan: WorkoutPlan) async throws -> (response: String, command: AIActionCommand?) {
-        // 验证 API Key
-        guard let apiKey = apiKey else {
-            throw AIServiceError.missingAPIKey
-        }
-        
-        // 验证 URL
-        guard let url = URL(string: baseURL) else {
-            throw AIServiceError.invalidURL
-        }
-        
-        // 序列化当前计划为 JSON（简化版）
+	func chat(userMessage: String, profile: UserProfile, plan: WorkoutPlan) async throws -> (response: String, command: AIActionCommand?) {
+		// 序列化当前计划为 JSON（简化版）
         let planContext = serializePlanToContext(plan: plan, profile: profile)
         
         // 构建 System Prompt
@@ -477,51 +516,16 @@ class AIService {
         重要：如果返回 JSON，不要包含任何 Markdown 标记（如 ```json），只返回纯 JSON。
         """
         
-        // 构建请求体
-        let requestBody = ChatCompletionRequest(
-            model: model,
-            messages: [
-                ChatCompletionRequest.Message(role: "system", content: systemMessage),
-                ChatCompletionRequest.Message(role: "user", content: userMessage)
-            ]
-        )
-        
-        // 创建请求
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(requestBody)
-        
-        // 发送请求
-        let (data, response): (Data, URLResponse)
-        do {
-            (data, response) = try await URLSession.shared.data(for: request)
-        } catch {
-            throw AIServiceError.networkError(error)
-        }
-        
-        // 验证响应
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw AIServiceError.invalidResponse
-        }
-        
-        // 解析响应
-        let chatResponse: ChatCompletionResponse
-        do {
-            chatResponse = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
-        } catch {
-            throw AIServiceError.decodingError(error)
-        }
-        
-        // 获取内容
-        guard let content = chatResponse.choices.first?.message.content else {
-            throw AIServiceError.emptyContent
-        }
-        
-        // 清理 Markdown 标记
-        let cleanedContent = cleanMarkdownCodeBlock(content)
+		let requestBody = ChatCompletionRequest(
+			model: model,
+			messages: [
+				ChatCompletionRequest.Message(role: "system", content: systemMessage),
+				ChatCompletionRequest.Message(role: "user", content: userMessage)
+			],
+			stream: true
+		)
+		let content = try await sendStreamingRequest(body: requestBody)
+		let cleanedContent = cleanMarkdownCodeBlock(content)
         
         // 尝试解析为 JSON 指令
         if let command = try? parseActionCommand(from: cleanedContent) {
@@ -715,28 +719,55 @@ class AIService {
         return plan
     }
 
-    func dietChat(userMessage: String) async throws -> String {
-        guard let apiKey = apiKey else { throw AIServiceError.missingAPIKey }
-        guard let url = URL(string: baseURL) else { throw AIServiceError.invalidURL }
-        let systemMessage = "你是一个专业的营养与饮食顾问。为用户提供饮食建议、营养科普，并可帮助规范化他们的饮食记录。回答使用中文，简洁可读。"
-        let requestBody = ChatCompletionRequest(
-            model: model,
-            messages: [
-                ChatCompletionRequest.Message(role: "system", content: systemMessage),
-                ChatCompletionRequest.Message(role: "user", content: userMessage)
-            ]
-        )
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(requestBody)
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else { throw AIServiceError.invalidResponse }
-        let chatResponse = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
-        guard let content = chatResponse.choices.first?.message.content else { throw AIServiceError.emptyContent }
-        return content.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
+	func dietChat(userMessage: String) async throws -> String {
+		let systemMessage = "你是一个专业的营养与饮食顾问。为用户提供饮食建议、营养科普，并可帮助规范化他们的饮食记录。回答使用中文，简洁可读。"
+		let requestBody = ChatCompletionRequest(
+			model: model,
+			messages: [
+				ChatCompletionRequest.Message(role: "system", content: systemMessage),
+			ChatCompletionRequest.Message(role: "user", content: userMessage)
+			],
+			stream: true
+		)
+		let content = try await sendStreamingRequest(body: requestBody)
+		return content.trimmingCharacters(in: .whitespacesAndNewlines)
+	}
+	
+	func dietChatWithImages(userMessage: String, images: [Data]) async throws -> String {
+		var userContents: [VisionChatCompletionRequest.Content] = []
+		let intro = VisionChatCompletionRequest.Content(
+			type: "text",
+			text: "你是一个专业的营养与饮食顾问。用户会发送食物照片和文字问题，请结合图片和文字给出摄入热量和营养素的估算，以及简洁的饮食建议，回答使用中文。",
+			image_url: nil,
+			video_url: nil
+		)
+		userContents.append(intro)
+		let question = VisionChatCompletionRequest.Content(type: "text", text: userMessage, image_url: nil, video_url: nil)
+		userContents.append(question)
+		for data in images {
+			let base64 = data.base64EncodedString()
+			let urlString = "data:image/jpeg;base64,\(base64)"
+			let imageURL = VisionChatCompletionRequest.ImageURL(url: urlString)
+			let content = VisionChatCompletionRequest.Content(type: "image_url", text: nil, image_url: imageURL, video_url: nil)
+			userContents.append(content)
+		}
+		let requestBody = VisionChatCompletionRequest(
+			model: model,
+			messages: [
+				VisionChatCompletionRequest.Message(
+					role: "system",
+					content: [VisionChatCompletionRequest.Content(type: "text", text: "你是一个专业的营养顾问。", image_url: nil, video_url: nil)]
+				),
+				VisionChatCompletionRequest.Message(
+					role: "user",
+					content: userContents
+				)
+			],
+			stream: true
+		)
+		let content = try await sendStreamingRequest(body: requestBody)
+		return content.trimmingCharacters(in: .whitespacesAndNewlines)
+	}
 
     struct DietAnalyzeResponse: Codable {
         struct Item: Codable {
@@ -761,10 +792,8 @@ class AIService {
         let summary: Summary
     }
 
-    func analyzeMeals(entries: [MealEntry]) async throws -> DietAnalyzeResponse {
-        guard let apiKey = apiKey else { throw AIServiceError.missingAPIKey }
-        guard let url = URL(string: baseURL) else { throw AIServiceError.invalidURL }
-        let systemMessage = """
+	func analyzeMeals(entries: [MealEntry]) async throws -> DietAnalyzeResponse {
+		let systemMessage = """
         你是一个专业的营养师。请严格按照下述要求解析用户当天饮食：
         
         1) 仅返回纯 JSON（不包含任何 Markdown 代码块或解释性文字）
@@ -775,28 +804,133 @@ class AIService {
         6) 若用户描述中为“一碗/一盘/一勺”等量词，请合理估算并换算为克(g)
         7) 所有返回内容使用中文。
         """
-        var description = "当天饮食记录（共" + String(entries.count) + "条）：\n"
-        for (index, e) in entries.enumerated() {
-            description += "\(index+1). 餐次=\(e.mealType.rawValue)，描述=\(e.text.isEmpty ? "无" : e.text)\n"
-        }
-        let requestBody = ChatCompletionRequest(
-            model: model,
-            messages: [
-                ChatCompletionRequest.Message(role: "system", content: systemMessage),
-                ChatCompletionRequest.Message(role: "user", content: description)
-            ]
-        )
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(requestBody)
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else { throw AIServiceError.invalidResponse }
-        let chatResponse = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
-        guard let content = chatResponse.choices.first?.message.content else { throw AIServiceError.emptyContent }
-        let cleaned = cleanMarkdownCodeBlock(content)
+		var description = "当天饮食记录（共" + String(entries.count) + "条）：\n"
+		for (index, e) in entries.enumerated() {
+			description += "\(index+1). 餐次=\(e.mealType.rawValue)，描述=\(e.text.isEmpty ? "无" : e.text)\n"
+		}
+		let requestBody = ChatCompletionRequest(
+			model: model,
+			messages: [
+				ChatCompletionRequest.Message(role: "system", content: systemMessage),
+			ChatCompletionRequest.Message(role: "user", content: description)
+			],
+			stream: true
+		)
+		let content = try await sendStreamingRequest(body: requestBody)
+		let cleaned = cleanMarkdownCodeBlock(content)
         guard let jsonData = cleaned.data(using: .utf8) else { throw AIServiceError.decodingError(NSError(domain: "AIService", code: -1)) }
         return try JSONDecoder().decode(DietAnalyzeResponse.self, from: jsonData)
     }
+
+	func analyzeMealsWithImages(entries: [MealEntry]) async throws -> DietAnalyzeResponse {
+		let systemMessage = "你是一个专业的营养师。请根据用户提供的文字描述和食物照片，严格按照要求返回 JSON。"
+        var description = "当天饮食记录：\n"
+        for (index, e) in entries.enumerated() {
+            description += "\(index+1). 餐次=\(e.mealType.rawValue)，描述=\(e.text.isEmpty ? "无" : e.text)\n"
+        }
+        var userContents: [VisionChatCompletionRequest.Content] = []
+        let textContent = VisionChatCompletionRequest.Content(type: "text", text: """
+        你将看到用户一天内的多条饮食记录。先阅读下面的文字描述，再结合后续的食物照片，输出严格符合下列要求的 JSON：
+        1) 仅返回纯 JSON，不包含任何 Markdown 代码块或解释性文字
+        2) 数组 entries 的长度必须与用户输入的条目数完全一致，并与输入顺序一一对应
+        3) 每个条目的单位统一为：portion 使用克(g)，calories 使用千卡(kcal)
+        4) 每个 entries[i] 必须包含字段：name, portion, unit, calories, protein, carbs, fat, notes, mealType
+        5) summary 字段必须包含：totalCalories, protein, carbs, fat, notes
+        6) 若用户描述中为“一碗/一盘/一勺”等量词，请合理估算并换算为克(g)
+        7) 所有返回内容使用中文
+        8) 对于无法从文字获得的信息，可以参考图片估算食物种类和份量
+        """, image_url: nil, video_url: nil)
+        userContents.append(textContent)
+        let descContent = VisionChatCompletionRequest.Content(type: "text", text: description, image_url: nil, video_url: nil)
+        userContents.append(descContent)
+		for entry in entries {
+			for data in entry.images {
+				let base64 = data.base64EncodedString()
+				let urlString = "data:image/jpeg;base64,\(base64)"
+				let imageURL = VisionChatCompletionRequest.ImageURL(url: urlString)
+				let content = VisionChatCompletionRequest.Content(type: "image_url", text: nil, image_url: imageURL, video_url: nil)
+				userContents.append(content)
+			}
+		}
+		let requestBody = VisionChatCompletionRequest(
+			model: model,
+			messages: [
+				VisionChatCompletionRequest.Message(
+					role: "system",
+					content: [VisionChatCompletionRequest.Content(type: "text", text: "你是一个专业的营养师。", image_url: nil, video_url: nil)]
+				),
+				VisionChatCompletionRequest.Message(
+					role: "user",
+					content: userContents
+				)
+			],
+			stream: true
+		)
+		let content = try await sendStreamingRequest(body: requestBody)
+		let cleaned = cleanMarkdownCodeBlock(content)
+        guard let jsonData = cleaned.data(using: .utf8) else { throw AIServiceError.decodingError(NSError(domain: "AIService", code: -1)) }
+        return try JSONDecoder().decode(DietAnalyzeResponse.self, from: jsonData)
+    }
+
+	func analyzeFitnessMedia(userMessage: String, profile: UserProfile, plan: WorkoutPlan?, images: [Data], videos: [Data]) async throws -> String {
+		var systemContents: [VisionChatCompletionRequest.Content] = []
+        let systemText = "你是一个专业的私人教练与动作分析专家。用户会上传身材照片或训练视频，并提出与体型或动作相关的问题。请结合视觉信息和文字，给出客观分析和具体可执行的改进建议，回答使用中文。"
+        let systemContent = VisionChatCompletionRequest.Content(type: "text", text: systemText, image_url: nil, video_url: nil)
+        systemContents.append(systemContent)
+        var userContents: [VisionChatCompletionRequest.Content] = []
+        let profileText = "用户信息：\n- 姓名：\(profile.name)\n- 年龄：\(profile.age) 岁\n- 目标：\(profile.goal.rawValue)\n- 训练环境：\(profile.environment.rawValue)\n"
+        let profileContent = VisionChatCompletionRequest.Content(type: "text", text: profileText, image_url: nil, video_url: nil)
+        userContents.append(profileContent)
+        if let plan = plan {
+            let planContext = serializePlanToContext(plan: plan, profile: profile)
+            let planContent = VisionChatCompletionRequest.Content(type: "text", text: "当前训练计划：\n\(planContext)", image_url: nil, video_url: nil)
+            userContents.append(planContent)
+        }
+        let questionContent = VisionChatCompletionRequest.Content(type: "text", text: userMessage, image_url: nil, video_url: nil)
+        userContents.append(questionContent)
+        for data in images {
+            let base64 = data.base64EncodedString()
+            let urlString = "data:image/jpeg;base64,\(base64)"
+            let imageURL = VisionChatCompletionRequest.ImageURL(url: urlString)
+            let content = VisionChatCompletionRequest.Content(type: "image_url", text: nil, image_url: imageURL, video_url: nil)
+            userContents.append(content)
+        }
+        for data in videos {
+            // 智能压缩：如果大于 10MB，尝试压缩 (API 通常限制 payload 大小)
+            var finalData = data
+            // 只要大于 10MB 就尝试压缩，因为 Base64 编码会增加 33% 体积
+            if finalData.count > 10 * 1024 * 1024 {
+                print("Video size \(finalData.count / 1024 / 1024)MB > 10MB, compressing...")
+                do {
+                    // 尝试压缩到 15MB 以内 (Base64 后约 20MB)
+                    finalData = try await VideoCompressor.compressVideo(data: finalData, maxSizeBytes: 15 * 1024 * 1024)
+                } catch {
+                    print("Compression failed: \(error), proceeding with original data")
+                }
+            }
+            
+            // 硬性拦截：如果压缩后依然超过 20MB (Base64 后约 26MB)，大概率会被 API 拒绝
+            // 为了用户体验，我们设定一个合理的上限
+            let limit = 20 * 1024 * 1024
+            if finalData.count > limit {
+                 throw AIServiceError.networkError(NSError(domain: "AIService", code: -1, userInfo: [NSLocalizedDescriptionKey: "视频压缩后仍然过大（\(finalData.count / 1024 / 1024)MB），请上传较短的视频（建议 30 秒以内）。"]))
+            }
+            
+            let base64 = finalData.base64EncodedString()
+            let urlString = "data:video/mp4;base64,\(base64)"
+            let videoURL = VisionChatCompletionRequest.VideoURL(url: urlString)
+            let content = VisionChatCompletionRequest.Content(type: "video_url", text: nil, image_url: nil, video_url: videoURL)
+            userContents.append(content)
+        }
+		let requestBody = VisionChatCompletionRequest(
+			model: model,
+			messages: [
+				VisionChatCompletionRequest.Message(role: "system", content: systemContents),
+				VisionChatCompletionRequest.Message(role: "user", content: userContents)
+			],
+			stream: true
+		)
+		let content = try await sendStreamingRequest(body: requestBody)
+		return content.trimmingCharacters(in: .whitespacesAndNewlines)
+	}
 }
