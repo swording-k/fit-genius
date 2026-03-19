@@ -8,4 +8,5 @@ extension Array {
 import Foundation
 extension Notification.Name {
     static let dietSummaryUpdated = Notification.Name("DietSummaryUpdated")
+    static let workoutCompleted = Notification.Name("WorkoutCompleted")
 }

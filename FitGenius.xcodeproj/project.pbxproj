@@ -7,15 +7,53 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7E9473912F6AA9030006CA3F /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7E9473902F6AA9020006CA3F /* WidgetKit.framework */; };
+		7E9473932F6AA9030006CA3F /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7E9473922F6AA9030006CA3F /* SwiftUI.framework */; };
+		7E9473A32F6AA9040006CA3F /* FitGeniusWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7E94738F2F6AA9020006CA3F /* FitGeniusWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		7E9BCCF92EDCA14E0034928F /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7E9BCCF82EDCA14E0034928F /* StoreKit.framework */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		7E9473A02F6AA9040006CA3F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7E92B2902ED588E500290F84 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7E94738E2F6AA9020006CA3F;
+			remoteInfo = FitGeniusWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		7E9473A22F6AA9040006CA3F /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				7E9473A32F6AA9040006CA3F /* FitGeniusWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		7E92B2982ED588E500290F84 /* FitGenius.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FitGenius.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7E94738F2F6AA9020006CA3F /* FitGeniusWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FitGeniusWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		7E9473902F6AA9020006CA3F /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		7E9473922F6AA9030006CA3F /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		7E9473A82F6AA9680006CA3F /* FitGeniusWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FitGeniusWidgetExtension.entitlements; sourceTree = "<group>"; };
 		7E9BCCF82EDCA14E0034928F /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		7E9473A72F6AA9040006CA3F /* Exceptions for "FitGeniusWidget" folder in "FitGeniusWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 7E94738E2F6AA9020006CA3F /* FitGeniusWidgetExtension */;
+		};
 		7EF784422EF1BC1C00D22BA2 /* Exceptions for "FitGenius" folder in "FitGenius" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -34,6 +72,14 @@
 			path = FitGenius;
 			sourceTree = "<group>";
 		};
+		7E9473942F6AA9030006CA3F /* FitGeniusWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				7E9473A72F6AA9040006CA3F /* Exceptions for "FitGeniusWidget" folder in "FitGeniusWidgetExtension" target */,
+			);
+			path = FitGeniusWidget;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -45,13 +91,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		7E94738C2F6AA9020006CA3F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7E9473932F6AA9030006CA3F /* SwiftUI.framework in Frameworks */,
+				7E9473912F6AA9030006CA3F /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		7E92B28F2ED588E500290F84 = {
 			isa = PBXGroup;
 			children = (
+				7E9473A82F6AA9680006CA3F /* FitGeniusWidgetExtension.entitlements */,
 				7E92B29A2ED588E500290F84 /* FitGenius */,
+				7E9473942F6AA9030006CA3F /* FitGeniusWidget */,
 				7E9BCCF72EDCA14E0034928F /* Frameworks */,
 				7E92B2992ED588E500290F84 /* Products */,
 			);
@@ -61,6 +118,7 @@
 			isa = PBXGroup;
 			children = (
 				7E92B2982ED588E500290F84 /* FitGenius.app */,
+				7E94738F2F6AA9020006CA3F /* FitGeniusWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -69,6 +127,8 @@
 			isa = PBXGroup;
 			children = (
 				7E9BCCF82EDCA14E0034928F /* StoreKit.framework */,
+				7E9473902F6AA9020006CA3F /* WidgetKit.framework */,
+				7E9473922F6AA9030006CA3F /* SwiftUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -83,10 +143,12 @@
 				7E92B2942ED588E500290F84 /* Sources */,
 				7E92B2952ED588E500290F84 /* Frameworks */,
 				7E92B2962ED588E500290F84 /* Resources */,
+				7E9473A22F6AA9040006CA3F /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				7E9473A12F6AA9040006CA3F /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				7E92B29A2ED588E500290F84 /* FitGenius */,
@@ -97,6 +159,28 @@
 			productName = FitGenius;
 			productReference = 7E92B2982ED588E500290F84 /* FitGenius.app */;
 			productType = "com.apple.product-type.application";
+		};
+		7E94738E2F6AA9020006CA3F /* FitGeniusWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7E9473A62F6AA9040006CA3F /* Build configuration list for PBXNativeTarget "FitGeniusWidgetExtension" */;
+			buildPhases = (
+				7E94738B2F6AA9020006CA3F /* Sources */,
+				7E94738C2F6AA9020006CA3F /* Frameworks */,
+				7E94738D2F6AA9020006CA3F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				7E9473942F6AA9030006CA3F /* FitGeniusWidget */,
+			);
+			name = FitGeniusWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = FitGeniusWidgetExtension;
+			productReference = 7E94738F2F6AA9020006CA3F /* FitGeniusWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -109,6 +193,9 @@
 				LastUpgradeCheck = 2610;
 				TargetAttributes = {
 					7E92B2972ED588E500290F84 = {
+						CreatedOnToolsVersion = 26.1;
+					};
+					7E94738E2F6AA9020006CA3F = {
 						CreatedOnToolsVersion = 26.1;
 					};
 				};
@@ -128,12 +215,20 @@
 			projectRoot = "";
 			targets = (
 				7E92B2972ED588E500290F84 /* FitGenius */,
+				7E94738E2F6AA9020006CA3F /* FitGeniusWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		7E92B2962ED588E500290F84 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7E94738D2F6AA9020006CA3F /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -150,7 +245,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		7E94738B2F6AA9020006CA3F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		7E9473A12F6AA9040006CA3F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7E94738E2F6AA9020006CA3F /* FitGeniusWidgetExtension */;
+			targetProxy = 7E9473A02F6AA9040006CA3F /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		7E92B2A32ED588E600290F84 /* Debug */ = {
@@ -286,6 +396,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FitGenius/Info.plist;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "FitGenius 需要访问您的麦克风以实现语音转文字功能";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "FitGenius 需要使用语音识别服务以实现语音转文字功能";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -324,6 +436,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FitGenius/Info.plist;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "FitGenius 需要访问您的麦克风以实现语音转文字功能";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "FitGenius 需要使用语音识别服务以实现语音转文字功能";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -348,6 +462,70 @@
 			};
 			name = Release;
 		};
+		7E9473A42F6AA9040006CA3F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = FitGeniusWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = NV5R86Q3MS;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FitGeniusWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = FitGeniusWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.swordingk.fitgenius.FitGeniusWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		7E9473A52F6AA9040006CA3F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = FitGeniusWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = NV5R86Q3MS;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FitGeniusWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = FitGeniusWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.swordingk.fitgenius.FitGeniusWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -365,6 +543,15 @@
 			buildConfigurations = (
 				7E92B2A62ED588E600290F84 /* Debug */,
 				7E92B2A72ED588E600290F84 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7E9473A62F6AA9040006CA3F /* Build configuration list for PBXNativeTarget "FitGeniusWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7E9473A42F6AA9040006CA3F /* Debug */,
+				7E9473A52F6AA9040006CA3F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

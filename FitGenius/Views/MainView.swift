@@ -5,9 +5,10 @@ import SwiftData
 struct MainView: View {
     @Environment(\.modelContext) private var modelContext
     @AppStorage("appMode") private var appMode: String = "training"
-    
+
     var body: some View {
         Group {
+            // 训练模式TabView
             if appMode == "training" {
                 TabView {
                     PlanDashboardView(modelContext: modelContext)
@@ -26,8 +27,7 @@ struct MainView: View {
                     .tabItem {
                         Label("统计", systemImage: "chart.xyaxis.line")
                     }
-                    
-                    // ✅ 添加"我的" Tab
+
                     NavigationStack {
                         ProfileView()
                     }
@@ -55,8 +55,7 @@ struct MainView: View {
                     .tabItem {
                         Label("统计", systemImage: "chart.xyaxis.line")
                     }
-                    
-                    // ✅ 添加"我的" Tab
+
                     NavigationStack {
                         ProfileView()
                     }
@@ -65,6 +64,17 @@ struct MainView: View {
                     }
                 }
             }
+        }
+        .onAppear {
+            updateWidgetData()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .dietSummaryUpdated)) { _ in
+            // 饮食数据更新后刷新Widget
+            WidgetDataManager.updateDietData(modelContext: modelContext)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .workoutCompleted)) { _ in
+            // 训练完成后刷新Widget
+            WidgetDataManager.updateWorkoutData(modelContext: modelContext)
         }
         .safeAreaInset(edge: .top) {
             HStack {
@@ -87,6 +97,12 @@ struct MainView: View {
 
     private func toggleMode() {
         appMode = appMode == "training" ? "diet" : "training"
+        updateWidgetData()
+    }
+
+    private func updateWidgetData() {
+        WidgetDataManager.updateWorkoutData(modelContext: modelContext)
+        WidgetDataManager.updateDietData(modelContext: modelContext)
     }
 }
 

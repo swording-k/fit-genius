@@ -70,6 +70,10 @@ struct ExerciseRowView: View {
                 // 完成状态 Checkbox
                 Button(action: {
                     exercise.toggleCompletion(context: modelContext)
+                    // 刷新Widget数据
+                    WidgetDataManager.updateWorkoutData(modelContext: modelContext)
+                    // 发送通知
+                    NotificationCenter.default.post(name: .workoutCompleted, object: nil)
                 }) {
                     Image(systemName: exercise.isCompleted ? "checkmark.circle.fill" : "circle")
                         .font(.title2)
