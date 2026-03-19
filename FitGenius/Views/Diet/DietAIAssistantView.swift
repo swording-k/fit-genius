@@ -1,10 +1,14 @@
 import SwiftUI
 import SwiftData
+import PhotosUI
 
 struct DietAIAssistantView: View {
     @Environment(\.modelContext) private var modelContext
     @StateObject private var viewModel: DietAssistantViewModel
     @FocusState private var isInputFocused: Bool
+    @State private var showCamera = false
+    @State private var capturedImage: UIImage?
+    @State private var showClearAlert = false
 
     init(modelContext: ModelContext) {
         _viewModel = StateObject(wrappedValue: DietAssistantViewModel(modelContext: modelContext))
@@ -22,7 +26,7 @@ struct DietAIAssistantView: View {
                         if viewModel.isLoading {
                             HStack {
                                 ProgressView()
-                                Text("AI 正在思考...")
+                                Text(viewModel.loadingText)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -38,33 +42,89 @@ struct DietAIAssistantView: View {
             }
 
             Divider()
-
-            HStack(spacing: 12) {
-                TextField("输入消息...", text: $viewModel.inputText, axis: .vertical)
-                    .textFieldStyle(.roundedBorder)
-                    .focused($isInputFocused)
-                    .lineLimit(1...5)
-                    .submitLabel(.send)
-                    .onSubmit { Task { await viewModel.sendMessage() } }
-                Button {
-                    Task { await viewModel.sendMessage() }
-                } label: {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(viewModel.inputText.isEmpty ? .gray : .blue)
+            
+            // 媒体预览区 (类似 AIAssistantView)
+            if viewModel.pendingMediaData != nil {
+                HStack(spacing: 8) {
+                    ZStack {
+                        if let thumb = viewModel.pendingThumbnail {
+                            Image(uiImage: thumb)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 64, height: 64)
+                                .clipped()
+                                .cornerRadius(8)
+                        } else {
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.2))
+                                .frame(width: 64, height: 64)
+                                .cornerRadius(8)
+                        }
+                    }
+                    Button {
+                        viewModel.clearPendingMedia()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title3)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
                 }
-                .disabled(viewModel.inputText.isEmpty || viewModel.isLoading)
+                .padding(.horizontal)
+                .padding(.top, 8)
             }
-            .padding()
-            .background(Color(.systemBackground))
+
+			EnhancedInputControlsView(
+				configuration: .dietAssistant,
+				inputText: $viewModel.inputText,
+				isFocused: $isInputFocused,
+				isLoading: viewModel.isLoading,
+				onSend: {
+					Task { await viewModel.sendMessage() }
+				},
+				onCameraCapture: {
+                    showCamera = true
+                },
+				onPhotoSelected: { item in
+					Task {
+						if let data = try? await item.loadTransferable(type: Data.self) {
+                            viewModel.handleMediaSelection(data: data)
+						}
+					}
+				}
+			)
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
                     Button("完成") { isInputFocused = false }
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showClearAlert = true
+                    } label: {
+                        Image(systemName: "trash")
+                    }
+                }
             }
         }
-        .navigationTitle("AI 助手")
+        .navigationTitle("AI 饮食助手")
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $showCamera) {
+            CameraPicker(selectedImage: $capturedImage)
+        }
+        .onChange(of: capturedImage) { _, newImage in
+            if let image = newImage, let data = image.jpegData(compressionQuality: 0.8) {
+                viewModel.handleMediaSelection(data: data)
+                capturedImage = nil
+            }
+        }
+        .alert("清空记录", isPresented: $showClearAlert) {
+            Button("取消", role: .cancel) {}
+            Button("清空", role: .destructive) {
+                viewModel.clearHistory()
+            }
+        } message: {
+            Text("确定要清空所有聊天记录吗？此操作无法撤销。")
+        }
     }
 }
