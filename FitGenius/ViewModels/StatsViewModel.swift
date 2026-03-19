@@ -3,7 +3,7 @@ import SwiftData
 import Combine
 
 // MARK: - 训练数据点
-struct TrainingDataPoint: Identifiable {
+struct TrainingDataPoint: Identifiable, Equatable {
     let id = UUID()
     let date: Date
     let exerciseName: String

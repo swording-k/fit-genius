@@ -3,13 +3,18 @@ import SwiftData
 
 struct ContentView: View {
     @AppStorage("hasOnboarded") private var hasOnboarded = false
-    @EnvironmentObject var auth: AuthViewModel  // ✅ 添加，但不检查登录状态
-    
+    @EnvironmentObject var auth: AuthViewModel
+    @Environment(\.modelContext) private var modelContext
+
     var body: some View {
         Group {
-            // ✅ 先完成 Onboarding，登录是可选的
             if hasOnboarded {
                 MainView()
+                    .onAppear {
+                        // 确保Widget数据已更新
+                        WidgetDataManager.updateWorkoutData(modelContext: modelContext)
+                        WidgetDataManager.updateDietData(modelContext: modelContext)
+                    }
             } else {
                 OnboardingView()
             }

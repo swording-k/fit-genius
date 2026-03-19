@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 import Combine
 
-struct DailyNutritionPoint: Identifiable {
+struct DailyNutritionPoint: Identifiable, Equatable {
     let id = UUID()
     let date: Date
     let calories: Double

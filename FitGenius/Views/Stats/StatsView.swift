@@ -231,12 +231,12 @@ struct TrainingConsistencyView: View {
 // MARK: - 训练容量趋势图
 struct VolumeChartView: View {
     @ObservedObject var viewModel: StatsViewModel
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(viewModel.selectedExercise == "全部" ? "总训练容量趋势" : "\(viewModel.selectedExercise) 容量趋势")
                 .font(.headline)
-            
+
             if viewModel.trainingData.isEmpty {
                 Text("暂无数据")
                     .foregroundColor(.secondary)
@@ -244,28 +244,48 @@ struct VolumeChartView: View {
                     .padding()
             } else {
                 Chart(viewModel.trainingData) { data in
+                    AreaMark(
+                        x: .value("日期", data.date),
+                        y: .value("容量", data.volume)
+                    )
+                    .foregroundStyle(.blue.opacity(0.2))
+                    .interpolationMethod(.catmullRom)
+
                     LineMark(
                         x: .value("日期", data.date),
                         y: .value("容量", data.volume)
                     )
                     .foregroundStyle(.blue)
                     .interpolationMethod(.catmullRom)
-                    
+
                     PointMark(
                         x: .value("日期", data.date),
                         y: .value("容量", data.volume)
                     )
                     .foregroundStyle(.blue)
+                    .symbolSize(data == viewModel.trainingData.last ? 80 : 30)
                 }
                 .frame(height: 200)
                 .chartXAxis {
-                    AxisMarks(values: .automatic) { value in
+                    AxisMarks(values: .stride(by: .day)) { value in
                         if let date = value.as(Date.self) {
                             AxisValueLabel {
-                                Text(date, format: .dateTime.month().day())
-                                    .font(.caption2)
+                                Text(date, format: .dateTime.month(.abbreviated).day())
+                                    .font(.caption)
                             }
                         }
+                        AxisGridLine()
+                    }
+                }
+                .chartYAxis {
+                    AxisMarks { value in
+                        AxisValueLabel {
+                            if let volume = value.as(Double.self) {
+                                Text("\(Int(volume))")
+                                    .font(.caption)
+                            }
+                        }
+                        AxisGridLine()
                     }
                 }
             }
