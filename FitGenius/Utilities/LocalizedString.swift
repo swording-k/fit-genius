@@ -28,7 +28,7 @@ func localized(_ key: String) -> Text {
 
 // MARK: - Localized Label
 /// 用于SwiftUI Label的本地化
-func localizedLabel(_ key: String, systemImage: String) -> Label {
+func localizedLabel(_ key: String, systemImage: String) -> Label<String, Image> {
     return Label {
         Text(LocalizedStringKey(key))
     } icon: {
