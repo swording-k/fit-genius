@@ -19,7 +19,7 @@ struct ProfileView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section(header: Text("账户")) {
+                Section(header: Text("account")) {
                     // 用户头像和昵称
                     HStack(spacing: 16) {
                         // 头像
@@ -37,7 +37,7 @@ struct ProfileView: View {
                         }
                         
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(currentProfile?.nickname ?? currentProfile?.name ?? "用户")
+                            Text(currentProfile?.nickname ?? currentProfile?.name ?? "user")
                                 .font(.headline)
                             if let profile = currentProfile {
                                 Text("\(profile.age)岁 · \(String(format: "%.0f", profile.height))cm · \(String(format: "%.1f", profile.weight))kg")
@@ -64,7 +64,7 @@ struct ProfileView: View {
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(.green)
-                            Text("已登录")
+                            Text("login_success")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                             Spacer()
@@ -78,7 +78,7 @@ struct ProfileView: View {
                         } label: {
                             HStack {
                                 Image(systemName: "apple.logo")
-                                Text("登录以同步数据")
+                                Text("login_to_sync")
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
@@ -86,18 +86,18 @@ struct ProfileView: View {
                     }
                 }
 
-                Section(header: Text("订阅")) {
+                Section(header: Text("subscription")) {
                     HStack {
                         Image(systemName: "crown")
                             .foregroundColor(.yellow)
-                        Text("订阅暂未开放，上线后可用")
+                        Text("subscription_not_available")
                             .foregroundColor(.secondary)
                     }
                 }
 
-                Section(header: Text("提醒")) {
+                Section(header: Text("reminder")) {
                     Toggle(isOn: $notificationsEnabled) {
-                        Label("每日训练提醒", systemImage: "bell")
+                        Label("daily_training_reminder", systemImage: "bell")
                     }
                     .onChange(of: notificationsEnabled) { _, newValue in
                         if newValue {
@@ -115,11 +115,11 @@ struct ProfileView: View {
                     }
                 }
 
-                Section(header: Text("小组件")) {
+                Section(header: Text("widget")) {
                     WidgetBackgroundSettingsView()
                 }
 
-                Section(header: Text("AI 服务")) {
+                Section(header: Text("ai_service")) {
                     HStack {
                         if showAPIKey {
                             TextField("ALIYUN_API_KEY", text: $apiKeyText)
@@ -128,15 +128,15 @@ struct ProfileView: View {
                         } else {
                             SecureField("ALIYUN_API_KEY", text: $apiKeyText)
                         }
-                        Button(showAPIKey ? "隐藏" : "显示") { showAPIKey.toggle() }
+                        Button(showAPIKey ? "hide" : "show") { showAPIKey.toggle() }
                     }
                     HStack {
-                        Button("保存 API Key") {
+                        Button("save_api_key") {
                             _ = Keychain.save(apiKeyText, for: "aliyun_api_key")
                         }
                         .disabled(apiKeyText.isEmpty)
                         Spacer()
-                        Button("清除") {
+                        Button("clear") {
                             Keychain.delete("aliyun_api_key")
                             apiKeyText = ""
                         }
@@ -144,27 +144,27 @@ struct ProfileView: View {
                     }
                 }
 
-                Section(header: Text("设置")) {
+                Section(header: Text("settings")) {
                     Button(role: .destructive) {
                         resetAllData()
                     } label: {
-                        Label("清空数据并重新设置", systemImage: "arrow.clockwise.circle")
+                        Label("reset_data", systemImage: "arrow.clockwise.circle")
                     }
 
                     Button {
                         auth.signOut()
                     } label: {
-                        Label("退出登录", systemImage: "rectangle.portrait.and.arrow.right")
+                        Label("logout", systemImage: "rectangle.portrait.and.arrow.right")
                     }
                 }
 
-                Section(header: Text("反馈")) {
+                Section(header: Text("feedback")) {
                     Link(destination: URL(string: "mailto:swordingk@gmail.com?subject=问题反馈&body=请描述你的问题，附上截图。")!) {
-                        Label("通过邮件上报问题", systemImage: "envelope")
+                        Label("report_issue", systemImage: "envelope")
                     }
                 }
             }
-            .navigationTitle("我的")
+            .navigationTitle("profile")
             .sheet(isPresented: $showLoginSheet) {
                 LoginView()
             }
@@ -180,7 +180,7 @@ struct ProfileView: View {
     }
 
     private var maskedUserId: String {
-        guard let id = auth.currentUserId else { return "未登录" }
+        guard let id = auth.currentUserId else { return "not_logged_in".localized }
         if id.count <= 6 { return id }
         let start = id.prefix(3)
         let end = id.suffix(3)
@@ -204,34 +204,34 @@ struct WidgetBackgroundSettingsView: View {
         VStack(alignment: .leading, spacing: 16) {
             // 小组件显示内容偏好
             VStack(alignment: .leading, spacing: 8) {
-                Text("小组件显示")
+                Text("widget_display")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
 
-                Picker("显示内容", selection: $widgetContent) {
-                    Text("训练计划").tag("workout")
-                    Text("饮食记录").tag("diet")
+                Picker("widget_display", selection: $widgetContent) {
+                    Text("training_plan").tag("workout")
+                    Text("todays_diet").tag("diet")
                 }
                 .pickerStyle(.segmented)
                 .onChange(of: widgetContent) { _, newValue in
                     WidgetDataManager.setWidgetContent(newValue)
                 }
 
-                Text("Small尺寸小组件的显示内容偏好")
+                Text("widget_content_preference")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
 
             Divider()
 
-            Text("背景样式")
+            Text("background_style")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
 
             // 背景选择器
-            Picker("背景类型", selection: $backgroundType) {
-                Text("跟随系统").tag("system")
-                Text("自定义图片").tag("customImage")
+            Picker("background_style", selection: $backgroundType) {
+                Text("follow_system").tag("system")
+                Text("custom_image").tag("customImage")
             }
             .pickerStyle(.segmented)
             .onChange(of: backgroundType) { _, newValue in
@@ -243,7 +243,7 @@ struct WidgetBackgroundSettingsView: View {
                 PhotosPicker(selection: $selectedPhoto, matching: .images) {
                     HStack {
                         Image(systemName: "photo")
-                        Text("从相册选择图片")
+                        Text("select_from_album")
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
@@ -263,24 +263,24 @@ struct WidgetBackgroundSettingsView: View {
                 Button(role: .destructive) {
                     WidgetDataManager.setCustomBackground(nil)
                 } label: {
-                    Label("移除自定义背景", systemImage: "trash")
+                    Label("remove_custom_background", systemImage: "trash")
                 }
             }
 
             // 预览效果
             VStack(alignment: .leading, spacing: 4) {
-                Text("预览效果")
+                Text("preview")
                     .font(.caption)
                     .foregroundColor(.secondary)
 
                 HStack(spacing: 12) {
                     // 系统默认预览
-                    PreviewCard(title: "跟随系统", type: "system", isSelected: backgroundType == "system") {
+                    PreviewCard(title: "follow_system".localized, type: "system", isSelected: backgroundType == "system") {
                         backgroundType = "system"
                     }
 
                     // 自定义预览
-                    PreviewCard(title: "自定义图片", type: "customImage", isSelected: backgroundType == "customImage") {
+                    PreviewCard(title: "custom_image".localized, type: "customImage", isSelected: backgroundType == "customImage") {
                         backgroundType = "customImage"
                     }
                 }
