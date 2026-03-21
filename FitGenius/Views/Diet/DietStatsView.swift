@@ -16,17 +16,17 @@ struct DietStatsView: View {
             VStack(spacing: 24) {
                 // 今日营养摄入卡片
                 HStack(spacing: 12) {
-                    StatCard(title: "今日热量", value: String(format: "%.0f", viewModel.todayCalories), icon: "flame", color: .orange)
-                    StatCard(title: "今日蛋白(g)", value: String(format: "%.0f", viewModel.todayProtein), icon: "bolt", color: .blue)
+                    StatCard(title: "today_calories", value: String(format: "%.0f", viewModel.todayCalories), icon: "flame", color: .orange)
+                    StatCard(title: "today_protein_g", value: String(format: "%.0f", viewModel.todayProtein), icon: "bolt", color: .blue)
                 }
                 HStack(spacing: 12) {
-                    StatCard(title: "今日碳水(g)", value: String(format: "%.0f", viewModel.todayCarbs), icon: "car.fill", color: .purple)
-                    StatCard(title: "今日脂肪(g)", value: String(format: "%.0f", viewModel.todayFat), icon: "drop", color: .pink)
+                    StatCard(title: "today_carbs_g", value: String(format: "%.0f", viewModel.todayCarbs), icon: "car.fill", color: .purple)
+                    StatCard(title: "today_fat_g", value: String(format: "%.0f", viewModel.todayFat), icon: "drop", color: .pink)
                 }
 
                 if !viewModel.todayNotes.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("饮食建议").font(.headline)
+                        Text("diet_advice").font(.headline)
                         Text(viewModel.todayNotes).foregroundColor(.secondary)
                     }
                 }
@@ -34,7 +34,7 @@ struct DietStatsView: View {
                 // 热量趋势综合图表
                 if !viewModel.points.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("热量趋势").font(.headline)
+                        Text("calorie_trend").font(.headline)
                         Chart(viewModel.points) { p in
                             AreaMark(
                                 x: .value("日期", p.date),
@@ -81,13 +81,13 @@ struct DietStatsView: View {
 
                     // 宏量营养素综合图表
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("宏量营养素趋势").font(.headline)
+                        Text("macro_trend").font(.headline)
 
                         // 图例
                         HStack(spacing: 16) {
-                            LegendItem(color: .blue, label: "蛋白质")
-                            LegendItem(color: .purple, label: "碳水")
-                            LegendItem(color: .pink, label: "脂肪")
+                            LegendItem(color: .blue, label: "protein")
+                            LegendItem(color: .purple, label: "carbs")
+                            LegendItem(color: .pink, label: "fat")
                         }
 
                         Chart(viewModel.points) { p in
@@ -178,10 +178,10 @@ struct DietStatsView: View {
                         Image(systemName: "chart.bar.xaxis")
                             .font(.system(size: 50))
                             .foregroundColor(.secondary)
-                        Text("暂无饮食记录")
+                        Text("no_diet_record")
                             .font(.headline)
                             .foregroundColor(.secondary)
-                        Text("开始记录饮食后，这里将展示你的营养趋势")
+                        Text("start_logging_diet")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
@@ -191,7 +191,7 @@ struct DietStatsView: View {
             }
             .padding()
         }
-        .navigationTitle("饮食统计")
+        .navigationTitle("diet_stats")
         .onAppear { viewModel.loadData() }
         .onReceive(NotificationCenter.default.publisher(for: .dietSummaryUpdated)) { _ in
             viewModel.loadData()
