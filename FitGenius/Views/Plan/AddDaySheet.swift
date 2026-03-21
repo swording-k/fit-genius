@@ -5,16 +5,16 @@ struct AddDaySheet: View {
     let onCreate: (BodyPartFocus, Bool) -> Void
     @State private var selectedFocus: BodyPartFocus = .fullBody
     @State private var isRestDay: Bool = false
-    
+
     var body: some View {
         NavigationStack {
             Form {
-                Section("类型") {
-                    Toggle("休息日", isOn: $isRestDay)
+                Section("type") {
+                    Toggle("rest_day", isOn: $isRestDay)
                 }
                 if !isRestDay {
-                    Section("训练部位") {
-                        Picker("部位", selection: $selectedFocus) {
+                    Section("training_focus") {
+                        Picker("body_part", selection: $selectedFocus) {
                             ForEach(BodyPartFocus.allCases, id: \.self) { focus in
                                 Text(focus.localizedName).tag(focus)
                             }
@@ -23,11 +23,11 @@ struct AddDaySheet: View {
                     }
                 }
             }
-            .navigationTitle("新增训练日")
+            .navigationTitle("add_training_day")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("添加") {
+                    Button("add") {
                         onCreate(selectedFocus, isRestDay)
                     }
                 }
