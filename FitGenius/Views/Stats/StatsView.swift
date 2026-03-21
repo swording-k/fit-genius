@@ -39,7 +39,7 @@ struct StatsView: View {
             }
             .padding()
         }
-        .navigationTitle("训练统计")
+        .navigationTitle("training_stats")
         .onAppear {
             viewModel.loadData()
         }
@@ -56,15 +56,15 @@ struct StreakDaysCard: View {
                 .font(.system(size: 50))
             
             VStack(alignment: .leading, spacing: 4) {
-                Text("你坚持训练计划已经")
+                Text("streak_message")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
-                
+
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Text("\(streakDays)")
                         .font(.system(size: 40, weight: .bold))
                         .foregroundColor(.orange)
-                    Text("天")
+                    Text("days")
                         .font(.title2)
                         .foregroundColor(.orange)
                 }
@@ -92,14 +92,14 @@ struct StatsCardsView: View {
         VStack(spacing: 12) {
             HStack(spacing: 12) {
                 StatCard(
-                    title: "训练天数",
+                    title: "training_days",
                     value: "\(viewModel.trainingDays)",
                     icon: "calendar",
                     color: .blue
                 )
-                
+
                 StatCard(
-                    title: "完成动作",
+                    title: "completed_exercises",
                     value: "\(viewModel.totalExercises)",
                     icon: "checkmark.circle",
                     color: .green
@@ -108,14 +108,14 @@ struct StatsCardsView: View {
             
             HStack(spacing: 12) {
                 StatCard(
-                    title: "总组数",
+                    title: "total_sets",
                     value: "\(viewModel.totalSets)",
                     icon: "repeat",
                     color: .orange
                 )
-                
+
                 StatCard(
-                    title: "训练容量",
+                    title: "volume",
                     value: String(format: "%.0f", viewModel.totalVolume),
                     icon: "chart.line.uptrend.xyaxis",
                     color: .purple
@@ -161,7 +161,7 @@ struct ExerciseFilterView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("筛选动作")
+            Text("filter_exercise")
                 .font(.headline)
             
             ScrollView(.horizontal, showsIndicators: false) {
@@ -195,7 +195,7 @@ struct TrainingConsistencyView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("训练坚持情况")
+            Text("training_consistency")
                 .font(.headline)
             
             Chart(viewModel.dailyStats) { stat in
@@ -234,11 +234,11 @@ struct VolumeChartView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(viewModel.selectedExercise == "全部" ? "总训练容量趋势" : "\(viewModel.selectedExercise) 容量趋势")
+            Text(viewModel.selectedExercise == "全部" ? "total_volume_trend" : "\(viewModel.selectedExercise) volume_trend")
                 .font(.headline)
 
             if viewModel.trainingData.isEmpty {
-                Text("暂无数据")
+                Text("no_data")
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding()
@@ -302,11 +302,11 @@ struct RecentTrainingListView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("最近训练记录")
+            Text("recent_training")
                 .font(.headline)
-            
+
             if viewModel.trainingData.isEmpty {
-                Text("暂无训练记录")
+                Text("no_training_record")
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding()
@@ -345,22 +345,22 @@ struct TrainingRecordRow: View {
                     Text("\(data.sets)")
                         .font(.subheadline)
                         .bold()
-                    Text("组")
+                    Text("sets")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    
+
                     Text("×")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    
+
                     Text(String(format: "%.0f", data.reps))
                         .font(.subheadline)
                         .bold()
-                    Text("次")
+                    Text("reps")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-                
+
                 if data.weight > 0 {
                     HStack(spacing: 4) {
                         Text(String(format: "%.1f", data.weight))
@@ -371,8 +371,8 @@ struct TrainingRecordRow: View {
                             .foregroundColor(.secondary)
                     }
                 }
-                
-                Text("容量: \(String(format: "%.0f", data.volume))")
+
+                Text("volume: \(String(format: "%.0f", data.volume))")
                     .font(.caption)
                     .foregroundColor(.blue)
             }

@@ -12,56 +12,40 @@ struct MainView: View {
             if appMode == "training" {
                 TabView {
                     PlanDashboardView(modelContext: modelContext)
-                        .tabItem {
-                            Label("训练", systemImage: "figure.run")
-                        }
+                        .tabLabel("training", systemImage: "figure.run")
                     NavigationStack {
                         AIAssistantView(modelContext: modelContext)
                     }
-                    .tabItem {
-                        Label("AI 助手", systemImage: "bubble.left.and.bubble.right")
-                    }
+                    .tabLabel("ai_assistant", systemImage: "bubble.left.and.bubble.right")
                     NavigationStack {
                         StatsView(modelContext: modelContext)
                     }
-                    .tabItem {
-                        Label("统计", systemImage: "chart.xyaxis.line")
-                    }
+                    .tabLabel("stats", systemImage: "chart.xyaxis.line")
 
                     NavigationStack {
                         ProfileView()
                     }
-                    .tabItem {
-                        Label("我的", systemImage: "person.circle")
-                    }
+                    .tabLabel("profile", systemImage: "person.circle")
                 }
             } else {
                 TabView {
                     NavigationStack {
                         DietHomeView(modelContext: modelContext)
                     }
-                    .tabItem {
-                        Label("饮食", systemImage: "fork.knife")
-                    }
+                    .tabLabel("diet", systemImage: "fork.knife")
                     NavigationStack {
                         DietAIAssistantView(modelContext: modelContext)
                     }
-                    .tabItem {
-                        Label("AI 助手", systemImage: "bubble.left.and.bubble.right")
-                    }
+                    .tabLabel("ai_assistant", systemImage: "bubble.left.and.bubble.right")
                     NavigationStack {
                         DietStatsView(modelContext: modelContext)
                     }
-                    .tabItem {
-                        Label("统计", systemImage: "chart.xyaxis.line")
-                    }
+                    .tabLabel("stats", systemImage: "chart.xyaxis.line")
 
                     NavigationStack {
                         ProfileView()
                     }
-                    .tabItem {
-                        Label("我的", systemImage: "person.circle")
-                    }
+                    .tabLabel("profile", systemImage: "person.circle")
                 }
             }
         }
@@ -81,7 +65,7 @@ struct MainView: View {
                 Button(action: toggleMode) {
                     HStack(spacing: 6) {
                         Image(systemName: appMode == "training" ? "fork.knife" : "figure.run")
-                        Text(appMode == "training" ? "饮食模式" : "训练模式")
+                        Text(appMode == "training" ? "diet_mode" : "training_mode")
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
@@ -109,7 +93,7 @@ struct MainView: View {
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: UserProfile.self, WorkoutPlan.self, ChatMessage.self, configurations: config)
-    
+
     MainView()
         .modelContainer(container)
 }
