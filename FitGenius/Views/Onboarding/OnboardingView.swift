@@ -50,9 +50,9 @@ struct OnboardingView: View {
 // MARK: - 进度指示器
 struct ProgressIndicator: View {
     let currentStep: OnboardingStep
-    
-    private let steps = ["基本信息", "目标设定", "器械选择", "备注"]
-    
+
+    private let steps = ["basic_info", "goal_setting", "equipment_selection", "notes"]
+
     var body: some View {
         HStack(spacing: 8) {
             ForEach(0..<steps.count, id: \.self) { index in

@@ -5,69 +5,69 @@ struct BasicInfoView: View {
     @ObservedObject var viewModel: OnboardingViewModel
     @FocusState private var focusedField: Field?
     enum Field { case name, age, height, weight }
-    
+
     var body: some View {
         ScrollView {
         VStack(alignment: .leading, spacing: 24) {
             // 标题
             VStack(alignment: .leading, spacing: 8) {
-                Text("基本信息")
+                Text("basic_info_title")
                     .font(.largeTitle)
                     .bold()
-                Text("让我们了解一下您的基本情况")
+                Text("basic_info_subtitle")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
-            
+
             // 表单
             VStack(spacing: 16) {
                 // 姓名
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("姓名")
+                    Text("name")
                         .font(.headline)
-                    TextField("请输入您的姓名", text: $viewModel.name)
+                    TextField("enter_name", text: $viewModel.name)
                         .textFieldStyle(.roundedBorder)
                         .focused($focusedField, equals: .name)
                 }
-                
+
                 // 年龄
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("年龄")
+                    Text("age")
                         .font(.headline)
-                    TextField("请输入年龄", text: $viewModel.age)
+                    TextField("enter_age", text: $viewModel.age)
                         .keyboardType(.numberPad)
                         .textFieldStyle(.roundedBorder)
                         .focused($focusedField, equals: .age)
                 }
-                
+
                 // 身高
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("身高 (cm)")
+                    Text("height_cm")
                         .font(.headline)
-                    TextField("请输入身高", text: $viewModel.height)
+                    TextField("enter_height", text: $viewModel.height)
                         .keyboardType(.decimalPad)
                         .textFieldStyle(.roundedBorder)
                         .focused($focusedField, equals: .height)
                 }
-                
+
                 // 体重
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("体重 (kg)")
+                    Text("weight_kg")
                         .font(.headline)
-                    TextField("请输入体重", text: $viewModel.weight)
+                    TextField("enter_weight", text: $viewModel.weight)
                         .keyboardType(.decimalPad)
                         .textFieldStyle(.roundedBorder)
                         .focused($focusedField, equals: .weight)
                 }
             }
-            
+
             Spacer()
-            
+
             // 下一步按钮
             Button(action: {
                 viewModel.nextStep()
             }) {
-                Text("下一步")
+                Text("next")
                     .font(.headline)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
@@ -84,7 +84,7 @@ struct BasicInfoView: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button("完成") { focusedField = nil }
+                Button("done") { focusedField = nil }
             }
         }
     }
@@ -93,26 +93,26 @@ struct BasicInfoView: View {
 // MARK: - 目标和环境选择页面
 struct GoalAndEnvironmentView: View {
     @ObservedObject var viewModel: OnboardingViewModel
-    
+
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     // 标题
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("健身目标")
+                        Text("fitness_goal_title")
                             .font(.largeTitle)
                             .bold()
-                        Text("选择您的健身目标和训练环境")
+                        Text("fitness_goal_subtitle")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
-                    
+
                     // 健身目标
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("您的目标")
+                        Text("your_goal")
                             .font(.headline)
-                        
+
                         ForEach(FitnessGoal.allCases) { goal in
                             Button(action: {
                                 viewModel.selectedGoal = goal
@@ -138,12 +138,12 @@ struct GoalAndEnvironmentView: View {
                             }
                         }
                     }
-                    
+
                     // 训练环境
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("训练环境")
+                        Text("training_environment")
                             .font(.headline)
-                        
+
                         ForEach(WorkoutEnvironment.allCases) { environment in
                             Button(action: {
                                 viewModel.selectedEnvironment = environment
@@ -173,16 +173,16 @@ struct GoalAndEnvironmentView: View {
                 .padding()
             }
             .scrollDismissesKeyboard(.interactively)
-        
+
             // 导航按钮（固定在底部）
             VStack(spacing: 0) {
                 Divider()
-                
+
                 HStack(spacing: 12) {
                     Button(action: {
                         viewModel.previousStep()
                     }) {
-                        Text("上一步")
+                        Text("previous")
                             .font(.headline)
                             .foregroundColor(.blue)
                             .frame(maxWidth: .infinity)
@@ -190,11 +190,11 @@ struct GoalAndEnvironmentView: View {
                             .background(Color.blue.opacity(0.1))
                             .cornerRadius(12)
                     }
-                    
+
                     Button(action: {
                         viewModel.nextStep()
                     }) {
-                        Text("下一步")
+                        Text("next")
                             .font(.headline)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)

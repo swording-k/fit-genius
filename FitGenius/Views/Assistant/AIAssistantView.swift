@@ -31,12 +31,12 @@ struct AIAssistantView: View {
                     Image(systemName: "bubble.left.and.bubble.right")
                         .font(.system(size: 60))
                         .foregroundColor(.gray)
-                    
-                    Text("暂无训练计划")
+
+                    Text("no_plan_for_assistant")
                         .font(.title3)
                         .foregroundColor(.secondary)
-                    
-                    Text("请先完成用户资料设置或创建空白计划（建议模式可用）")
+
+                    Text("complete_profile_first")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
