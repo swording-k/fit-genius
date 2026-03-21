@@ -132,3 +132,68 @@
 "none" = "无";
 "generating_plan" = "正在生成计划...";
 "generate_plan" = "生成计划";
+
+/* PlanDashboardView */
+"cycle_info" = "循环第 %d 周 · 第 %d 天";
+"days" = "天";
+"no_workout_plan" = "暂无训练计划";
+"complete_profile_setup" = "请先完成用户资料设置";
+"reset_settings" = "重新设置";
+"add_training_day" = "新增训练日";
+"delete_current_day" = "删除当前天";
+"start_new_cycle" = "开始新循环";
+"reset_all_data" = "重新设置（清空所有数据）";
+"reset_warning_message" = "这将删除所有数据并重新开始。确定要继续吗？";
+"delete_day_warning_message" = "将删除当前选中的训练日，并自动重排天数。";
+"rest" = "休息";
+"cancel" = "取消";
+"confirm" = "确认";
+"delete" = "删除";
+"edit" = "编辑";
+
+/* WorkoutDayDetailView */
+"exercises" = "个动作";
+"add_exercise" = "新增动作";
+"rest_day" = "休息日";
+"today_is_rest_day" = "今天是休息日";
+"rest_description" = "适当休息，强化肌肉恢复";
+"no_exercises" = "暂无训练动作";
+
+/* AddDaySheet & Exercise sheets */
+"type" = "类型";
+"training_focus" = "训练部位";
+"body_part" = "部位";
+"add" = "添加";
+"exercise_info" = "动作信息";
+"exercise_name" = "动作名称";
+"sets" = "组数";
+"reps" = "次数";
+"weight_kg" = "重量 (公斤)";
+"weight" = "重量";
+"e.g_8_12" = "如: 8-12";
+"notes" = "备注";
+"edit_exercise" = "编辑动作";
+
+/* DietHomeView */
+"date" = "日期";
+"daily_total_intake" = "当天总摄入";
+"no_record" = "暂无记录";
+"diet_record" = "饮食记录";
+"submitting" = "正在提交...";
+"submit_diet_analysis" = "提交当天饮食分析";
+"add_meal" = "添加餐次";
+"edit_meal" = "编辑餐次";
+"content" = "内容";
+"nutrition" = "营养";
+"description" = "描述";
+"description_optional" = "描述（可选）";
+"calories_kcal" = "热量(kcal)";
+"protein_g" = "蛋白质(g)";
+"carbs_g" = "碳水(g)";
+"fat_g" = "脂肪(g)";
+"meal_type" = "餐次";
+"select_image" = "选择图片";
+"take_photo" = "拍照";
+"images" = "图片";
+"submit_result" = "提交结果";
+"ok" = "好的";

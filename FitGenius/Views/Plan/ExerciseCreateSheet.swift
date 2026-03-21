@@ -5,55 +5,55 @@ struct ExerciseCreateSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Bindable var workoutDay: WorkoutDay
-    
+
     @State private var name: String = ""
     @State private var sets: String = "3"
     @State private var reps: String = "8-12"
     @State private var weight: String = "0"
     @State private var notes: String = ""
-    
+
     var body: some View {
         NavigationStack {
             Form {
-                Section("动作信息") {
-                    TextField("动作名称", text: $name)
+                Section("exercise_info") {
+                    TextField("exercise_name", text: $name)
                     HStack {
-                        Text("组数")
+                        Text("sets")
                         Spacer()
-                        TextField("组数", text: $sets)
+                        TextField("sets", text: $sets)
                             .keyboardType(.numberPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 100)
                     }
                     HStack {
-                        Text("次数")
+                        Text("reps")
                         Spacer()
-                        TextField("如: 8-12", text: $reps)
+                        TextField("e.g_8_12", text: $reps)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 100)
                     }
                     HStack {
-                        Text("重量 (kg)")
+                        Text("weight_kg")
                         Spacer()
-                        TextField("重量", text: $weight)
+                        TextField("weight", text: $weight)
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 100)
                     }
                 }
-                Section("备注") {
+                Section("notes") {
                     TextEditor(text: $notes)
                         .frame(minHeight: 80)
                 }
             }
-            .navigationTitle("新增动作")
+            .navigationTitle("add_exercise")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
+                    Button("cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("添加") {
+                    Button("add") {
                         addExercise()
                         dismiss()
                     }
