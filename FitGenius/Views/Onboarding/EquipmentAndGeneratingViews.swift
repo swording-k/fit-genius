@@ -5,31 +5,31 @@ import SwiftData
 struct EquipmentSelectionView: View {
     @ObservedObject var viewModel: OnboardingViewModel
     @Environment(\.modelContext) private var modelContext
-    
+
     let columns = [
         GridItem(.flexible()),
         GridItem(.flexible())
     ]
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
             // 标题
             VStack(alignment: .leading, spacing: 8) {
-                Text("可用器械")
+                Text("available_equipment")
                     .font(.largeTitle)
                     .bold()
-                Text("选择您可以使用的健身器械")
+                Text("select_equipment_subtitle")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
-            
+
             // 快捷按钮（仅在健身房环境显示）
             if viewModel.selectedEnvironment == .gym {
                 HStack(spacing: 12) {
                     Button(action: {
                         viewModel.selectAllEquipment()
                     }) {
-                        Label("全选", systemImage: "checkmark.circle")
+                        Label("select_all", systemImage: "checkmark.circle")
                             .font(.subheadline)
                             .foregroundColor(.blue)
                             .padding(.horizontal, 16)
@@ -37,11 +37,11 @@ struct EquipmentSelectionView: View {
                             .background(Color.blue.opacity(0.1))
                             .cornerRadius(8)
                     }
-                    
+
                     Button(action: {
                         viewModel.clearAllEquipment()
                     }) {
-                        Label("清空", systemImage: "xmark.circle")
+                        Label("clear_all", systemImage: "xmark.circle")
                             .font(.subheadline)
                             .foregroundColor(.red)
                             .padding(.horizontal, 16)
@@ -51,7 +51,7 @@ struct EquipmentSelectionView: View {
                     }
                 }
             }
-            
+
             // 器械网格
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 12) {
@@ -83,20 +83,20 @@ struct EquipmentSelectionView: View {
                 }
             }
             .scrollDismissesKeyboard(.interactively)
-            
+
             // 已选择数量提示
             if !viewModel.selectedEquipment.isEmpty {
-                Text("已选择 \(viewModel.selectedEquipment.count) 种器械")
+                Text("selected_equipment_count".localized(with: viewModel.selectedEquipment.count))
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-            
+
             // 导航按钮
             HStack(spacing: 12) {
                 Button(action: {
                     viewModel.previousStep()
                 }) {
-                    Text("上一步")
+                    Text("previous")
                         .font(.headline)
                         .foregroundColor(.blue)
                         .frame(maxWidth: .infinity)
@@ -104,11 +104,11 @@ struct EquipmentSelectionView: View {
                         .background(Color.blue.opacity(0.1))
                         .cornerRadius(12)
                 }
-                
+
                 Button(action: {
                     viewModel.nextStep()
                 }) {
-                    Text("下一步")
+                    Text("next")
                         .font(.headline)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
@@ -129,17 +129,17 @@ struct GeneratingView: View {
     @Environment(\.modelContext) private var modelContext
     @Binding var hasOnboarded: Bool
     @State private var spin = false
-    
+
     var body: some View {
         VStack(spacing: 32) {
             Spacer()
-            
+
             // 动画图标
             ZStack {
                 Circle()
                     .stroke(Color.blue.opacity(0.2), lineWidth: 4)
                     .frame(width: 120, height: 120)
-                
+
                 Circle()
                     .trim(from: 0, to: 0.7)
                     .stroke(Color.blue, style: StrokeStyle(lineWidth: 4, lineCap: .round))
@@ -150,31 +150,31 @@ struct GeneratingView: View {
                             spin = true
                         }
                     }
-                
+
                 Image(systemName: "figure.run")
                     .font(.system(size: 50))
                     .foregroundColor(.blue)
             }
-            
+
             // 状态文本
             VStack(spacing: 12) {
-                Text(viewModel.isGenerating ? "正在生成您的专属训练计划" : "完成！")
+                Text(viewModel.isGenerating ? "generating_plan".localized : "completed".localized)
                     .font(.title2)
                     .bold()
-                
+
                 Text(viewModel.generationProgress)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
             }
-            
+
             // 错误信息
             if let error = viewModel.errorMessage {
                 VStack(spacing: 12) {
-                    Text("生成失败")
+                    Text("generation_failed")
                         .font(.headline)
                         .foregroundColor(.red)
-                    
+
                     Text(error)
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -182,11 +182,11 @@ struct GeneratingView: View {
                         .padding()
                         .background(Color.red.opacity(0.1))
                         .cornerRadius(8)
-                    
+
                     Button(action: {
                         startGeneration()
                     }) {
-                        Text("重试")
+                        Text("retry")
                             .font(.headline)
                             .foregroundColor(.white)
                             .padding(.horizontal, 32)
@@ -196,14 +196,14 @@ struct GeneratingView: View {
                     }
                 }
             }
-            
+
             Spacer()
         }
         .padding()
-        
+
         // 生成流程由按钮触发，保留重试按钮使用
     }
-    
+
     private func startGeneration() {
         viewModel.generatePlan(context: modelContext) { success in
             if success {
@@ -225,10 +225,10 @@ struct NotesView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("备注")
+            Text("notes_title")
                 .font(.largeTitle)
                 .bold()
-            Text("可以填写：伤病情况、额外器械、期望的训练分化（如3分化、4分化、5分化）等")
+            Text("notes_subtitle")
                 .font(.caption)
                 .foregroundColor(.secondary)
             TextEditor(text: $viewModel.notes)
@@ -240,7 +240,7 @@ struct NotesView: View {
             Spacer()
             HStack(spacing: 12) {
                 Button(action: { viewModel.previousStep() }) {
-                    Text("上一步")
+                    Text("previous")
                         .font(.headline)
                         .foregroundColor(.blue)
                         .frame(maxWidth: .infinity)
@@ -255,7 +255,7 @@ struct NotesView: View {
                         if success { hasOnboarded = true }
                     }
                 }) {
-                    Text("生成计划")
+                    Text("generate_plan")
                         .font(.headline)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
@@ -269,7 +269,7 @@ struct NotesView: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button("完成") { notesFocused = false }
+                Button("done") { notesFocused = false }
             }
         }
     }

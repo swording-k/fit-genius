@@ -197,3 +197,39 @@
 "images" = "Images";
 "submit_result" = "Submit Result";
 "ok" = "OK";
+
+/* Onboarding */
+"basic_info" = "Basic Info";
+"goal_setting" = "Goal Setting";
+"equipment_selection" = "Equipment";
+"notes" = "Notes";
+"basic_info_title" = "Basic Information";
+"basic_info_subtitle" = "Let us know your basic information";
+"fitness_goal_title" = "Fitness Goal";
+"fitness_goal_subtitle" = "Select your fitness goal and training environment";
+"your_goal" = "Your Goal";
+"training_environment" = "Training Environment";
+"next" = "Next";
+"previous" = "Previous";
+"done" = "Done";
+"enter_name" = "Enter your name";
+"enter_age" = "Enter your age";
+"enter_height" = "Enter your height";
+"enter_weight" = "Enter your weight";
+"height_cm" = "Height (cm)";
+"weight_kg" = "Weight (kg)";
+"available_equipment" = "Available Equipment";
+"select_equipment_subtitle" = "Select the equipment you can use";
+"select_all" = "Select All";
+"clear_all" = "Clear All";
+"selected_equipment_count" = "Selected %d equipment";
+"notes_title" = "Notes";
+"notes_subtitle" = "You can fill in: injuries, additional equipment, preferred split (e.g., 3-day, 4-day split)";
+"generating_plan" = "Generating your personalized training plan...";
+"completed" = "Completed!";
+"generation_failed" = "Generation Failed";
+"retry" = "Retry";
+
+/* AI Assistant */
+"no_plan_for_assistant" = "No Workout Plan";
+"complete_profile_first" = "Please complete your profile setup or create a blank plan first";
