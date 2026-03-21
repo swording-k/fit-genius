@@ -31,7 +31,7 @@ struct ExerciseRowView: View {
                     VStack(spacing: 4) {
                         Image(systemName: "pencil")
                             .font(.headline)
-                        Text("编辑")
+                        Text("edit")
                             .font(.caption2)
                     }
                     .foregroundColor(.white)
@@ -39,7 +39,7 @@ struct ExerciseRowView: View {
                     .background(Color.blue)
                 }
                 .buttonStyle(.plain)
-                
+
                 // 删除按钮
                 Button(action: {
                     // 先收起侧滑
@@ -54,7 +54,7 @@ struct ExerciseRowView: View {
                     VStack(spacing: 4) {
                         Image(systemName: "trash")
                             .font(.headline)
-                        Text("删除")
+                        Text("delete")
                             .font(.caption2)
                     }
                     .foregroundColor(.white)
@@ -89,16 +89,16 @@ struct ExerciseRowView: View {
                         .foregroundColor(exercise.isCompleted ? .secondary : .primary)
                     
                     HStack(spacing: 16) {
-                        Label("\(exercise.sets) 组", systemImage: "repeat")
+                        Label("\(exercise.sets) \(exercise.sets.localized)", systemImage: "repeat")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        
+
                         Label(exercise.reps, systemImage: "number")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        
+
                         if exercise.weight > 0 {
-                            Label("\(String(format: "%.1f", exercise.weight)) kg", systemImage: "scalemass")
+                            Label("\(String(format: "%.1f", exercise.weight)) \(exercise.weight.localized)", systemImage: "scalemass")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -146,21 +146,21 @@ struct WorkoutDayDetailView: View {
             // 标题 + 新增动作
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("第 \(workoutDay.dayNumber) 天")
+                    Text(workoutDay.dayNumber.localized(with: workoutDay.dayNumber))
                         .font(.title2)
                         .bold()
-                    
+
                     // 根据是否是休息日显示不同标题
                     if workoutDay.isRestDay {
-                        Text("休息日")
+                        Text("rest_day")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     } else {
                         Text(workoutDay.focus.localizedName)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
-                        
-                        Text("\((workoutDay.exercises ?? []).count) 个动作")
+
+                        Text("\((workoutDay.exercises ?? []).count) \("exercises".localized)")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -168,7 +168,7 @@ struct WorkoutDayDetailView: View {
                 Spacer()
                 if !workoutDay.isRestDay {
                     Button(action: { showCreateSheet = true }) {
-                        Label("新增动作", systemImage: "plus.circle.fill")
+                        Label("add_exercise", systemImage: "plus.circle.fill")
                             .labelStyle(.iconOnly)
                             .font(.title2)
                     }
@@ -185,10 +185,10 @@ struct WorkoutDayDetailView: View {
                     Image(systemName: "bed.double.fill")
                         .font(.system(size: 50))
                         .foregroundColor(.orange)
-                    Text("今天是休息日")
+                    Text("today_is_rest_day")
                         .font(.title3)
                         .bold()
-                    Text("适当休息，强化肌肉恢复")
+                    Text("rest_description")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -198,7 +198,7 @@ struct WorkoutDayDetailView: View {
                     Image(systemName: "figure.run")
                         .font(.system(size: 50))
                         .foregroundColor(.gray)
-                    Text("暂无训练动作")
+                    Text("no_exercises")
                         .foregroundColor(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

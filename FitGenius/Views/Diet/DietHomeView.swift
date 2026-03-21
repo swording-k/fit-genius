@@ -16,7 +16,7 @@ struct DietHomeView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            DatePicker("日期", selection: $viewModel.selectedDate, displayedComponents: .date)
+            DatePicker("date", selection: $viewModel.selectedDate, displayedComponents: .date)
                 .datePickerStyle(.compact)
                 .padding()
                 .onChange(of: viewModel.selectedDate) { _, _ in
@@ -27,13 +27,13 @@ struct DietHomeView: View {
                 List {
                     if let s = day.summary {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("当天总摄入")
+                            Text("daily_total_intake")
                                 .font(.headline)
                             HStack(spacing: 12) {
                                 Text(String(format: "%.0f kcal", s.totalCalories))
-                                Text(String(format: "蛋白 %.0f g", s.protein))
-                                Text(String(format: "碳水 %.0f g", s.carbs))
-                                Text(String(format: "脂肪 %.0f g", s.fat))
+                                Text(String(format: "protein %.0f g", s.protein))
+                                Text(String(format: "carbs %.0f g", s.carbs))
+                                Text(String(format: "fat %.0f g", s.fat))
                             }
                             if !s.notes.isEmpty {
                                 Text(s.notes).foregroundColor(.secondary)
@@ -72,23 +72,23 @@ struct DietHomeView: View {
                             Button {
                                 viewModel.startEdit(entry: entry)
                             } label: {
-                                Label("编辑", systemImage: "pencil")
+                                Label("edit", systemImage: "pencil")
                             }
                             Button(role: .destructive) {
                                 viewModel.deleteEntry(entry)
                             } label: {
-                                Label("删除", systemImage: "trash")
+                                Label("delete", systemImage: "trash")
                             }
                         }
                     }
                 }
             } else {
-                Text("暂无记录")
+                Text("no_record")
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .navigationTitle("饮食记录")
+        .navigationTitle("diet_record")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -106,7 +106,7 @@ struct DietHomeView: View {
                 } label: {
                     HStack(spacing: 8) {
                         if viewModel.isSubmitting { ProgressView().tint(.white) }
-                        Text(viewModel.isSubmitting ? "正在提交..." : "提交当天饮食分析")
+                        Text(viewModel.isSubmitting ? "submitting".localized : "submit_diet_analysis".localized)
                             .font(.headline)
                             .foregroundColor(.white)
                     }
@@ -127,33 +127,33 @@ struct DietHomeView: View {
         .sheet(isPresented: $viewModel.isPresentingAddSheet) {
             NavigationStack {
                 Form {
-                    Picker("餐次", selection: $viewModel.selectedMealType) {
+                    Picker("meal_type", selection: $viewModel.selectedMealType) {
                         ForEach(MealType.allCases, id: \.self) { type in
                             Text(type.rawValue).tag(type)
                         }
                     }
-                    TextField("描述（可选）", text: $viewModel.inputText, axis: .vertical)
-                    
+                    TextField("description_optional", text: $viewModel.inputText, axis: .vertical)
+
                     Section {
                         HStack {
                             PhotosPicker(selection: $photoItems, maxSelectionCount: 6, matching: .images) {
                                 HStack {
                                     Image(systemName: "photo")
-                                    Text("选择图片")
+                                    Text("select_image")
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .contentShape(Rectangle())
                             }
                             .buttonStyle(.borderless)
                         }
-                        
+
                         HStack {
                             Button {
                                 showCamera = true
                             } label: {
                                 HStack {
                                     Image(systemName: "camera")
-                                    Text("拍照")
+                                    Text("take_photo")
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .contentShape(Rectangle())
@@ -161,7 +161,7 @@ struct DietHomeView: View {
                             .buttonStyle(.borderless)
                         }
                     } header: {
-                        Text("图片")
+                        Text("images")
                     }
                     if !viewModel.selectedImagesData.isEmpty {
                         ScrollView(.horizontal, showsIndicators: false) {
@@ -180,13 +180,13 @@ struct DietHomeView: View {
                         }
                     }
                 }
-                .navigationTitle("添加餐次")
+                .navigationTitle("add_meal")
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button("取消") { viewModel.isPresentingAddSheet = false }
+                        Button("cancel") { viewModel.isPresentingAddSheet = false }
                     }
                     ToolbarItem(placement: .confirmationAction) {
-                        Button("保存") { viewModel.addMealEntry() }
+                        Button("save") { viewModel.addMealEntry() }
                             .disabled(viewModel.selectedImagesData.isEmpty && viewModel.inputText.isEmpty)
                     }
                 }
@@ -219,33 +219,33 @@ struct DietHomeView: View {
         .sheet(isPresented: $viewModel.isPresentingEditSheet) {
             NavigationStack {
                 Form {
-                    Section("内容") {
-                        TextField("描述", text: $viewModel.editText, axis: .vertical)
+                    Section("content") {
+                        TextField("description", text: $viewModel.editText, axis: .vertical)
                     }
-                    Section("营养") {
-                        TextField("热量(kcal)", text: $viewModel.editCalories)
+                    Section("nutrition") {
+                        TextField("calories_kcal", text: $viewModel.editCalories)
                             .keyboardType(.numbersAndPunctuation)
-                        TextField("蛋白质(g)", text: $viewModel.editProtein)
+                        TextField("protein_g", text: $viewModel.editProtein)
                             .keyboardType(.numbersAndPunctuation)
-                        TextField("碳水(g)", text: $viewModel.editCarbs)
+                        TextField("carbs_g", text: $viewModel.editCarbs)
                             .keyboardType(.numbersAndPunctuation)
-                        TextField("脂肪(g)", text: $viewModel.editFat)
+                        TextField("fat_g", text: $viewModel.editFat)
                             .keyboardType(.numbersAndPunctuation)
                     }
                 }
-                .navigationTitle("编辑餐次")
+                .navigationTitle("edit_meal")
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button("取消") { viewModel.isPresentingEditSheet = false }
+                        Button("cancel") { viewModel.isPresentingEditSheet = false }
                     }
                     ToolbarItem(placement: .confirmationAction) {
-                        Button("保存") { viewModel.saveEdit() }
+                        Button("save") { viewModel.saveEdit() }
                     }
                 }
             }
         }
-        .alert("提交结果", isPresented: $viewModel.showSubmitAlert) {
-            Button("好的") {}
+        .alert("submit_result", isPresented: $viewModel.showSubmitAlert) {
+            Button("ok") {}
         } message: {
             Text(viewModel.submitAlertMessage)
         }

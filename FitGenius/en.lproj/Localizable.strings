@@ -132,3 +132,68 @@
 "none" = "None";
 "generating_plan" = "Generating Plan...";
 "generate_plan" = "Generate Plan";
+
+/* PlanDashboardView */
+"cycle_info" = "Cycle Week %d · Day %d";
+"days" = "days";
+"no_workout_plan" = "No Workout Plan";
+"complete_profile_setup" = "Please complete your profile setup first";
+"reset_settings" = "Reset Settings";
+"add_training_day" = "Add Training Day";
+"delete_current_day" = "Delete Current Day";
+"start_new_cycle" = "Start New Cycle";
+"reset_all_data" = "Reset All Data";
+"reset_warning_message" = "This will delete all data and restart. Are you sure?";
+"delete_day_warning_message" = "This will delete the selected training day and renumber the days.";
+"rest" = "Rest";
+"cancel" = "Cancel";
+"confirm" = "Confirm";
+"delete" = "Delete";
+"edit" = "Edit";
+
+/* WorkoutDayDetailView */
+"exercises" = "exercises";
+"add_exercise" = "Add Exercise";
+"rest_day" = "Rest Day";
+"today_is_rest_day" = "Today is Rest Day";
+"rest_description" = "Rest well to recover your muscles";
+"no_exercises" = "No Exercises";
+
+/* AddDaySheet & Exercise sheets */
+"type" = "Type";
+"training_focus" = "Training Focus";
+"body_part" = "Body Part";
+"add" = "Add";
+"exercise_info" = "Exercise Info";
+"exercise_name" = "Exercise Name";
+"sets" = "Sets";
+"reps" = "Reps";
+"weight_kg" = "Weight (kg)";
+"weight" = "Weight";
+"e.g_8_12" = "e.g. 8-12";
+"notes" = "Notes";
+"edit_exercise" = "Edit Exercise";
+
+/* DietHomeView */
+"date" = "Date";
+"daily_total_intake" = "Daily Total Intake";
+"no_record" = "No Record";
+"diet_record" = "Diet Record";
+"submitting" = "Submitting...";
+"submit_diet_analysis" = "Submit Diet Analysis";
+"add_meal" = "Add Meal";
+"edit_meal" = "Edit Meal";
+"content" = "Content";
+"nutrition" = "Nutrition";
+"description" = "Description";
+"description_optional" = "Description (Optional)";
+"calories_kcal" = "Calories (kcal)";
+"protein_g" = "Protein (g)";
+"carbs_g" = "Carbs (g)";
+"fat_g" = "Fat (g)";
+"meal_type" = "Meal Type";
+"select_image" = "Select Image";
+"take_photo" = "Take Photo";
+"images" = "Images";
+"submit_result" = "Submit Result";
+"ok" = "OK";

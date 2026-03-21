@@ -40,7 +40,7 @@ struct PlanDashboardView: View {
         guard let plan = workoutPlan else { return "" }
         let cycleWeek = plan.getCurrentCycleWeek()
         let cycleDay = todayDayIndex + 1
-        return "循环第 \(cycleWeek) 周 · 第 \(cycleDay) 天"
+        return "cycle_info".localized(with: cycleWeek, cycleDay)
     }
     
     var body: some View {
@@ -72,7 +72,7 @@ struct PlanDashboardView: View {
                                             .font(.title2)
                                             .bold()
                                             .foregroundColor(.orange)
-                                        Text("天")
+                                        Text("days")
                                             .font(.caption2)
                                             .foregroundColor(.secondary)
                                     }
@@ -114,20 +114,20 @@ struct PlanDashboardView: View {
                         Image(systemName: "calendar.badge.exclamationmark")
                             .font(.system(size: 60))
                             .foregroundColor(.gray)
-                        
-                        Text("暂无训练计划")
+
+                        Text("no_workout_plan")
                             .font(.title3)
                             .foregroundColor(.secondary)
-                        
-                        Text("请先完成用户资料设置")
+
+                        Text("complete_profile_setup")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
-                        
+
                         // 重置按钮
                         Button(action: {
                             showResetAlert = true
                         }) {
-                            Text("重新设置")
+                            Text("reset_settings")
                                 .font(.headline)
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 32)
@@ -140,45 +140,45 @@ struct PlanDashboardView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
-            .navigationTitle("训练计划")
+            .navigationTitle("training_plan")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
                         Button(action: { showAddDaySheet = true }) {
-                            Label("新增训练日", systemImage: "plus.circle")
+                            Label("add_training_day", systemImage: "plus.circle")
                         }
                         Button(role: .destructive, action: { showDeleteDayAlert = true }) {
-                            Label("删除当前天", systemImage: "trash")
+                            Label("delete_current_day", systemImage: "trash")
                         }
                         Divider()
                         Button(action: { startNewCycle() }) {
-                            Label("开始新循环", systemImage: "calendar.badge.plus")
+                            Label("start_new_cycle", systemImage: "calendar.badge.plus")
                         }
                         Divider()
                         Button(action: { showResetAlert = true }) {
-                            Label("重新设置（清空所有数据）", systemImage: "arrow.clockwise.circle")
+                            Label("reset_all_data", systemImage: "arrow.clockwise.circle")
                         }
                     } label: {
                         Image(systemName: "ellipsis.circle")
                     }
                 }
             }
-            .alert("重新设置", isPresented: $showResetAlert) {
-                Button("取消", role: .cancel) { }
-                Button("确认", role: .destructive) {
+            .alert("reset_settings", isPresented: $showResetAlert) {
+                Button("cancel", role: .cancel) { }
+                Button("confirm", role: .destructive) {
                     resetOnboarding()
                 }
             } message: {
-                Text("这将删除所有数据并重新开始。确定要继续吗？")
+                Text("reset_warning_message")
             }
-            .alert("删除当前天", isPresented: $showDeleteDayAlert) {
-                Button("取消", role: .cancel) { }
-                Button("删除", role: .destructive) {
+            .alert("delete_current_day", isPresented: $showDeleteDayAlert) {
+                Button("cancel", role: .cancel) { }
+                Button("delete", role: .destructive) {
                     viewModel.deleteCurrentDay(plan: workoutPlan, selectedIndex: &selectedDayIndex)
                 }
             } message: {
-                Text("将删除当前选中的训练日，并自动重排天数。")
+                Text("delete_day_warning_message")
             }
             .sheet(isPresented: $showAddDaySheet) {
                 AddDaySheet(plan: workoutPlan) { focus, isRest in
@@ -266,7 +266,7 @@ struct DayTabButton: View {
                 
                 // 训练部位或休息
                 if day.isRestDay {
-                    Text("休息")
+                    Text("rest")
                         .font(.subheadline)
                         .fontWeight(isSelected ? .semibold : .regular)
                 } else {
