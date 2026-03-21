@@ -89,7 +89,7 @@ struct ExerciseRowView: View {
                         .foregroundColor(exercise.isCompleted ? .secondary : .primary)
                     
                     HStack(spacing: 16) {
-                        Label("\(exercise.sets) \(exercise.sets.localized)", systemImage: "repeat")
+                        Label("\(exercise.sets) " + "sets".localized, systemImage: "repeat")
                             .font(.caption)
                             .foregroundColor(.secondary)
 
@@ -98,7 +98,7 @@ struct ExerciseRowView: View {
                             .foregroundColor(.secondary)
 
                         if exercise.weight > 0 {
-                            Label("\(String(format: "%.1f", exercise.weight)) \(exercise.weight.localized)", systemImage: "scalemass")
+                            Label("\(String(format: "%.1f", exercise.weight)) " + "kg".localized, systemImage: "scalemass")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -146,7 +146,7 @@ struct WorkoutDayDetailView: View {
             // 标题 + 新增动作
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(workoutDay.dayNumber.localized(with: workoutDay.dayNumber))
+                    Text(String(format: "day_number".localized, workoutDay.dayNumber))
                         .font(.title2)
                         .bold()
 
