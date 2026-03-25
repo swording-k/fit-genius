@@ -2,25 +2,38 @@
 
 <div align="center">
 
-**一款基于 AI 的智能健身计划管理应用**
+**一款基于 AI 的智能健身计划 + 饮食管理应用**
 
 [![Swift](https://img.shields.io/badge/Swift-5.9-orange.svg)](https://swift.org)
-[![Platform](https://img.shields.io/badge/Platform-iOS%2017.0+-blue.svg)](https://developer.apple.com/ios/)
+[![Platform](https://img.shields.io/badge/Platform-iOS%2018.0+-blue.svg)](https://developer.apple.com/ios/)
 [![SwiftUI](https://img.shields.io/badge/SwiftUI-5.0-green.svg)](https://developer.apple.com/xcode/swiftui/)
 [![SwiftData](https://img.shields.io/badge/SwiftData-Latest-purple.svg)](https://developer.apple.com/xcode/swiftdata/)
-[![Version](https://img.shields.io/badge/Version-1.0.4-blue.svg)](https://github.com/swording-k/fit-genius)
+[![Version](https://img.shields.io/badge/Version-1.1.0-blue.svg)](https://github.com/swording-k/fit-genius)
+
+[![App Store](https://img.shields.io/badge/App_Store-即将上线-green.svg)]()
 
 </div>
 
 ---
 
-## 📱 应用简介
+## App 预览
 
-FitGenius 是一款原生 iOS 健身应用，通过 AI 技术为用户生成个性化训练计划，并提供智能训练管理和数据统计功能。
+<div align="center">
+  <img src="README_assets/IMG_7130.PNG" width="240" />
+  <img src="README_assets/IMG_7131.PNG" width="240" />
+  <img src="README_assets/IMG_7132.PNG" width="240" />
+  <br/>
+  <img src="README_assets/IMG_7134.PNG" width="240" />
+  <img src="README_assets/IMG_7135.PNG" width="240" />
+</div>
+
+## 应用简介
+
+FitGenius 是一款原生 iOS 健身应用，支持**训练计划管理**和**饮食追踪**双模式，通过 AI 技术为用户生成个性化训练计划，并提供智能饮食分析和营养建议。
 
 ### ✨ 核心特性
 
-#### 训练模块
+#### 🏋️ 训练模块
 - 🤖 **AI 智能生成**：根据用户身体数据和健身目标，自动生成个性化训练计划
 - 🔄 **灵活循环系统**：支持任意天数的训练循环（3天、4天、5天、7天等）
 - 📊 **数据统计分析**：训练容量趋势、重量增长曲线、坚持天数统计
@@ -28,16 +41,21 @@ FitGenius 是一款原生 iOS 健身应用，通过 AI 技术为用户生成个�
 - ✏️ **手动编辑**：支持手动修改训练动作、组数、次数和重量
 - 🔥 **坚持天数追踪**：自动统计连续训练天数，激励用户坚持
 
-#### 饮食模块 🆕
+#### 🍎 饮食模块
 - 🍽️ **饮食记录**：支持文字和图片两种方式记录每日饮食
 - 🤖 **AI 营养分析**：自动分析饮食内容，计算热量和三大营养素
 - 📈 **营养趋势图表**：可视化展示每日热量、蛋白质、碳水、脂肪摄入趋势
 - 💡 **饮食建议**：AI 根据训练目标提供个性化饮食建议
 - 📸 **多模态识别**：支持拍照识别食物并自动分析营养成分
 
-#### 实用工具 🆕
-- 🔔 **智能提醒**：支持每日训练提醒，不错过每一次训练
-- ⚙️ **个性化设置**：支持自定义 API Key，数据管理更自由
+#### 📱 iOS 小组件
+- ⚡️ **Widget 支持**：小组件展示今日训练或饮食摘要
+- 🎨 **系统背景**：自动适配 iOS 系统的深色/浅色模式
+
+#### 🔐 隐私与安全
+- 🍎 **Apple 登录**：支持 Sign in with Apple，保护用户隐私
+- 📴 **本地优先**：数据主要存储在本地设备
+- 🔒 **健康免责声明**：所有健康建议均标注来源，仅供参考
 
 ---
 
@@ -46,11 +64,11 @@ FitGenius 是一款原生 iOS 健身应用，通过 AI 技术为用户生成个�
 ### 1. Onboarding 流程
 
 用户首次使用时，通过简洁的引导流程输入：
-- 基本信息（姓名、年龄、身高、体重）
+- 基本信息（姓名、年龄、性别、身高、体重）
 - 健身目标（增肌、减脂、塑形、提升力量）
 - 训练环境（健身房、家庭）
 - 可用器械
-- 身体限制/伤病
+- 身体限制/伤病（可选）
 
 AI 根据这些信息生成定制化训练计划。
 
@@ -69,18 +87,18 @@ AI 根据这些信息生成定制化训练计划。
 - 实时更新训练进度
 - 支持手动编辑动作参数
 
-### 3. AI 助手
+### 3. AI 助手（训练 & 饮食）
 
-**智能对话**：
+**训练 AI 助手**：
 - 自然语言交流
 - 理解用户意图（修改计划、调整重量等）
 - 返回结构化建议
+- 支持动作分析（上传照片/视频）
 
-**功能支持**：
-- 修改训练动作
-- 调整训练强度
-- 解答健身问题
-- 提供训练建议
+**饮食 AI 助手**：
+- 饮食记录和营养分析
+- 个性化饮食建议
+- 食物照片识别
 
 ### 4. 统计分析
 
@@ -95,33 +113,81 @@ AI 根据这些信息生成定制化训练计划。
 - 训练容量趋势（折线图）
 - 每个力量动作的重量增长曲线
 
-**智能容量计算**：
-- 有重量动作：容量 = Sets × Reps × Weight
-- 自重动作（如引体向上）：容量 = Sets × Reps
-
 ### 5. 饮食记录模块
 
 **饮食记录方式**：
 - **文字记录**：直接输入饮食内容（如"早餐：鸡蛋2个，牛奶250ml，全麦面包2片"）
 - **拍照记录**：拍摄食物照片，AI 自动识别并分析
 
-### 6. 设置与提醒 (New)
+**营养趋势**：
+- 每日/每周热量和营养素摄入趋势
+- 自动计算营养摘要
 
-**训练提醒**：
-- 可在个人中心开启"每日训练提醒"
-- 默认于每日 19:00 发送提醒（如果当日有训练计划）
+### 6. 个人中心
 
-**开发者选项**：
-- **API Key 管理**：支持手动输入和保存阿里云 API Key
-- **数据重置**：一键清空所有数据并重新开始 Onboarding 流程
+- Apple 登录同步
+- 每日训练提醒设置
+- Widget 显示内容偏好
+- API Key 管理（可选）
+
+---
+
+## 🔬 技术栈
+
+| 技术 | 说明 |
+|------|------|
+| SwiftUI | UI 框架 |
+| SwiftUI Charts | 数据可视化 |
+| SwiftData | 数据持久化 |
+| WidgetKit | iOS 小组件 |
+| 阿里云通义千问 | AI 服务 |
+| Sign in with Apple | 用户认证 |
+
+---
+
+## 📖 健康信息来源
+
+FitGenius 的所有健康、饮食、运动建议均基于以下权威来源：
+
+| 分类 | 来源 |
+|------|------|
+| 营养 | 中国营养学会 |
+| 营养 | USDA 食品数据中心 |
+| 营养 | NIH 健康信息 |
+| 运动 | ACSM (美国运动医学会) |
+| 运动 | NSCA (美国国家体能协会) |
+| 健康 | WHO 世界卫生组织 |
+| 健康 | CDC 美国疾控中心 |
+
+> ⚠️ **免责声明**：FitGenius 提供的健身和营养信息仅供参考，不构成医疗建议。在开始任何健身计划或做出重大饮食改变之前，请咨询医生或合格的健康专业人员。
 
 ---
 
 ## 📝 版本历史
 
-### v1.0 (4) - Stable Release
+### v1.1.0 - 审核版本
+- ✅ 添加医疗健康信息来源页面
+- ✅ 添加 AI 助手医疗免责声明弹窗
+- ✅ 添加饮食页面数据来源链接
+- ✅ 优化 Widget 小组件体验
+- 🐛 修复部分已知问题
+
+### v1.0.4 - Stable Release
 - ✨ 新增每日训练提醒功能
 - 🔧 个人中心改版，增加 API Key 管理功能
 - 🔧 优化 AI 服务稳定性
 - 🐛 修复部分已知问题
 - ⚡️ 性能优化与架构调整
+
+---
+
+## 🔗 相关链接
+
+- **隐私政策**: https://swording-k.github.io/fitgenius-privacy/
+- **问题反馈**: swordingk@gmail.com
+
+---
+
+## 📄 License
+
+本项目仅供学习交流使用。
