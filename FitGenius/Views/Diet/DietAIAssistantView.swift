@@ -9,6 +9,8 @@ struct DietAIAssistantView: View {
     @State private var showCamera = false
     @State private var capturedImage: UIImage?
     @State private var showClearAlert = false
+    @AppStorage("hasAcceptedMedicalDisclaimer") private var hasAcceptedDisclaimer = false
+    @State private var showDisclaimerAlert = false
 
     init(modelContext: ModelContext) {
         _viewModel = StateObject(wrappedValue: DietAssistantViewModel(modelContext: modelContext))
@@ -16,6 +18,14 @@ struct DietAIAssistantView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            if !hasAcceptedDisclaimer {
+                DisclaimerBanner {
+                    showDisclaimerAlert = true
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+            }
+
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(spacing: 16) {
@@ -111,6 +121,9 @@ struct DietAIAssistantView: View {
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showCamera) {
             CameraPicker(selectedImage: $capturedImage)
+        }
+        .sheet(isPresented: $showDisclaimerAlert) {
+            MedicalDisclaimerView(isPresented: $showDisclaimerAlert)
         }
         .onChange(of: capturedImage) { _, newImage in
             if let image = newImage, let data = image.jpegData(compressionQuality: 0.8) {

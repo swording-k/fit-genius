@@ -64,6 +64,7 @@
 "widget" = "Widget";
 "widget_display" = "Widget Display";
 "widget_content_preference" = "Small Widget Display Preference";
+"widget_background_description" = "Widget uses system background style";
 "background_style" = "Background Style";
 "follow_system" = "Follow System";
 "custom_image" = "Custom Image";
@@ -233,3 +234,25 @@
 /* AI Assistant */
 "no_plan_for_assistant" = "No Workout Plan";
 "complete_profile_first" = "Please complete your profile setup or create a blank plan first";
+
+/* Data Sources & Disclaimer */
+"data_sources" = "Data Sources";
+"sources_intro" = "All health, nutrition and exercise recommendations in FitGenius are based on authoritative sources below:";
+"nutrition_sources" = "Nutrition Sources";
+"exercise_science_sources" = "Exercise Science Sources";
+"general_health_sources" = "General Health Sources";
+"source_china_nutrition" = "Chinese Nutrition Society";
+"source_usda" = "USDA Food Data Center";
+"source_nih" = "NIH Health Information";
+"source_acsm" = "ACSM";
+"source_nsca" = "NSCA";
+"source_who" = "WHO Health Topics";
+"source_cdc" = "CDC Nutrition";
+"view_data_sources" = "View Data Sources";
+"sources_disclaimer_title" = "Disclaimer";
+"sources_disclaimer" = "All sources are publicly verifiable authoritative institutions for reference only.";
+"disclaimer_title" = "Important Notice";
+"disclaimer_message" = "FitGenius provides fitness and nutrition information for reference only and does not constitute medical advice. Please consult a doctor or qualified health professional before starting any fitness program or making significant dietary changes.";
+"disclaimer_accept" = "I Understand";
+"disclaimer_warning" = "AI advice is for reference only. Consult professionals for medical issues.";
+"about" = "About";

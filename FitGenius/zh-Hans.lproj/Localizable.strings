@@ -64,6 +64,7 @@
 "widget" = "小组件";
 "widget_display" = "小组件显示";
 "widget_content_preference" = "Small尺寸小组件的显示内容偏好";
+"widget_background_description" = "小组件使用系统背景样式";
 "background_style" = "背景样式";
 "follow_system" = "跟随系统";
 "custom_image" = "自定义图片";
@@ -233,3 +234,25 @@
 /* AI Assistant */
 "no_plan_for_assistant" = "暂无训练计划";
 "complete_profile_first" = "请先完成用户资料设置或创建空白计划（建议模式可用）";
+
+/* Data Sources & Disclaimer */
+"data_sources" = "信息来源";
+"sources_intro" = "FitGenius 所有健康、饮食、运动建议均基于以下权威来源：";
+"nutrition_sources" = "营养学来源";
+"exercise_science_sources" = "运动科学来源";
+"general_health_sources" = "通用健康来源";
+"source_china_nutrition" = "中国营养学会";
+"source_usda" = "美国农业部食品数据中心";
+"source_nih" = "美国国立卫生研究院健康信息";
+"source_acsm" = "美国运动医学会";
+"source_nsca" = "美国国家体能协会";
+"source_who" = "世界卫生组织健康专题";
+"source_cdc" = "美国疾控中心营养资源";
+"view_data_sources" = "查看数据来源";
+"sources_disclaimer_title" = "免责声明";
+"sources_disclaimer" = "本页面所有来源均为公开可验证的权威机构发布内容，仅供参考。";
+"disclaimer_title" = "重要提示";
+"disclaimer_message" = "FitGenius 提供的健身和营养信息仅供参考，不构成医疗建议。在开始任何健身计划或做出重大饮食改变之前，请咨询医生或合格的健康专业人员。";
+"disclaimer_accept" = "我已知晓";
+"disclaimer_warning" = "AI 建议仅供参考，有健康问题请咨询专业人员。";
+"about" = "关于";
