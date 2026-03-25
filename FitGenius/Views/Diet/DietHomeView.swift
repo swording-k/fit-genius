@@ -9,6 +9,7 @@ struct DietHomeView: View {
     @State private var photoItems: [PhotosPickerItem] = []
     @State private var showCamera = false
     @State private var capturedImage: UIImage?
+    @State private var showSourcesInfo = false
 
     init(modelContext: ModelContext) {
         _viewModel = StateObject(wrappedValue: DietViewModel(modelContext: modelContext))
@@ -99,23 +100,37 @@ struct DietHomeView: View {
             }
         }
         .safeAreaInset(edge: .bottom) {
-            HStack {
-                Spacer()
-                Button {
-                    Task { await viewModel.submitDayForAnalysis() }
-                } label: {
-                    HStack(spacing: 8) {
-                        if viewModel.isSubmitting { ProgressView().tint(.white) }
-                        Text(viewModel.isSubmitting ? "submitting".localized : "submit_diet_analysis".localized)
-                            .font(.headline)
-                            .foregroundColor(.white)
+            VStack(spacing: 8) {
+                HStack {
+                    Button {
+                        showSourcesInfo = true
+                    } label: {
+                        Text("view_data_sources")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(viewModel.isSubmitting ? Color.gray : Color.blue)
-                    .cornerRadius(12)
+                    Spacer()
                 }
-                .disabled(viewModel.isSubmitting)
+                .padding(.horizontal, 16)
+
+                HStack {
+                    Spacer()
+                    Button {
+                        Task { await viewModel.submitDayForAnalysis() }
+                    } label: {
+                        HStack(spacing: 8) {
+                            if viewModel.isSubmitting { ProgressView().tint(.white) }
+                            Text(viewModel.isSubmitting ? "submitting".localized : "submit_diet_analysis".localized)
+                                .font(.headline)
+                                .foregroundColor(.white)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(viewModel.isSubmitting ? Color.gray : Color.blue)
+                        .cornerRadius(12)
+                    }
+                    .disabled(viewModel.isSubmitting)
+                }
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 8)
@@ -248,6 +263,9 @@ struct DietHomeView: View {
             Button("ok") {}
         } message: {
             Text(viewModel.submitAlertMessage)
+        }
+        .sheet(isPresented: $showSourcesInfo) {
+            SourcesInfoView()
         }
     }
 }

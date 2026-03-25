@@ -10,6 +10,8 @@ struct AIAssistantView: View {
     @Query private var profiles: [UserProfile]
     @StateObject private var viewModel: AIAssistantViewModel
     @FocusState private var isInputFocused: Bool
+    @AppStorage("hasAcceptedMedicalDisclaimer") private var hasAcceptedDisclaimer = false
+    @State private var showDisclaimerAlert = false
     
     init(modelContext: ModelContext) {
         _viewModel = StateObject(wrappedValue: AIAssistantViewModel(modelContext: modelContext))
@@ -25,6 +27,14 @@ struct AIAssistantView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            if !hasAcceptedDisclaimer {
+                DisclaimerBanner {
+                    showDisclaimerAlert = true
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+            }
+
             if profile == nil || plan == nil {
                 // 空状态
                 VStack(spacing: 20) {
@@ -187,6 +197,9 @@ struct AIAssistantView: View {
         }
         .navigationTitle("AI 助手")
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $showDisclaimerAlert) {
+            MedicalDisclaimerView(isPresented: $showDisclaimerAlert)
+        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {

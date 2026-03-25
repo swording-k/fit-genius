@@ -11,6 +11,7 @@ struct ProfileView: View {
     @State private var apiKeyText: String = ""
     @State private var showAPIKey: Bool = false
     @State private var showProfileEditor = false
+    @State private var showSourcesInfo = false
     
     var currentProfile: UserProfile? {
         profiles.first
@@ -163,6 +164,14 @@ struct ProfileView: View {
                         Label("report_issue", systemImage: "envelope")
                     }
                 }
+
+                Section(header: Text("about")) {
+                    Button {
+                        showSourcesInfo = true
+                    } label: {
+                        Label("data_sources", systemImage: "info.circle")
+                    }
+                }
             }
             .navigationTitle("profile")
             .sheet(isPresented: $showLoginSheet) {
@@ -172,6 +181,9 @@ struct ProfileView: View {
                 if let profile = currentProfile {
                     ProfileEditorSheet(profile: profile)
                 }
+            }
+            .sheet(isPresented: $showSourcesInfo) {
+                SourcesInfoView()
             }
             .onAppear {
                 apiKeyText = Keychain.read("aliyun_api_key") ?? ""
@@ -196,8 +208,6 @@ struct ProfileView: View {
 
 // MARK: - Widget背景设置视图
 struct WidgetBackgroundSettingsView: View {
-    @State private var backgroundType: String = "system"
-    @State private var selectedPhoto: PhotosPickerItem?
     @State private var widgetContent: String = "workout"
 
     var body: some View {
@@ -224,128 +234,23 @@ struct WidgetBackgroundSettingsView: View {
 
             Divider()
 
-            Text("background_style")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-
-            // 背景选择器
-            Picker("background_style", selection: $backgroundType) {
-                Text("follow_system").tag("system")
-                Text("custom_image").tag("customImage")
-            }
-            .pickerStyle(.segmented)
-            .onChange(of: backgroundType) { _, newValue in
-                WidgetDataManager.setBackgroundType(newValue)
-            }
-
-            // 自定义图片选择
-            if backgroundType == "customImage" {
-                PhotosPicker(selection: $selectedPhoto, matching: .images) {
-                    HStack {
-                        Image(systemName: "photo")
-                        Text("select_from_album")
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
-                    .background(Color.blue.opacity(0.1))
-                    .cornerRadius(8)
-                }
-                .onChange(of: selectedPhoto) { _, item in
-                    Task {
-                        if let data = try? await item?.loadTransferable(type: Data.self) {
-                            // 确保背景类型切换到customImage
-                            backgroundType = "customImage"
-                            WidgetDataManager.setCustomBackground(data)
-                        }
-                    }
-                }
-
-                Button(role: .destructive) {
-                    WidgetDataManager.setCustomBackground(nil)
-                } label: {
-                    Label("remove_custom_background", systemImage: "trash")
-                }
-            }
-
-            // 预览效果
-            VStack(alignment: .leading, spacing: 4) {
-                Text("preview")
+            // 背景样式说明
+            HStack {
+                Image(systemName: "paintpalette")
+                    .foregroundColor(.blue)
+                Text("widget_background_description")
                     .font(.caption)
                     .foregroundColor(.secondary)
-
-                HStack(spacing: 12) {
-                    // 系统默认预览
-                    PreviewCard(title: "follow_system".localized, type: "system", isSelected: backgroundType == "system") {
-                        backgroundType = "system"
-                    }
-
-                    // 自定义预览
-                    PreviewCard(title: "custom_image".localized, type: "customImage", isSelected: backgroundType == "customImage") {
-                        backgroundType = "customImage"
-                    }
-                }
             }
         }
         .padding(.vertical, 8)
         .onAppear {
-            loadCurrentBackgroundType()
+            loadCurrentSettings()
         }
     }
 
-    private func loadCurrentBackgroundType() {
+    private func loadCurrentSettings() {
         let defaults = UserDefaults(suiteName: WidgetDataManager.appGroupID)
-        backgroundType = defaults?.string(forKey: "widgetBackgroundType") ?? "system"
         widgetContent = defaults?.string(forKey: "widgetContent") ?? "workout"
-    }
-}
-
-// MARK: - 预览卡片
-struct PreviewCard: View {
-    let title: String
-    let type: String
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 4) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(backgroundGradient)
-                        .frame(height: 50)
-
-                    if isSelected {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.white)
-                    }
-                }
-
-                Text(title)
-                    .font(.caption)
-                    .foregroundColor(isSelected ? .blue : .secondary)
-            }
-        }
-        .buttonStyle(.plain)
-    }
-
-    var backgroundGradient: LinearGradient {
-        switch type {
-        case "system":
-            return LinearGradient(colors: [Color(.systemBackground)], startPoint: .top, endPoint: .bottom)
-        case "gradient":
-            return LinearGradient(
-                colors: [
-                    Color(red: 1.0, green: 0.6, blue: 0.2),
-                    Color(red: 0.8, green: 0.3, blue: 0.8),
-                    Color(red: 0.4, green: 0.2, blue: 0.9)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        case "customImage":
-            return LinearGradient(colors: [Color.gray.opacity(0.3), Color.gray.opacity(0.5)], startPoint: .top, endPoint: .bottom)
-        default:
-            return LinearGradient(colors: [Color(.systemBackground)], startPoint: .top, endPoint: .bottom)
-        }
     }
 }
