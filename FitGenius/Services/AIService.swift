@@ -120,11 +120,34 @@ enum AIServiceError: Error, LocalizedError {
 // MARK: - AI 服务类
 @MainActor
 class AIService {
-    // 阿里云 OpenAI 兼容接口
-    private let baseURL = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+    // 阿里云 OpenAI 兼容接口（离线兜底：仅当 backendBaseURL 为空时使用）
+    private let directAliyunURL = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
     private let model = "qwen3-omni-flash"
-    
-    // 从 Keychain / 环境变量 / 配置文件读取 API Key
+
+    // Phase 2: 所有走网络的请求都先经 FitGenius 后端代理
+    private let settings: SyncSettings = .live
+
+    /// 解析请求目标 URL。优先走后端代理，未配置 backendBaseURL
+    /// 时回退到直连阿里云（仅供 DEBUG / 离线调试）。
+    private func resolveRequestURL() -> URL? {
+        let raw = settings.backendBaseURLString
+        if !raw.isEmpty,
+           let proxy = URL(string: raw + "/api/ai/chat") {
+            return proxy
+        }
+        return URL(string: directAliyunURL)
+    }
+
+    /// 解析 Authorization header。后端代理模式传 session token；
+    /// 离线模式传阿里云 API key。
+    private func resolveAuthHeader() -> String? {
+        if !settings.backendBaseURLString.isEmpty {
+            return settings.bearerToken.map { "Bearer \($0)" }
+        }
+        return apiKey.map { "Bearer \($0)" }
+    }
+
+    // 从 Keychain / 环境变量 / 配置文件读取 API Key（仅离线兜底路径用）
 	private var apiKey: String? {
         if let key = Keychain.read("aliyun_api_key"), !key.isEmpty {
             return key
@@ -144,13 +167,13 @@ class AIService {
         }
 		return nil
 	}
-	
+
 	private func sendStreamingRequest<T: Encodable>(body: T) async throws -> String {
-		guard let apiKey = apiKey else { throw AIServiceError.missingAPIKey }
-		guard let url = URL(string: baseURL) else { throw AIServiceError.invalidURL }
+		guard let authHeader = resolveAuthHeader() else { throw AIServiceError.missingAPIKey }
+		guard let url = resolveRequestURL() else { throw AIServiceError.invalidURL }
 		var request = URLRequest(url: url)
 		request.httpMethod = "POST"
-		request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+		request.setValue(authHeader, forHTTPHeaderField: "Authorization")
 		request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 		let encoder = JSONEncoder()
 		request.httpBody = try encoder.encode(body)
@@ -194,19 +217,18 @@ class AIService {
 	func generateInitialPlan(profile: UserProfile) async throws -> WorkoutPlan {
 		print("🤖 [AIService] 开始生成训练计划...")
 		print("🤖 [AIService] 用户信息：\(profile.name), \(profile.age)岁, 目标：\(profile.goal.rawValue)")
-		
-		// 验证 API Key（没有则返回本地兜底计划）
-		guard let apiKey = apiKey else {
-			print("⚠️ [AIService] 未找到 API Key，使用兜底计划")
-			return fallbackPlan(for: profile)
-		}
-		
-		print("✅ [AIService] API Key 已配置")
-		
-		// 验证 URL
-		guard let url = URL(string: baseURL) else {
+
+		// 验证请求目标 URL（代理或直连离线）。两个模式都至少需要一个可用的 URL。
+		guard resolveRequestURL() != nil else {
 			throw AIServiceError.invalidURL
 		}
+		// 验证 Authorization：代理模式需要 session token；离线模式需要 Aliyun key
+		guard resolveAuthHeader() != nil else {
+			print("⚠️ [AIService] 未找到认证信息（session token 或 API key），使用兜底计划")
+			return fallbackPlan(for: profile)
+		}
+
+		print("✅ [AIService] 认证信息已配置（\(settings.backendBaseURLString.isEmpty ? "直连离线模式" : "后端代理模式")）")
         
         // 构建 Prompt
         let systemMessage = """
@@ -318,8 +340,8 @@ class AIService {
     
     // MARK: - 根据用户要求重新生成训练计划
 	func regeneratePlan(profile: UserProfile, userRequest: String) async throws -> WorkoutPlan {
-		// 验证 API Key（没有则返回本地兜底计划）
-		guard apiKey != nil else {
+		// 验证请求目标 URL + Authorization（无认证时走兜底）
+		guard resolveAuthHeader() != nil else {
 			return fallbackPlan(for: profile)
 		}
 		

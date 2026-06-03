@@ -2,11 +2,23 @@ import Foundation
 import UIKit
 import AuthenticationServices
 
+/// Result returned by the Apple Sign in flow. We capture the
+/// `identityToken` here so the caller can hand it to
+/// `AppleAuthAPIClient.exchange(...)` and trade it for a FitGenius
+/// session token. `userIdentifier` is the stable Apple user id; the
+/// server-side exchange binds the session to this id.
+struct AppleSignInResult {
+    let userIdentifier: String
+    let identityToken: Data?
+    let fullName: PersonNameComponents?
+    let email: String?
+}
+
 @MainActor
 final class AuthService: NSObject {
-    private var continuation: CheckedContinuation<String, Error>?
+    private var continuation: CheckedContinuation<AppleSignInResult, Error>?
 
-    func signInWithApple() async throws -> String {
+    func signInWithApple() async throws -> AppleSignInResult {
         return try await withCheckedThrowingContinuation { cont in
             self.continuation = cont
             let provider = ASAuthorizationAppleIDProvider()
@@ -27,8 +39,13 @@ extension AuthService: ASAuthorizationControllerDelegate {
             continuation = nil
             return
         }
-        let userId = appleIDCredential.user
-        continuation?.resume(returning: userId)
+        let result = AppleSignInResult(
+            userIdentifier: appleIDCredential.user,
+            identityToken: appleIDCredential.identityToken,
+            fullName: appleIDCredential.fullName,
+            email: appleIDCredential.email
+        )
+        continuation?.resume(returning: result)
         continuation = nil
     }
 

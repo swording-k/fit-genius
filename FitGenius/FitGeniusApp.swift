@@ -15,6 +15,7 @@ struct FitGeniusApp: App {
     let modelContainer: ModelContainer
 
     @StateObject private var auth = AuthViewModel()
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         let schema = Schema([
@@ -53,6 +54,19 @@ struct FitGeniusApp: App {
                 .onAppear {
                     // 刷新Widget数据
                     WidgetCenter.shared.reloadAllTimelines()
+                }
+                .onChange(of: scenePhase) { _, newPhase in
+                    if newPhase == .active {
+                        // App 回到前台时，重试所有 pending/failed 的表单分析上传。
+                        // Sync coordinator 内部有 isSyncing 守卫，可重入安全。
+                        Task { @MainActor in
+                            await FormAnalysisSyncCoordinator.shared.syncPendingRecords(
+                                context: modelContainer.mainContext,
+                                userId: auth.currentSessionUserId,
+                                bearerToken: auth.currentBearerToken
+                            )
+                        }
+                    }
                 }
         }
         .modelContainer(modelContainer)
