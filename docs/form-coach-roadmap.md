@@ -94,12 +94,14 @@ Backend responsibilities:
 
 The iOS app remains offline-capable. Login and sync enhance the product but should not block local training usage.
 
-**Phase 2 status (code-complete, awaiting deploy)**: the Apple Sign in
-endpoint, AI proxy, Neon executor, schema migration script, and the
-iOS client wiring (auth + AI service + retry/backoff) are all
-implemented and tested locally. Provisioning the Vercel project + Neon
-database and applying the schema are the only remaining steps before
-the backend is live.
+**Phase 2 status (partially complete, awaiting deploy + iOS wiring)**:
+the backend code is complete (Apple Sign in endpoint, AI proxy, Neon
+executor, schema migration script, 8 backend tests passing). The
+iOS side has a complete client library (`AppleAuthAPIClient`,
+`FormAnalysisSyncCoordinator`, `SyncSettings`, `AIService`) but the
+call sites in `AuthViewModel` and `AIService` still need to be
+wired before the app can use the backend in production. See
+`docs/agent-handoff.md` for the list of Known Gaps.
 
 ### Phase 3: Apple Watch Experience
 
@@ -124,82 +126,63 @@ Cross-platform strategy:
 - Use MediaPipe or platform pose APIs to generate `PoseFrame`.
 - Keep exercise rules and coaching logic aligned across clients.
 
-## Current Implementation Status
+## Current Implementation Status (verified against `main` @ 2026-06-03)
 
-Implemented in the local working tree:
+The bullet list below describes what is **actually in the repository on
+the `main` branch right now**. Anything described as wired in earlier
+drafts of this section was rolled back before the v1.1.0-stable
+release and is no longer present in the working tree. The Known Gaps
+in `docs/agent-handoff.md` list what has to be re-added before the
+app store update is shippable.
 
-- Added platform-neutral pose and form-analysis models.
-- Added backend-ready `FormAnalysisSyncPayload` with stable exercise identifiers for future sync.
-- Added local sync state to `FormAnalysisRecord` for pending/synced/failed form-analysis history retries.
-- Added `FormAnalysisSyncService` so iOS can POST form-analysis payloads to the backend once an endpoint/token is configured.
-- Added `FormAnalysisSyncCoordinator` + `SyncSettings` so pending / failed `FormAnalysisRecord` rows are automatically synced from the iOS app.
-  - `SyncSettings` is a `UserDefaults` wrapper with no compile-time defaults; the coordinator silently no-ops when `fitgenius.sync.backendBaseURL` is empty.
-  - Triggered from `scenePhase == .active` and from each successful `FormAnalysisViewModel.analyze(...)`.
-  - Predicate selects `pending` and `failed` records (re-tries failed records indefinitely; no attempt counter yet).
-  - `AuthViewModel.currentBearerToken` surfaces the dev token from `SyncSettings` so the coordinator stays decoupled from Keychain internals.
-- Added `FormRuleEngine` for squat, deadlift, and bench press.
-- Added `PoseExtractionService` using Apple Vision.
-- Added `FormAnalysisRecord` SwiftData model.
-- Added `FormAnalysisViewModel`.
-- Added `FormAnalysisView`.
-- Added video recording entry for devices with a camera, while keeping photo-library upload.
-- Added form-analysis entry from workout exercise rows.
-- Added form-analysis history summary.
-- Added form-quality section to training stats.
-- Tuned pose quality to use exercise-specific required joints so bench press is not penalized for missing lower-body keypoints.
-- Lowered the per-frame extraction threshold to 6 body keypoints so upper-body bench videos are accepted more reliably.
-- Added bench press range-of-motion metric and limited-range issue detection.
-- Added bench press camera-angle metric and camera-angle warning.
-- Added a DEBUG-only demo seed launch path for simulator validation with `-FitGeniusSeedFormCoachDemo`.
-- Added a DEBUG-only direct video launch path with `-FitGeniusDebugFormVideo` so simulator UI validation can bypass PhotosPicker automation limits.
-- Added localized unavailable-state handling for Vision pose detection failures.
-- Fixed onboarding progress labels so localized step names render instead of raw localization keys.
-- Localized the workout-row form-analysis action label instead of hardcoding Chinese text.
-- Localized the form-analysis UI, form-analysis stats card, exercise names, rule-engine issue text, metric labels, recommendations, and extraction errors.
-- Added `scripts/check-localization.sh` to verify required form-analysis keys exist in both Simplified Chinese and English resources.
-- Added `docs/agent-handoff.md` and updated `AGENTS.md` with required handoff rules for future agents.
-- Removed hardcoded Aliyun API key from Info.plist, Xcode build settings, and shared scheme.
-- Fixed diet JSON prompt conflict so JSON analysis does not require text outside JSON.
-- Phase 2 backend wiring (code-complete, awaiting deploy):
-  - Added a real `@neondatabase/serverless` executor in `backend/neonClient.mjs` and re-wired `backend/database.mjs` so `createFormAnalysesHandler` consumes it through the existing dependency-injection seam.
-  - Added an idempotent migration script (`backend/migrate.mjs` + `scripts/apply-schema.sh`) and a `db:migrate` npm script.
-  - Added Apple ID token verification (`backend/appleTokenVerifier.mjs`, jose `createRemoteJWKSet` with 1h cache), HS256 session JWT helpers (`backend/sessionToken.mjs`), `POST /api/auth/apple` (`api/auth/apple.js`), and `POST /api/ai/chat` (`api/ai/chat.js`).
-  - Added four backend test files: `appleTokenVerifier.test.mjs`, `sessionToken.test.mjs`, `appleAuthApi.test.mjs`, `aiChatProxy.test.mjs`.
-  - `vercel.json` declares the new function runtimes; `.env.example` documents the full env list (`DATABASE_URL`, `SESSION_SECRET`, `APPLE_BUNDLE_ID`, `ALIYUN_API_KEY`, `SESSION_ISSUER`, `BACKEND_PUBLIC_URL`, `FITGENIUS_DEV_SYNC_TOKEN`).
-  - `backend/README.md` documents endpoints, required env, local validation, schema setup, the iOS integration flow, and security notes.
-- Phase 2 iOS wiring (code-complete, awaiting deploy):
-  - `AuthService.signInWithApple()` now returns `AppleSignInResult` with the raw identityToken.
-  - `AppleAuthAPIClient` POSTs to `/api/auth/apple` and decodes the session payload.
-  - `SyncSettings` now stores `sessionToken` / `sessionUserId` and exposes `bearerToken` (prefers real session, falls back to dev token).
-  - `AuthViewModel` exchanges the identityToken for a session token on sign in and persists it.
-  - `AIService` now talks to `{backendBaseURL}/api/ai/chat` by default and sends `Authorization: Bearer <sessionToken>`. The local Aliyun key path is kept only as an offline fallback for builds without a backend URL.
-  - `FormAnalysisSyncCoordinator.syncOneRecord` retries 3 times with exponential backoff (2s, 4s, 8s). A `sleepProvider` indirection lets tests advance time without real waits.
-- Started Phase 2 backend scaffold (preceding bullet set still in place):
+Implemented and on `main`:
+
+- iOS form analysis library: `Models/Form/*` (pose, form-analysis, sync
+  payload, history), `Services/FormAnalysis/*` (rule engine, pose
+  extraction, sync service, sync coordinator, sync settings, debug
+  video provider), `ViewModels/FormAnalysisViewModel`,
+  `Views/Plan/FormAnalysisView`, `Views/Components/VideoCameraPicker`,
+  `Services/DebugSeedService`.
+- iOS backend client library: `Services/AppleAuthAPIClient` (the HTTP
+  client for `/api/auth/apple`), `Services/FormAnalysis/SyncSettings`
+  (`UserDefaults` wrapper, no compile-time defaults), and the retry /
+  backoff logic in `FormAnalysisSyncCoordinator`.
+- Backend: `api/*` serverless functions, `backend/*` shared modules,
+  `backend/tests/*` (8 `node --test` files), `package.json`,
+  `vercel.json`, `.env.example`, `scripts/apply-schema.sh`,
+  `scripts/predeploy-check.sh`, `scripts/run-form-analysis-tests.sh`,
+  `scripts/check-localization.sh`.
+- iOS 1.1.0 baseline: training plan, diet, stats, profile, Apple
+  login (offline Keychain fallback), Widget, App Group data sharing,
+  medical disclaimer UI, sources info, bilingual localization.
+- Repo infrastructure: `.gitignore` (Claude Code project permissions
+  excluded, Xcode artifacts excluded), `AGENTS.md` (multi-agent entry
+  doc with architecture diagram), `PrivacyInfo.xcprivacy`.
+
+Not yet on `main` (Known Gaps):
+
+- `AuthViewModel.signIn(...)` does not call `AppleAuthAPIClient`.
+- `AIService` does not call `/api/ai/chat`.
+- `FormAnalysisView` is not reachable from `MainView`.
+- `FormAnalysisSyncCoordinator` is not triggered by `scenePhase` or by
+  `FormAnalysisViewModel.analyze(...)`.
+- `Info.plist` is missing `NSCameraUsageDescription` and
+  `NSPhotoLibraryUsageDescription`.
+- Apple Watch (Phase 3) is not started.
+- Android / cross-platform (Phase 4) is not started.
 
 ## Validation Log
 
-Automated checks completed:
+Last verified on 2026-06-03, after the 6-commit cleanup:
 
-- `FormRuleEngineTests passed`
-- `BenchRuleTests passed`
-- `BenchRangeTests passed`
-- `BenchCameraAngleTests passed`
-- `DebugVideoProviderTests passed`
-- `FormAnalysisSyncPayloadTests passed`
-- `FormAnalysisSyncServiceTests passed`
-- `FormAnalysisSyncCoordinatorTests passed` (6 cases).
-- `formAnalysesApi tests passed`
-- `npm run test:backend` passed.
-- `scripts/run-form-analysis-tests.sh` passed.
-- `PoseQualityTests passed`
-- `FormHistoryTests passed`
-- `scripts/check-localization.sh` passed with 70 required form-analysis keys.
-- Xcode simulator build succeeded with:
-  - `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project FitGenius.xcodeproj -scheme FitGenius -destination 'generic/platform=iOS Simulator' -derivedDataPath /tmp/FitGeniusDerivedData CODE_SIGNING_ALLOWED=NO build`
-- Simulator install and launch succeeded for `com.swordingk.fitgenius`.
-- DEBUG seed launch succeeded and opened the demo training plan.
-- UI automation verified the seeded bench press row can open the form-analysis sheet with bench press inferred.
-- PhotosPicker opened and displayed the imported bench press video; automated thumbnail selection remains a tooling limitation because the system picker grid did not expose a usable element reference.
+- iOS build: `xcodebuild ... build` → `** BUILD SUCCEEDED **`
+- iOS unit tests: `scripts/run-form-analysis-tests.sh` → 5 binaries
+  pass (DebugVideoProvider, FormAnalysisSyncPayload, FormAnalysisSyncService,
+  FormAnalysisSyncCoordinator, AppleAuthAPIClient)
+- Backend tests: `npm run test:backend` → 8 files pass
+  (appleTokenVerifier, sessionToken, appleAuthApi, aiChatProxy,
+  formAnalysisRepository, formAnalysesApi, formAnalysisPayload, schema)
+- Working tree clean; force-pushed to `origin/main`.
 - DEBUG direct video launch auto-loaded `/Users/baojian/Downloads/IMG_8262.MOV` into the form-analysis sheet.
 - In the current simulator runtime, `VNDetectHumanBodyPoseRequest` cannot be set up inside the app. The UI now shows a localized Chinese unavailable-state message instead of the raw English Vision error. Real-device validation is still required for the Apple Vision extraction path.
 - Screenshot confirmed app launches to onboarding.

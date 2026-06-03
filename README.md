@@ -134,14 +134,27 @@ AI 根据这些信息生成定制化训练计划。
 
 ## 🔬 技术栈
 
+### iOS
 | 技术 | 说明 |
 |------|------|
 | SwiftUI | UI 框架 |
 | SwiftUI Charts | 数据可视化 |
 | SwiftData | 数据持久化 |
 | WidgetKit | iOS 小组件 |
-| 阿里云通义千问 | AI 服务 |
+| Apple Vision | 本地姿态检测（深蹲 / 硬拉 / 卧推动作分析）|
 | Sign in with Apple | 用户认证 |
+| URLSession + SSE | AI 流式响应 |
+
+### 后端（同仓库 monorepo）
+| 技术 | 说明 |
+|------|------|
+| Vercel Serverless Functions | `api/*.js` 端点 |
+| Node.js 22 | 运行时 |
+| Neon Postgres | 用户与表单分析记录持久化 |
+| `@neondatabase/serverless` | 数据库 driver |
+| `jose` | Apple JWKS 验签 + HS256 session JWT |
+
+> 阿里云 / OpenAI 等 provider 的 API key 只存在于 Vercel 环境变量，**绝不打包进 iOS bundle**。iOS 通过 session JWT 访问 `/api/ai/chat` 代理。
 
 ---
 
@@ -165,7 +178,21 @@ FitGenius 的所有健康、饮食、运动建议均基于以下权威来源：
 
 ## 📝 版本历史
 
-### v1.1.0 - 审核版本
+### v1.2.0 - 计划中
+- ✨ **本地动作分析引擎**（深蹲 / 硬拉 / 卧推，使用 Apple Vision）
+  - 视频帧提取 → 姿态关键点 → 规则引擎评分
+  - 离线可用，所有数据本地持久化
+  - UI 入口在下一个补丁版本接入
+- ✨ **后端基础设施**（Vercel + Neon）
+  - Apple Sign in token 交换与会话管理
+  - AI 代理（iOS 不再直连 provider）
+  - 表单分析记录云同步（带 3 次指数退避重试）
+- 🔒 **合规与安全**
+  - 新增 `PrivacyInfo.xcprivacy`（App Store 5.1.1）
+  - 从 pbxproj / xcscheme / Info.plist 移除硬编码 API key
+  - Git 历史中误提交的 key 已用 `git filter-repo` 替换
+
+### v1.1.0 - 审核版本（已上架）
 - ✅ 添加医疗健康信息来源页面
 - ✅ 添加 AI 助手医疗免责声明弹窗
 - ✅ 添加饮食页面数据来源链接
@@ -174,10 +201,8 @@ FitGenius 的所有健康、饮食、运动建议均基于以下权威来源：
 
 ### v1.0.4 - Stable Release
 - ✨ 新增每日训练提醒功能
-- 🔧 个人中心改版，增加 API Key 管理功能
-- 🔧 优化 AI 服务稳定性
+- 🔧 个人中心改版
 - 🐛 修复部分已知问题
-- ⚡️ 性能优化与架构调整
 
 ---
 
