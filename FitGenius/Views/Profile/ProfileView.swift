@@ -12,7 +12,10 @@ struct ProfileView: View {
     @State private var showAPIKey: Bool = false
     @State private var showProfileEditor = false
     @State private var showSourcesInfo = false
-    
+    @State private var backendURLText: String = ""
+    @State private var sessionTokenText: String = ""
+    @State private var sessionUserIdText: String = ""
+
     var currentProfile: UserProfile? {
         profiles.first
     }
@@ -145,6 +148,49 @@ struct ProfileView: View {
                     }
                 }
 
+                Section(header: Text("backend")) {
+                    // 后端代理地址：Phase 2 之后，AI / 表单分析都走后端
+                    TextField("https://your-app.vercel.app", text: $backendURLText)
+                        .keyboardType(.URL)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .onSubmit { saveBackendConfig() }
+                    HStack {
+                        Button("save_backend_url") { saveBackendConfig() }
+                            .disabled(backendURLText.isEmpty)
+                        Spacer()
+                        Button("clear") {
+                            UserDefaults.standard.removeObject(forKey: SyncSettings.backendBaseURLKey)
+                            backendURLText = ""
+                        }
+                        .foregroundColor(.red)
+                    }
+
+                    // Session token 调试：通常由 Apple 登录自动写入
+                    // 这里只是 manual override，方便测试
+                    TextField("session_token_optional", text: $sessionTokenText)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    TextField("session_user_id_optional", text: $sessionUserIdText)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    HStack {
+                        Button("save_session") {
+                            UserDefaults.standard.set(sessionTokenText, forKey: SyncSettings.sessionTokenKey)
+                            UserDefaults.standard.set(sessionUserIdText, forKey: SyncSettings.sessionUserIdKey)
+                        }
+                        .disabled(sessionTokenText.isEmpty || sessionUserIdText.isEmpty)
+                        Spacer()
+                        Button("clear") {
+                            UserDefaults.standard.removeObject(forKey: SyncSettings.sessionTokenKey)
+                            UserDefaults.standard.removeObject(forKey: SyncSettings.sessionUserIdKey)
+                            sessionTokenText = ""
+                            sessionUserIdText = ""
+                        }
+                        .foregroundColor(.red)
+                    }
+                }
+
                 Section(header: Text("settings")) {
                     Button(role: .destructive) {
                         resetAllData()
@@ -187,7 +233,19 @@ struct ProfileView: View {
             }
             .onAppear {
                 apiKeyText = Keychain.read("aliyun_api_key") ?? ""
+                backendURLText = UserDefaults.standard.string(forKey: SyncSettings.backendBaseURLKey) ?? ""
+                sessionTokenText = UserDefaults.standard.string(forKey: SyncSettings.sessionTokenKey) ?? ""
+                sessionUserIdText = UserDefaults.standard.string(forKey: SyncSettings.sessionUserIdKey) ?? ""
             }
+        }
+    }
+
+    private func saveBackendConfig() {
+        let trimmed = backendURLText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            UserDefaults.standard.removeObject(forKey: SyncSettings.backendBaseURLKey)
+        } else {
+            UserDefaults.standard.set(trimmed, forKey: SyncSettings.backendBaseURLKey)
         }
     }
 

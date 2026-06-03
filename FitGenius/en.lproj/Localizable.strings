@@ -76,6 +76,12 @@
 "show" = "Show";
 "save_api_key" = "Save API Key";
 "clear" = "Clear";
+"backend" = "Backend";
+"https://your-app.vercel.app" = "https://your-app.vercel.app";
+"save_backend_url" = "Save Backend URL";
+"session_token_optional" = "Session Token (optional)";
+"session_user_id_optional" = "Session User ID (optional)";
+"save_session" = "Save Session Credentials";
 "reset_data" = "Reset Data & Reconfigure";
 "report_issue" = "Report Issue via Email";
 "report_issue_subject" = "Problem Feedback";

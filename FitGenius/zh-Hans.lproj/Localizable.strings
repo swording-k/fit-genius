@@ -76,6 +76,12 @@
 "show" = "显示";
 "save_api_key" = "保存 API Key";
 "clear" = "清除";
+"backend" = "后端配置";
+"https://your-app.vercel.app" = "https://your-app.vercel.app";
+"save_backend_url" = "保存后端地址";
+"session_token_optional" = "Session Token（可选）";
+"session_user_id_optional" = "Session User ID（可选）";
+"save_session" = "保存会话凭据";
 "reset_data" = "清空数据并重新设置";
 "report_issue" = "通过邮件上报问题";
 "report_issue_subject" = "问题反馈";
