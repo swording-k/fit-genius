@@ -7,15 +7,42 @@
 *.xcscmblueprint
 *.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
 
 # SwiftPM
 .build/
+build/
+Packages/
+Package.resolved
+
+# Node / Vercel
+node_modules/
+.vercel/
+.env
+.env.local
+.env.*.local
 
 # Derived data
 DerivedData/
 
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*~
+
 # Trae workspace
 .trae/
 
+# Claude Code (project-level personal settings — not for Vercel/CI)
+.claude/settings.local.json
+
 # API Keys - DO NOT COMMIT
 Config.plist
+*.p12
+*.cer
+*.mobileprovision
