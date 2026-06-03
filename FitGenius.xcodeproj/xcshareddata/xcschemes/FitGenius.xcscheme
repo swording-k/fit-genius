@@ -50,13 +50,6 @@
             ReferencedContainer = "container:FitGenius.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <EnvironmentVariables>
-         <EnvironmentVariable
-            key = "ALIYUN_API_KEY"
-            value = "REDACTED-ALIYUN-KEY"
-            isEnabled = "YES">
-         </EnvironmentVariable>
-      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
