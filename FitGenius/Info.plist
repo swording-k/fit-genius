@@ -19,5 +19,7 @@
 	<string>FitGenius需要使用相机来拍摄您的餐食照片，以便进行饮食记录和分析。</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>FitGenius需要访问相册来选择餐食照片。</string>
+	<key>FitGeniusBackendURL</key>
+	<string>https://fitgenius-ashen.vercel.app</string>
 </dict>
 </plist>

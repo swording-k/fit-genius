@@ -77,6 +77,7 @@
 "save_api_key" = "保存 API Key";
 "clear" = "清除";
 "backend" = "后端配置";
+"backend_debug_only" = "后端调试（仅开发者）";
 "https://your-app.vercel.app" = "https://your-app.vercel.app";
 "save_backend_url" = "保存后端地址";
 "session_token_optional" = "Session Token（可选）";

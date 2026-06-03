@@ -148,8 +148,12 @@ struct ProfileView: View {
                     }
                 }
 
-                Section(header: Text("backend")) {
-                    // 后端代理地址：Phase 2 之后，AI / 表单分析都走后端
+                #if DEBUG
+                Section(header: Text("backend_debug_only")) {
+                    // ⚠️ This section is only compiled into DEBUG builds. End users
+                    // never see it. Production URL is hardcoded in Info.plist; this
+                    // override exists for developers who want to point a simulator /
+                    // debug build at a staging URL without recompiling.
                     TextField("https://your-app.vercel.app", text: $backendURLText)
                         .keyboardType(.URL)
                         .textInputAutocapitalization(.never)
@@ -166,8 +170,8 @@ struct ProfileView: View {
                         .foregroundColor(.red)
                     }
 
-                    // Session token 调试：通常由 Apple 登录自动写入
-                    // 这里只是 manual override，方便测试
+                    // Session token debug: usually auto-written by Apple Sign in.
+                    // Manual override is here for testing without going through Apple.
                     TextField("session_token_optional", text: $sessionTokenText)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
@@ -190,6 +194,7 @@ struct ProfileView: View {
                         .foregroundColor(.red)
                     }
                 }
+                #endif
 
                 Section(header: Text("settings")) {
                     Button(role: .destructive) {

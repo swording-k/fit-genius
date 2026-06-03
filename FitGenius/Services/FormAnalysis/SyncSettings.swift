@@ -24,8 +24,23 @@ struct SyncSettings {
 
     /// Empty string means "no backend configured". Callers should treat
     /// `URL(string:)` failure and empty values the same way.
+    ///
+    /// Resolution order:
+    /// 1. `UserDefaults[fitgenius.sync.backendBaseURL]` (lets developers override
+    ///    the production URL on a debug build without recompiling).
+    /// 2. `Info.plist[FitGeniusBackendURL]` (the production URL shipped with
+    ///    the app bundle — what end users get).
+    /// 3. `""` (empty — callers treat this as "backend not configured").
     var backendBaseURLString: String {
-        defaults.string(forKey: Self.backendBaseURLKey) ?? ""
+        if let override = defaults.string(forKey: Self.backendBaseURLKey),
+           !override.isEmpty {
+            return override
+        }
+        if let baked = Bundle.main.object(forInfoDictionaryKey: "FitGeniusBackendURL")
+            as? String, !baked.isEmpty {
+            return baked
+        }
+        return ""
     }
 
     /// `nil` when no token is set. An empty token must not be sent on the wire.
