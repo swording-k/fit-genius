@@ -1,6 +1,6 @@
 # FitGenius Agent Handoff
 
-Last updated: 2026-06-03 18:00 Asia/Shanghai
+Last updated: 2026-06-03 18:25 Asia/Shanghai
 
 ## Read First
 
@@ -22,7 +22,7 @@ This document exists so another agent can continue safely if the current convers
 
 ## Current Status (verified 2026-06-03)
 
-The repository is committed in 6 clean milestone commits on top of the v1.1.0-stable baseline. All 7 planned commits landed:
+The repository is committed in 7 clean milestone commits on top of the v1.1.0-stable baseline. All planned commits landed:
 
 | SHA | Subject | Status |
 |---|---|---|
@@ -32,14 +32,15 @@ The repository is committed in 6 clean milestone commits on top of the v1.1.0-st
 | `14f587d` | feat(form-analysis): iOS MVP for squat / deadlift / bench | done |
 | `d84aa21` | feat(backend): Vercel + Neon + Apple auth + AI proxy | done |
 | `2288c39` | feat(ios): add AppleAuthAPIClient | done |
+| `60c6eaf` | feat(ios): wire Apple token exchange + AI proxy + sync trigger | done |
 
-Validation:
+Validation (re-run 2026-06-03 18:25):
 
 - `xcodebuild ... build` → `** BUILD SUCCEEDED **`
-- `scripts/run-form-analysis-tests.sh` → 5/5 pass
+- `scripts/run-form-analysis-tests.sh` → 5/5 pass (`AppleAuthAPIClientTests` + 4 form analysis suites)
 - `npm run test:backend` → 8/8 pass
 - Working tree clean
-- Force-pushed to `origin/main`; `eba84fad` (v1.0.4) Aliyun key replaced by `REDACTED-ALIYUN-KEY` in all 79 commits
+- `git push origin main` via HTTPS → `1ef73fa..60c6eaf`
 
 ## What Actually Works Without Further Work
 
@@ -54,18 +55,23 @@ These are real on a v1.1.0 build with the new commits applied:
 
 ## Known Gaps (must be finished before app store submission)
 
-1. **iOS app does not yet call `AppleAuthAPIClient.exchange(...)` from `AuthViewModel.signIn(...)`.**
-   The client file is committed but `AuthViewModel` still uses the offline-Keychain path. Without this, login on a real device never reaches the backend and `currentBearerToken` is empty.
-2. **iOS app does not yet call `/api/ai/chat` from `AIService`.**
-   The iOS bundle ships without an Aliyun key. The proxy path exists in design but no code change has wired `AIService` to POST through `SyncSettings.live.backendBaseURL`. AI features will fail in production until this lands.
-3. **`FormAnalysisView` is unreachable from `MainView`.**
-   The view file is committed but no Tab / NavigationLink opens it. Users cannot access the form-analysis feature from the UI.
-4. **`FormAnalysisSyncCoordinator` is not auto-triggered.**
-   The coordinator is a singleton with a public API, but neither `FitGeniusApp` (no `scenePhase` listener) nor `FormAnalysisViewModel.analyze(...)` calls it. Records will sit in `pending` state forever.
-5. **`AuthViewModel.currentBearerToken` still returns `nil`.**
-   Because SyncSettings is not consulted by AuthViewModel.
-6. **`Info.plist` lacks `NSCameraUsageDescription` / `NSPhotoLibraryUsageDescription`.**
-   The privacy manifest and `VideoCameraPicker` are in place but the user-facing permission strings are missing — the app will crash on first camera/photo access.
+1. **`FormAnalysisView` is unreachable from `MainView`.**
+   The view file is committed but no Tab / NavigationLink opens it. Users cannot access the form-analysis feature from the UI. *Tracked for Phase 3 — requires a "pick an exercise" picker UI since `FormAnalysisView` currently requires `@Bindable var exercise: Exercise`.*
+2. **No `FormAnalysisViewModel.analyze(...)` trigger of `FormAnalysisSyncCoordinator`.**
+   `FitGeniusApp` scenePhase listener now triggers the sync, but the in-flight `analyze(...)` path does not — the user-visible latency for a successful sync will only happen on next foreground transition. (Acceptable for the first release.)
+3. **Vercel + Neon not yet deployed.**
+   The user has Vercel/Neon accounts and a Vercel project (`fitgenius`) from Codex. Need to: set env vars in Vercel, apply schema to Neon, set `backendBaseURL` in iOS via UserDefaults, configure Apple Developer bundle id capability.
+4. **No Aliyun API key rotation story yet.**
+   Key is read from Vercel env. If compromised, rotate in Vercel and redeploy — iOS does not need to be rebuilt.
+
+## iOS Phase 2 Wiring — DONE (`60c6eaf`)
+
+- `AuthService.signInWithApple()` → returns `AppleSignInResult` (with `identityToken: Data?`).
+- `AuthViewModel.signIn(context:)` → calls `apiClient.exchange(identityToken:userIdentifier:fullName:)` and stores session via `settings.setSessionToken(...)`.
+- `AuthViewModel.currentBearerToken` → `settings.bearerToken` (session token, falls back to dev token).
+- `AIService` → `resolveRequestURL()` / `resolveAuthHeader()` prefer `backendBaseURL/api/ai/chat` with `Authorization: Bearer`; direct Aliyun kept as offline fallback.
+- `FitGeniusApp` → `@Environment(\.scenePhase)` + `.onChange(of: scenePhase)` triggers `FormAnalysisSyncCoordinator.shared.syncPendingRecords(...)` when scene becomes `.active`.
+- `FormAnalysisSyncCoordinator` → 3 attempts × exponential backoff (2s/4s/8s) via `sleepProvider` injection.
 
 ## Deployment Runbook (Vercel + Neon)
 
