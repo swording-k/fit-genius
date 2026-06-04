@@ -1,8 +1,9 @@
 import { validateFormAnalysisPayload } from "../backend/formAnalysisPayload.mjs";
 import { buildInsertFormAnalysisSQL } from "../backend/formAnalysisRepository.mjs";
 import { createExecutor } from "../backend/database.mjs";
+import { extractBearerToken, verifySessionToken } from "../backend/sessionToken.mjs";
 
-export function createFormAnalysesHandler({ executeStatement } = {}) {
+export function createFormAnalysesHandler({ executeStatement, verifyToken = verifySessionToken } = {}) {
   return async function handler(request, response) {
     if (request.method !== "POST") {
       response.setHeader("Allow", "POST");
@@ -10,11 +11,22 @@ export function createFormAnalysesHandler({ executeStatement } = {}) {
       return;
     }
 
+    const bearer = extractBearerToken(request.headers.authorization);
+    if (!bearer) {
+      response.status(401).json({ ok: false, error: "missing_authorization" });
+      return;
+    }
+
+    let userId;
     const devToken = process.env.FITGENIUS_DEV_SYNC_TOKEN;
-    if (devToken) {
-      const authorization = request.headers.authorization ?? "";
-      if (authorization !== `Bearer ${devToken}`) {
-        response.status(401).json({ ok: false, error: "unauthorized" });
+    if (devToken && bearer === devToken) {
+      userId = request.headers["x-fitgenius-user-id"] || "dev-user";
+    } else {
+      try {
+        const session = await verifyToken(bearer);
+        userId = session.userId;
+      } catch {
+        response.status(401).json({ ok: false, error: "invalid_session" });
         return;
       }
     }
@@ -26,7 +38,6 @@ export function createFormAnalysesHandler({ executeStatement } = {}) {
       return;
     }
 
-    const userId = request.headers["x-fitgenius-user-id"] || "dev-user";
     const statement = buildInsertFormAnalysisSQL({ userId, payload });
 
     if (!process.env.DATABASE_URL) {

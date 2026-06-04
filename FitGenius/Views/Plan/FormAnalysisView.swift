@@ -60,7 +60,8 @@ struct FormAnalysisView: View {
                                     videoData: data,
                                     exercise: exercise,
                                     modelContext: modelContext,
-                                    userId: auth.currentUserId
+                                    userId: auth.currentSessionUserId,
+                                    bearerToken: auth.currentBearerToken
                                 )
                             }
                         }
@@ -186,7 +187,8 @@ struct FormAnalysisView: View {
                     videoData: data,
                     exercise: exercise,
                     modelContext: modelContext,
-                    userId: auth.currentUserId
+                    userId: auth.currentSessionUserId,
+                    bearerToken: auth.currentBearerToken
                 )
             } catch {
                 viewModel.errorMessage = error.localizedDescription

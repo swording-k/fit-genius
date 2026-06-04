@@ -7,11 +7,14 @@ import AVFoundation
 // MARK: - AI 助手聊天界面
 struct AIAssistantView: View {
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var auth: AuthViewModel
     @Query private var profiles: [UserProfile]
     @StateObject private var viewModel: AIAssistantViewModel
     @FocusState private var isInputFocused: Bool
     @AppStorage("hasAcceptedMedicalDisclaimer") private var hasAcceptedDisclaimer = false
     @State private var showDisclaimerAlert = false
+    @State private var showLoginSheet = false
+    private let bottomAnchorID = "assistant-bottom-anchor"
     
     init(modelContext: ModelContext) {
         _viewModel = StateObject(wrappedValue: AIAssistantViewModel(modelContext: modelContext))
@@ -31,6 +34,20 @@ struct AIAssistantView: View {
                 DisclaimerBanner {
                     showDisclaimerAlert = true
                 }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+            }
+
+            if auth.needsBackendReconnect {
+                Button {
+                    showLoginSheet = true
+                } label: {
+                    Label("cloud_reconnect_ai_banner", systemImage: "exclamationmark.icloud")
+                        .font(.subheadline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .buttonStyle(.bordered)
+                .tint(.orange)
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
             }
@@ -121,15 +138,26 @@ struct AIAssistantView: View {
                                 }
                                 .padding()
                             }
+
+                            Color.clear
+                                .frame(height: 1)
+                                .id(bottomAnchorID)
                         }
                         .padding()
                     }
                     .onChange(of: viewModel.messages.count) { _, _ in
-                        if let lastMessage = viewModel.messages.last {
-                            withAnimation {
-                                proxy.scrollTo(lastMessage.id, anchor: .bottom)
-                            }
+                        withAnimation {
+                            proxy.scrollTo(bottomAnchorID, anchor: .bottom)
                         }
+                    }
+                    .onChange(of: viewModel.isLoading) { _, _ in
+                        withAnimation {
+                            proxy.scrollTo(bottomAnchorID, anchor: .bottom)
+                        }
+                    }
+                    .task {
+                        await Task.yield()
+                        proxy.scrollTo(bottomAnchorID, anchor: .bottom)
                     }
                     // 点击空白处收起键盘
                     .onTapGesture {
@@ -200,6 +228,9 @@ struct AIAssistantView: View {
         .sheet(isPresented: $showDisclaimerAlert) {
             MedicalDisclaimerView(isPresented: $showDisclaimerAlert)
         }
+        .sheet(isPresented: $showLoginSheet) {
+            LoginView()
+        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
@@ -255,6 +286,10 @@ struct AIAssistantView: View {
     // 发送消息的辅助方法
     private func sendMessage() {
         guard let profile = profile, let plan = plan else { return }
+        guard auth.hasBackendSession else {
+            showLoginSheet = true
+            return
+        }
         isInputFocused = false  // 发送后收起键盘
         Task {
             await viewModel.sendMessage(profile: profile, plan: plan)
@@ -263,6 +298,10 @@ struct AIAssistantView: View {
 
     private func sendSuggestionOnly() {
         guard let profile = profile else { return }
+        guard auth.hasBackendSession else {
+            showLoginSheet = true
+            return
+        }
         isInputFocused = false
         if let mediaData = viewModel.pendingMediaData, let type = viewModel.pendingMediaType {
             let isVideo = (type == "video")

@@ -15,27 +15,26 @@ struct StatsView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                // 坚持天数大卡片
-                if let profile = profiles.first, profile.streakDays > 0 {
-                    StreakDaysCard(streakDays: profile.streakDays)
-                }
-                
-                // 统计卡片
-                StatsCardsView(viewModel: viewModel)
-                
-                // 重量增长图表（仅显示有重量的动作）
-                WeightProgressChartsView(viewModel: viewModel)
-                
-                // 动作筛选
-                ExerciseFilterView(viewModel: viewModel)
-                
-                // 训练容量趋势
-                if !viewModel.trainingData.isEmpty {
+                if viewModel.allTrainingData.isEmpty {
+                    StatsEmptyState()
+                } else {
+                    // 坚持天数大卡片
+                    if let profile = profiles.first, profile.streakDays > 0 {
+                        StreakDaysCard(streakDays: profile.streakDays)
+                    }
+
+                    StatsCardsView(viewModel: viewModel)
+
+                    // 动作筛选仅影响趋势和最近记录，总览始终展示完整数据。
+                    ExerciseFilterView(viewModel: viewModel)
+
                     VolumeChartView(viewModel: viewModel)
+
+                    // 重量增长图表（仅显示有重量的动作）
+                    WeightProgressChartsView(viewModel: viewModel)
+
+                    RecentTrainingListView(viewModel: viewModel)
                 }
-                
-                // 最近训练记录
-                RecentTrainingListView(viewModel: viewModel)
             }
             .padding()
         }
@@ -43,6 +42,18 @@ struct StatsView: View {
         .onAppear {
             viewModel.loadData()
         }
+    }
+}
+
+struct StatsEmptyState: View {
+    var body: some View {
+        ContentUnavailableView(
+            "no_training_record",
+            systemImage: "chart.xyaxis.line",
+            description: Text("stats_empty_description")
+        )
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 24)
     }
 }
 
@@ -144,7 +155,7 @@ struct StatCard: View {
                 .font(.title)
                 .bold()
             
-            Text(title)
+            Text(LocalizedStringKey(title))
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
@@ -170,7 +181,7 @@ struct ExerciseFilterView: View {
                         Button(action: {
                             viewModel.filterByExercise(exercise)
                         }) {
-                            Text(exercise)
+                            Text(exercise == StatsViewModel.allExercisesFilter ? "all_exercises" : exercise)
                                 .font(.subheadline)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
@@ -234,7 +245,11 @@ struct VolumeChartView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(viewModel.selectedExercise == "全部" ? "total_volume_trend" : "\(viewModel.selectedExercise) volume_trend")
+            Text(
+                viewModel.selectedExercise == StatsViewModel.allExercisesFilter
+                    ? "total_volume_trend".localized
+                    : String(format: "exercise_volume_trend".localized, viewModel.selectedExercise)
+            )
                 .font(.headline)
 
             if viewModel.trainingData.isEmpty {
@@ -243,7 +258,7 @@ struct VolumeChartView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding()
             } else {
-                Chart(viewModel.trainingData) { data in
+                Chart(viewModel.volumeTrendData) { data in
                     AreaMark(
                         x: .value("日期", data.date),
                         y: .value("容量", data.volume)
@@ -263,7 +278,7 @@ struct VolumeChartView: View {
                         y: .value("容量", data.volume)
                     )
                     .foregroundStyle(.blue)
-                    .symbolSize(data == viewModel.trainingData.last ? 80 : 30)
+                    .symbolSize(data.id == viewModel.volumeTrendData.last?.id ? 80 : 30)
                 }
                 .frame(height: 200)
                 .chartXAxis {

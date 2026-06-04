@@ -8,14 +8,14 @@ struct WeightProgressChartsView: View {
     
     var strengthExercises: [String] {
         // 获取所有有重量记录的动作
-        let exercises = Set(viewModel.trainingData.filter { $0.weight > 0 }.map { $0.exerciseName })
+        let exercises = Set(viewModel.allTrainingData.filter { $0.weight > 0 }.map { $0.exerciseName })
         return Array(exercises).sorted()
     }
     
     var body: some View {
         if !strengthExercises.isEmpty {
             VStack(alignment: .leading, spacing: 12) {
-                Text("重量增长趋势")
+                Text("weight_progress_trend")
                     .font(.headline)
                 
                 // 动作选择器
@@ -107,7 +107,7 @@ struct WeightProgressChartsView: View {
                             }
                         }
                     } else {
-                        Text("暂无\(exercise)的重量记录")
+                        Text(String(format: "no_weight_record_for_exercise".localized, exercise))
                             .foregroundColor(.secondary)
                             .frame(maxWidth: .infinity, alignment: .center)
                             .padding()

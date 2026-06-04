@@ -10,11 +10,6 @@ struct ProfileView: View {
     @AppStorage("notificationsEnabled") private var notificationsEnabled = false
     @State private var showProfileEditor = false
     @State private var showSourcesInfo = false
-    #if DEBUG
-    @State private var backendURLText: String = ""
-    @State private var sessionTokenText: String = ""
-    @State private var sessionUserIdText: String = ""
-    #endif
 
     var currentProfile: UserProfile? {
         profiles.first
@@ -64,17 +59,37 @@ struct ProfileView: View {
                     .padding(.vertical, 4)
                     
                     // 登录状态
-                    if auth.isSignedIn {
+                    if auth.hasBackendSession {
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(.green)
-                            Text("login_success")
+                            Text("cloud_connected")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                             Spacer()
                             Text(auth.userDisplayName)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
+                        }
+                    } else if auth.needsBackendReconnect {
+                        Button {
+                            showLoginSheet = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "exclamationmark.icloud")
+                                    .foregroundColor(.orange)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("cloud_reconnect_required")
+                                    Text("cloud_reconnect_detail")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.vertical, 4)
                         }
                     } else {
                         Button {
@@ -123,54 +138,6 @@ struct ProfileView: View {
                     WidgetBackgroundSettingsView()
                 }
 
-                #if DEBUG
-                Section(header: Text("backend_debug_only")) {
-                    // ⚠️ This section is only compiled into DEBUG builds. End users
-                    // never see it. Production URL is hardcoded in Info.plist; this
-                    // override exists for developers who want to point a simulator /
-                    // debug build at a staging URL without recompiling.
-                    TextField("https://your-app.vercel.app", text: $backendURLText)
-                        .keyboardType(.URL)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .onSubmit { saveBackendConfig() }
-                    HStack {
-                        Button("save_backend_url") { saveBackendConfig() }
-                            .disabled(backendURLText.isEmpty)
-                        Spacer()
-                        Button("clear") {
-                            UserDefaults.standard.removeObject(forKey: SyncSettings.backendBaseURLKey)
-                            backendURLText = ""
-                        }
-                        .foregroundColor(.red)
-                    }
-
-                    // Session token debug: usually auto-written by Apple Sign in.
-                    // Manual override is here for testing without going through Apple.
-                    TextField("session_token_optional", text: $sessionTokenText)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                    TextField("session_user_id_optional", text: $sessionUserIdText)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                    HStack {
-                        Button("save_session") {
-                            UserDefaults.standard.set(sessionTokenText, forKey: SyncSettings.sessionTokenKey)
-                            UserDefaults.standard.set(sessionUserIdText, forKey: SyncSettings.sessionUserIdKey)
-                        }
-                        .disabled(sessionTokenText.isEmpty || sessionUserIdText.isEmpty)
-                        Spacer()
-                        Button("clear") {
-                            UserDefaults.standard.removeObject(forKey: SyncSettings.sessionTokenKey)
-                            UserDefaults.standard.removeObject(forKey: SyncSettings.sessionUserIdKey)
-                            sessionTokenText = ""
-                            sessionUserIdText = ""
-                        }
-                        .foregroundColor(.red)
-                    }
-                }
-                #endif
-
                 Section(header: Text("settings")) {
                     Button(role: .destructive) {
                         resetAllData()
@@ -211,26 +178,8 @@ struct ProfileView: View {
             .sheet(isPresented: $showSourcesInfo) {
                 SourcesInfoView()
             }
-            .onAppear {
-                #if DEBUG
-                backendURLText = UserDefaults.standard.string(forKey: SyncSettings.backendBaseURLKey) ?? ""
-                sessionTokenText = UserDefaults.standard.string(forKey: SyncSettings.sessionTokenKey) ?? ""
-                sessionUserIdText = UserDefaults.standard.string(forKey: SyncSettings.sessionUserIdKey) ?? ""
-                #endif
-            }
         }
     }
-
-    #if DEBUG
-    private func saveBackendConfig() {
-        let trimmed = backendURLText.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.isEmpty {
-            UserDefaults.standard.removeObject(forKey: SyncSettings.backendBaseURLKey)
-        } else {
-            UserDefaults.standard.set(trimmed, forKey: SyncSettings.backendBaseURLKey)
-        }
-    }
-    #endif
 
     private var maskedUserId: String {
         guard let id = auth.currentUserId else { return "not_logged_in".localized }

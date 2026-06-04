@@ -27,7 +27,8 @@ struct FitGeniusApp: App {
             ChatMessage.self,
             MealEntry.self,
             MealDay.self,
-            NutritionSummary.self
+            NutritionSummary.self,
+            FormAnalysisRecord.self
         ])
         do {
             modelContainer = try Self.makePersistentContainer(schema: schema)

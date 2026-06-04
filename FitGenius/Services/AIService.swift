@@ -105,7 +105,7 @@ enum AIServiceError: Error, LocalizedError {
         case .backendNotConfigured:
             return "后端地址未配置,请联系开发者或重装 App"
         case .missingSessionToken:
-            return "请先登录 Apple 账户"
+            return NSLocalizedString("cloud_session_missing_error", comment: "")
         case .invalidURL:
             return "无效的 API URL"
         case .networkError(let error):
@@ -166,6 +166,11 @@ class AIService {
 		} catch {
 			throw AIServiceError.networkError(error)
 		}
+        if let httpResponse = response as? HTTPURLResponse,
+           httpResponse.statusCode == 401 {
+            settings.setSessionToken(nil, userId: nil)
+            throw AIServiceError.missingSessionToken
+        }
 		guard let httpResponse = response as? HTTPURLResponse,
 				(200...299).contains(httpResponse.statusCode) else {
             var errorText = ""

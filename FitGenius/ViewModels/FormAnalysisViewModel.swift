@@ -22,7 +22,8 @@ final class FormAnalysisViewModel: ObservableObject {
         videoData: Data,
         exercise: Exercise,
         modelContext: ModelContext,
-        userId: String? = nil
+        userId: String? = nil,
+        bearerToken: String? = nil
     ) async {
         isAnalyzing = true
         errorMessage = nil
@@ -72,7 +73,7 @@ final class FormAnalysisViewModel: ObservableObject {
                 record,
                 context: modelContext,
                 userId: userId,
-                bearerToken: SyncSettings.live.devSyncToken
+                bearerToken: bearerToken
             )
         }
     }

@@ -1,6 +1,6 @@
 # FitGenius Form Coach Roadmap
 
-Last updated: 2026-06-02
+Last updated: 2026-06-04
 
 ## Product Vision
 
@@ -94,14 +94,12 @@ Backend responsibilities:
 
 The iOS app remains offline-capable. Login and sync enhance the product but should not block local training usage.
 
-**Phase 2 status (partially complete, awaiting deploy + iOS wiring)**:
-the backend code is complete (Apple Sign in endpoint, AI proxy, Neon
-executor, schema migration script, 8 backend tests passing). The
-iOS side has a complete client library (`AppleAuthAPIClient`,
-`FormAnalysisSyncCoordinator`, `SyncSettings`, `AIService`) but the
-call sites in `AuthViewModel` and `AIService` still need to be
-wired before the app can use the backend in production. See
-`docs/agent-handoff.md` for the list of Known Gaps.
+**Phase 2 status (production backend verified 2026-06-04)**:
+Vercel, Neon, Apple-session verification, AI proxy, and form-analysis storage
+are wired. A live authenticated AI request returned a real provider response,
+and a live authenticated form-analysis request returned `mode: stored` from
+Neon. Existing phone sessions must reconnect once because the production
+session secret was repaired.
 
 ### Phase 3: Apple Watch Experience
 
@@ -126,69 +124,39 @@ Cross-platform strategy:
 - Use MediaPipe or platform pose APIs to generate `PoseFrame`.
 - Keep exercise rules and coaching logic aligned across clients.
 
-## Current Implementation Status (verified against `main` @ 2026-06-03)
+## Current Implementation Status (verified 2026-06-04)
 
-The bullet list below describes what is **actually in the repository on
-the `main` branch right now**. Anything described as wired in earlier
-drafts of this section was rolled back before the v1.1.0-stable
-release and is no longer present in the working tree. The Known Gaps
-in `docs/agent-handoff.md` list what has to be re-added before the
-app store update is shippable.
+Implemented:
 
-Implemented and on `main`:
+- Reachable iOS form-analysis flow for squat, deadlift, and bench press.
+- Platform-neutral pose models, Apple Vision extraction, local rule engine,
+  local history persistence, recommendation application, and cloud sync.
+- Apple login exchange, FitGenius sessions, Vercel AI proxy, and Neon storage.
+- Offline training/diet baseline, Widget, compliance screens, and bilingual
+  localization.
+- Product stabilization for AI connection state, newest-message chat opening,
+  Profile debug-control removal, and Stats filtering/empty states.
 
-- iOS form analysis library: `Models/Form/*` (pose, form-analysis, sync
-  payload, history), `Services/FormAnalysis/*` (rule engine, pose
-  extraction, sync service, sync coordinator, sync settings, debug
-  video provider), `ViewModels/FormAnalysisViewModel`,
-  `Views/Plan/FormAnalysisView`, `Views/Components/VideoCameraPicker`,
-  `Services/DebugSeedService`.
-- iOS backend client library: `Services/AppleAuthAPIClient` (the HTTP
-  client for `/api/auth/apple`), `Services/FormAnalysis/SyncSettings`
-  (`UserDefaults` wrapper, no compile-time defaults), and the retry /
-  backoff logic in `FormAnalysisSyncCoordinator`.
-- Backend: `api/*` serverless functions, `backend/*` shared modules,
-  `backend/tests/*` (8 `node --test` files), `package.json`,
-  `vercel.json`, `.env.example`, `scripts/apply-schema.sh`,
-  `scripts/predeploy-check.sh`, `scripts/run-form-analysis-tests.sh`,
-  `scripts/check-localization.sh`.
-- iOS 1.1.0 baseline: training plan, diet, stats, profile, Apple
-  login (offline Keychain fallback), Widget, App Group data sharing,
-  medical disclaimer UI, sources info, bilingual localization.
-- Repo infrastructure: `.gitignore` (Claude Code project permissions
-  excluded, Xcode artifacts excluded), `AGENTS.md` (multi-agent entry
-  doc with architecture diagram), `PrivacyInfo.xcprivacy`.
+Not started:
 
-Not yet on `main` (Known Gaps):
-
-- `AuthViewModel.signIn(...)` does not call `AppleAuthAPIClient`.
-- `AIService` does not call `/api/ai/chat`.
-- `FormAnalysisView` is not reachable from `MainView`.
-- `FormAnalysisSyncCoordinator` is not triggered by `scenePhase` or by
-  `FormAnalysisViewModel.analyze(...)`.
-- `Info.plist` is missing `NSCameraUsageDescription` and
-  `NSPhotoLibraryUsageDescription`.
-- Apple Watch (Phase 3) is not started.
-- Android / cross-platform (Phase 4) is not started.
+- Apple Watch companion.
+- Android/Huawei clients.
+- Subscription and billing.
 
 ## Validation Log
 
-Last verified on 2026-06-03, after the 6-commit cleanup:
+Last verified on 2026-06-04:
 
-- iOS build: `xcodebuild ... build` → `** BUILD SUCCEEDED **`
-- iOS unit tests: `scripts/run-form-analysis-tests.sh` → 5 binaries
-  pass (DebugVideoProvider, FormAnalysisSyncPayload, FormAnalysisSyncService,
-  FormAnalysisSyncCoordinator, AppleAuthAPIClient)
-- Backend tests: `npm run test:backend` → 8 files pass
-  (appleTokenVerifier, sessionToken, appleAuthApi, aiChatProxy,
-  formAnalysisRepository, formAnalysesApi, formAnalysisPayload, schema)
-- Working tree clean; force-pushed to `origin/main`.
-- DEBUG direct video launch auto-loaded `/Users/baojian/Downloads/IMG_8262.MOV` into the form-analysis sheet.
-- In the current simulator runtime, `VNDetectHumanBodyPoseRequest` cannot be set up inside the app. The UI now shows a localized Chinese unavailable-state message instead of the raw English Vision error. Real-device validation is still required for the Apple Vision extraction path.
-- Screenshot confirmed app launches to onboarding.
-- Secret scan found no remaining `sk-...` or committed `ALIYUN_API_KEY` build setting.
-- Smoke screenshot after latest build: `/tmp/fitgenius-formcoach-smoke.png`
-- Smoke screenshot after onboarding label fix: `/tmp/fitgenius-formcoach-smoke-fixed.png`
+- Generic iOS Simulator build and XcodeBuildMCP build/run succeeded.
+- Simulator UI verified the form-analysis entry, newest-message AI chat,
+  debug-free Profile, and localized Stats empty state.
+- `scripts/run-form-analysis-tests.sh`: 5/5 binaries passed.
+- `npm run test:backend`: 15/15 tests passed.
+- `scripts/check-localization.sh`: 70/70 required form-coach keys passed.
+- Production AI non-streaming and streaming requests returned real Qwen output.
+- Production form-analysis storage returned HTTP 200 with `mode: stored`.
+- Secret scan found no provider key or database URL in deployable files.
+- Real-device Apple login and Apple Vision acceptance remain required.
 
 Real video validation:
 
@@ -214,23 +182,16 @@ UI issue fixed during smoke test:
 
 ## Immediate Next Steps
 
-1. Finish the PhotosPicker-to-analysis UI flow:
-   - Current verified point: workout row -> form analysis sheet -> PhotosPicker with imported video visible.
-   - Remaining issue: automated thumbnail selection is blocked by system picker tooling; use the DEBUG direct video launch path for automated simulator checks or manually select in Simulator.
-   - Real-device validation is required because the current simulator cannot set up `VNDetectHumanBodyPoseRequest` inside the app.
-2. Tune remaining bench-specific report quality:
+1. Complete physical-iPhone acceptance for Apple reconnect, AI chat, and the
+   PhotosPicker-to-analysis flow. Real-device validation remains required for
+   Apple Vision.
+2. Complete the P0/P1 product-quality audit in `docs/product-quality-plan.md`.
+3. Tune remaining bench-specific report quality:
    - Camera-angle warnings.
    - More precise bottom-position control.
    - More robust bar/wrist path interpretation across camera angles.
-3. Create a clean development branch and commit the MVP.
-4. Review and preserve existing App Store compliance changes.
-5. Continue Phase 2 backend:
-   - Create Vercel and Neon project.
-   - Apply `backend/schema.sql` (run `./scripts/apply-schema.sh` or `npm run db:migrate`).
-   - Wire Apple Developer "Sign in with Apple" capability for the iOS bundle id and confirm `APPLE_BUNDLE_ID` matches.
-   - Populate Vercel project env: `DATABASE_URL`, `SESSION_SECRET` (32+ chars), `APPLE_BUNDLE_ID`, `ALIYUN_API_KEY`, optional `SESSION_ISSUER`, `BACKEND_PUBLIC_URL`, `FITGENIUS_DEV_SYNC_TOKEN`.
-   - Verify the iOS app reaches `/api/auth/apple` and `/api/ai/chat` end to end. The retry-with-backoff path is in place for transient network failures.
-   - Keep all provider keys in Vercel environment variables only.
+4. Add form-analysis history and trends to Stats.
+5. Prepare a TestFlight release candidate before starting Apple Watch work.
 
 ## Important Assumptions
 

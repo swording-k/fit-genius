@@ -21,13 +21,22 @@ struct DailyStats: Identifiable {
     let totalSets: Int
 }
 
+struct VolumeTrendPoint: Identifiable {
+    let date: Date
+    let volume: Double
+    var id: Date { date }
+}
+
 // MARK: - 统计 ViewModel
 @MainActor
 class StatsViewModel: ObservableObject {
-    @Published var selectedExercise: String = "全部"
+    static let allExercisesFilter = "__all_exercises__"
+
+    @Published var selectedExercise: String = StatsViewModel.allExercisesFilter
     @Published var trainingData: [TrainingDataPoint] = []
+    @Published private(set) var allTrainingData: [TrainingDataPoint] = []
     @Published var dailyStats: [DailyStats] = []
-    @Published var availableExercises: [String] = ["全部"]
+    @Published var availableExercises: [String] = [StatsViewModel.allExercisesFilter]
     
     private let modelContext: ModelContext
     
@@ -91,14 +100,10 @@ class StatsViewModel: ObservableObject {
         }
         
         // 更新可用动作列表
-        availableExercises = ["全部"] + exerciseNames.sorted()
+        availableExercises = [Self.allExercisesFilter] + exerciseNames.sorted()
         
-        // 根据选择筛选数据
-        if selectedExercise == "全部" {
-            trainingData = dataPoints
-        } else {
-            trainingData = dataPoints.filter { $0.exerciseName == selectedExercise }
-        }
+        allTrainingData = dataPoints
+        applyCurrentFilter()
         
         // 更新每日统计
         dailyStats = dailyStatsDict.map { date, stats in
@@ -130,18 +135,18 @@ class StatsViewModel: ObservableObject {
     // MARK: - 筛选动作
     func filterByExercise(_ exerciseName: String) {
         selectedExercise = exerciseName
-        loadData()
+        applyCurrentFilter()
     }
     
     // MARK: - 计算总训练容量
     var totalVolume: Double {
-        trainingData.reduce(0) { $0 + $1.volume }
+        allTrainingData.reduce(0) { $0 + $1.volume }
     }
     
     // MARK: - 计算平均训练容量
     var averageVolume: Double {
-        guard !trainingData.isEmpty else { return 0 }
-        return totalVolume / Double(trainingData.count)
+        guard !allTrainingData.isEmpty else { return 0 }
+        return totalVolume / Double(allTrainingData.count)
     }
     
     // MARK: - 训练天数
@@ -151,25 +156,43 @@ class StatsViewModel: ObservableObject {
     
     // MARK: - 总完成动作数
     var totalExercises: Int {
-        trainingData.count
+        allTrainingData.count
     }
     
     // MARK: - 总组数
     var totalSets: Int {
-        trainingData.reduce(0) { $0 + $1.sets }
+        allTrainingData.reduce(0) { $0 + $1.sets }
     }
     
     // MARK: - 获取特定动作的重量增长数据
     func getWeightProgress(for exerciseName: String) -> [TrainingDataPoint] {
-        trainingData
+        allTrainingData
             .filter { $0.exerciseName == exerciseName && $0.weight > 0 }
             .sorted { $0.date < $1.date }
     }
     
     // MARK: - 获取特定动作的组数增长数据
     func getSetsProgress(for exerciseName: String) -> [TrainingDataPoint] {
-        trainingData
+        allTrainingData
             .filter { $0.exerciseName == exerciseName }
             .sorted { $0.date < $1.date }
+    }
+
+    var volumeTrendData: [VolumeTrendPoint] {
+        let grouped = Dictionary(grouping: trainingData) {
+            Calendar.current.startOfDay(for: $0.date)
+        }
+        return grouped.map { date, points in
+            VolumeTrendPoint(date: date, volume: points.reduce(0) { $0 + $1.volume })
+        }
+        .sorted { $0.date < $1.date }
+    }
+
+    private func applyCurrentFilter() {
+        if selectedExercise == Self.allExercisesFilter {
+            trainingData = allTrainingData
+        } else {
+            trainingData = allTrainingData.filter { $0.exerciseName == selectedExercise }
+        }
     }
 }

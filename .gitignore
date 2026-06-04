@@ -46,3 +46,5 @@ Config.plist
 *.p12
 *.cer
 *.mobileprovision
+.vercel
+.env*

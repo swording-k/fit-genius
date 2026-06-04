@@ -230,6 +230,16 @@ final class AuthViewModel: ObservableObject {
     /// working while the Vercel deployment is being set up.
     var currentBearerToken: String? { settings.bearerToken }
 
+    /// Apple identity can exist locally while the backend session has expired
+    /// or was never created. AI and cloud sync require this stronger state.
+    var hasBackendSession: Bool {
+        settings.sessionToken != nil && settings.sessionUserId != nil
+    }
+
+    var needsBackendReconnect: Bool {
+        isSignedIn && !settings.backendBaseURLString.isEmpty && !hasBackendSession
+    }
+
     /// Convenience accessor for the session user id. Other view models
     /// can read this to know which `users.id` row to write against.
     var currentSessionUserId: String? { settings.sessionUserId ?? currentUserId }

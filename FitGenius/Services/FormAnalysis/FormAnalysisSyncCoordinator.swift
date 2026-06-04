@@ -160,7 +160,9 @@ final class FormAnalysisSyncCoordinator: ObservableObject {
     /// the whole sync loop.
     func resolveEndpoint() -> URL? {
         let raw = settings.backendBaseURLString
-        guard !raw.isEmpty, let url = URL(string: raw) else { return nil }
+        guard !raw.isEmpty else { return nil }
+        let normalized = raw.hasSuffix("/") ? String(raw.dropLast()) : raw
+        guard let url = URL(string: normalized + "/api/form-analyses") else { return nil }
         return url
     }
 

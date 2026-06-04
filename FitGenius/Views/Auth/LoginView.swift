@@ -21,9 +21,10 @@ struct LoginView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
 
-                Text("登录以同步你的健身数据")
+                Text(auth.needsBackendReconnect ? "reconnect_cloud_description" : "login_to_sync_description")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
             }
 
             Spacer()
@@ -38,14 +39,14 @@ struct LoginView: View {
                     Button {
                         Task {
                             await auth.signIn(context: modelContext)
-                            if auth.isSignedIn {
+                            if auth.hasBackendSession || (auth.isSignedIn && !auth.needsBackendReconnect) {
                                 dismiss()
                             }
                         }
                     } label: {
                         HStack {
                             Image(systemName: "apple.logo")
-                            Text("使用 Apple 登录")
+                            Text(auth.needsBackendReconnect ? "reconnect_with_apple" : "sign_in_with_apple")
                         }
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
@@ -61,7 +62,7 @@ struct LoginView: View {
                         .multilineTextAlignment(.center)
                 }
 
-                Text("Apple 登录可安全地验证你的身份\n我们不会收集或存储你的个人信息")
+                Text("apple_login_privacy_note")
                     .font(.caption2)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -71,7 +72,7 @@ struct LoginView: View {
             Spacer()
 
             // 跳过按钮
-            Button("暂不登录") {
+            Button("not_now") {
                 dismiss()
             }
             .font(.subheadline)
