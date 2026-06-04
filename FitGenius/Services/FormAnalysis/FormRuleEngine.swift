@@ -61,9 +61,9 @@ struct FormRuleEngine {
         var issues = baseIssues(exercise: .deadlift, sequence: sequence)
         var metrics: [FormMetric] = baseMetrics(exercise: .deadlift, sequence: sequence)
 
-        let torsoLean = averageTorsoLean(sequence)
-        metrics.append(FormMetric(key: "deadlift_back_angle", label: localized("form_metric_deadlift_back_angle"), value: torsoLean, unit: "norm"))
-        if torsoLean > 0.24 {
+        let hipAngle = minimumHipAngle(sequence)
+        metrics.append(FormMetric(key: "deadlift_hip_angle", label: localized("form_metric_deadlift_back_angle"), value: hipAngle, unit: "degrees"))
+        if hipAngle > 0, hipAngle < 165 {
             issues.append(FormIssue(
                 code: "deadlift_back_position",
                 title: localized("form_issue_deadlift_back_position_title"),
@@ -102,6 +102,17 @@ struct FormRuleEngine {
                 code: "bench_elbow_flare",
                 title: localized("form_issue_bench_elbow_flare_title"),
                 detail: localized("form_issue_bench_elbow_flare_detail"),
+                severity: 2
+            ))
+        }
+
+        let elbowAngle = minimumBenchElbowAngle(sequence)
+        metrics.append(FormMetric(key: "bench_elbow_angle", label: localized("form_metric_bench_elbow_angle"), value: elbowAngle, unit: "degrees"))
+        if elbowAngle > 0, elbowAngle < 35 {
+            issues.append(FormIssue(
+                code: "bench_elbow_angle",
+                title: localized("form_issue_bench_elbow_angle_title"),
+                detail: localized("form_issue_bench_elbow_angle_detail"),
                 severity: 2
             ))
         }
@@ -212,6 +223,26 @@ struct FormRuleEngine {
         })
     }
 
+    private func minimumHipAngle(_ sequence: PoseSequence) -> Double {
+        sequence.frames.compactMap { frame in
+            guard let shoulder = averagePoint(frame, .leftShoulder, .rightShoulder),
+                  let hip = averagePoint(frame, .leftHip, .rightHip),
+                  let knee = averagePoint(frame, .leftKnee, .rightKnee) else { return nil }
+            return angleDegrees(first: shoulder, vertex: hip, second: knee)
+        }.min() ?? 0
+    }
+
+    private func angleDegrees(first: JointPoint, vertex: JointPoint, second: JointPoint) -> Double {
+        let firstVector = (x: first.x - vertex.x, y: first.y - vertex.y)
+        let secondVector = (x: second.x - vertex.x, y: second.y - vertex.y)
+        let dot = firstVector.x * secondVector.x + firstVector.y * secondVector.y
+        let firstLength = hypot(firstVector.x, firstVector.y)
+        let secondLength = hypot(secondVector.x, secondVector.y)
+        guard firstLength > 0, secondLength > 0 else { return 0 }
+        let cosine = max(-1, min(1, dot / (firstLength * secondLength)))
+        return acos(cosine) * 180 / .pi
+    }
+
     private func averageElbowFlare(_ sequence: PoseSequence) -> Double {
         average(sequence.frames.compactMap { frame in
             guard let leftShoulder = frame.point(.leftShoulder),
@@ -222,6 +253,28 @@ struct FormRuleEngine {
             let right = abs(rightElbow.x - rightShoulder.x)
             return (left + right) / 2.0
         })
+    }
+
+    private func minimumBenchElbowAngle(_ sequence: PoseSequence) -> Double {
+        sequence.frames.compactMap { frame in
+            let angles = [
+                jointAngle(frame, first: .leftShoulder, vertex: .leftElbow, second: .leftWrist),
+                jointAngle(frame, first: .rightShoulder, vertex: .rightElbow, second: .rightWrist)
+            ].compactMap { $0 }
+            return angles.min()
+        }.min() ?? 0
+    }
+
+    private func jointAngle(
+        _ frame: PoseFrame,
+        first: JointName,
+        vertex: JointName,
+        second: JointName
+    ) -> Double? {
+        guard let firstPoint = frame.point(first),
+              let vertexPoint = frame.point(vertex),
+              let secondPoint = frame.point(second) else { return nil }
+        return angleDegrees(first: firstPoint, vertex: vertexPoint, second: secondPoint)
     }
 
     private func averageWristAsymmetry(_ sequence: PoseSequence) -> Double {

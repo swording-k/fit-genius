@@ -107,7 +107,7 @@ struct AIAssistantView: View {
                                 inputText: $viewModel.inputText,
                                 isFocused: $isInputFocused,
                                 isLoading: viewModel.isLoading,
-                                canSendEmpty: viewModel.pendingMediaType == "video",
+                                canSendEmpty: viewModel.pendingMediaData != nil,
                                 onSend: sendSuggestionOnly,
                                 onCameraCapture: nil,
                                 onPhotoSelected: { item in
@@ -203,8 +203,9 @@ struct AIAssistantView: View {
                             }
                             if viewModel.pendingMediaType == "video" {
                                 Picker("form_analysis_exercise_type", selection: $viewModel.pendingFormExerciseType) {
+                                    Text("form_exercise_auto_detect").tag(nil as FormExerciseType?)
                                     ForEach(FormExerciseType.allCases) { type in
-                                        Text(type.displayName).tag(type)
+                                        Text(type.displayName).tag(type as FormExerciseType?)
                                     }
                                 }
                                 .pickerStyle(.segmented)
@@ -217,7 +218,7 @@ struct AIAssistantView: View {
                         inputText: $viewModel.inputText,
                         isFocused: $isInputFocused,
                         isLoading: viewModel.isLoading,
-                        canSendEmpty: viewModel.pendingMediaType == "video",
+                        canSendEmpty: viewModel.pendingMediaData != nil,
                         onSend: sendMessage,
                         onCameraCapture: nil,
                         onPhotoSelected: { item in

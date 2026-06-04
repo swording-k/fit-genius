@@ -33,3 +33,32 @@
   validation evidence, limitations, and next work.
 - Prevented new AI video analyses from storing full raw videos in SwiftData chat
   history; only a compressed thumbnail is retained.
+- Started the next product-quality milestone after real-user testing exposed
+  multimodal AI failures, insufficient scoring evidence, and confusing Diet
+  Stats.
+- Root cause audit found mislabeled non-JPEG photo data and a missing Diet AI
+  cloud-session/reconnect flow.
+- Added form-coaching quality tests and observed the expected missing-classifier
+  RED state before implementing automatic exercise detection.
+- Quality tests exposed that the old deadlift rule scored good and risky
+  fixtures identically. Replaced raw torso lean with a shoulder-hip-knee angle
+  check that better represents hinge alignment.
+- Quality tests then exposed that the old bench rules missed abnormal elbow
+  angles. Added an elbow-angle metric and a localized coaching issue.
+- Normalized all selected AI images to bounded real JPEG data before sending,
+  preventing HEIC/PNG bytes from being mislabeled as JPEG.
+- Added Diet AI cloud-session/reconnect UX and a backend regression test proving
+  multimodal message content is forwarded unchanged.
+- Fixed both AI composers so an attached image can be sent without forcing the
+  user to type extra text.
+- Made video exercise selection automatic by default, with local pose-based
+  classification confidence and a manual override for uncertain camera angles.
+- Added a professional feedback-image header and result panel, plus more
+  detailed AI text explaining confidence, key metrics, all-green results, and
+  the limits of visible-joint analysis.
+- Replaced Diet Stats' overlapping macro charts with a readable nutrition
+  summary, macro progress rows, a single calorie trend, and recent records.
+- XcodeBuildMCP smoke test auto-classified the supplied launch video as bench
+  press at 95% confidence and returned a specific highlighted elbow issue.
+- Simulator verified the simplified Diet Stats layout and Diet AI reconnect
+  banner.

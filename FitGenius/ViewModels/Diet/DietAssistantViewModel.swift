@@ -94,10 +94,14 @@ class DietAssistantViewModel: ObservableObject {
 	}
 	
     func handleMediaSelection(data: Data) {
-        pendingMediaData = data
-        pendingMediaType = "image"
-        if let image = UIImage(data: data) {
-            pendingThumbnail = image
+        do {
+            let normalized = try MediaImagePreprocessor.normalizedJPEG(from: data)
+            pendingMediaData = normalized
+            pendingMediaType = "image"
+            pendingThumbnail = UIImage(data: normalized)
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
     

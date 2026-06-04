@@ -15,3 +15,26 @@
 - Real-device Vision acceptance is still required before release. Simulator and
   command-line validation can verify build, navigation, and deterministic logic.
 
+## 2026-06-04 Multimodal and Scoring Audit
+
+- PhotosPicker data is forwarded unchanged but always labeled
+  `data:image/jpeg`; HEIC/PNG input can therefore be rejected by the provider.
+- Diet AI does not inspect `AuthViewModel` or present a reconnect flow. An
+  expired backend session becomes a generic chat error.
+- Backend tests only cover text-shaped `messages`; they do not prove the
+  multimodal payload is accepted by the upstream provider.
+- Current rule-engine tests do not prove that good fixtures score above risky
+  fixtures, and there is no exercise auto-classifier.
+- Green overlay means a joint/segment was detected and no mapped issue marked it
+  red. It is not proof that every aspect of the lift is correct.
+- Diet Stats still overlays several area and line series, making the charts hard
+  to interpret.
+- Deterministic quality tests now prove score separation for all three supported
+  lifts: squat 96/46, deadlift 96/66, and bench press 96/76 for good/risky
+  fixtures.
+- Automatic detection is intentionally limited to the three supported lifts.
+  Adding more labels without corresponding rules and real-video acceptance
+  would make the product appear broader while reducing trust.
+- Simulator validation proves the local analysis UI and rule fixtures, but the
+  actual pose joints from Apple Vision and real cloud image acceptance still
+  require a physical iPhone.

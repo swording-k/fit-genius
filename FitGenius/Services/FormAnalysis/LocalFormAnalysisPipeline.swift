@@ -5,15 +5,18 @@ struct LocalFormAnalysisArtifact {
     let feedbackImageData: Data
     let duration: Double
     let feedbackTimestamp: Double
+    let classification: FormExerciseClassification
+    let usedAutomaticDetection: Bool
 }
 
 struct LocalFormAnalysisPipeline {
     private let extractor = PoseExtractionService()
     private let ruleEngine = FormRuleEngine()
+    private let classifier = FormExerciseClassifier()
     private let feedbackPlanner = PoseFeedbackPlanner()
     private let overlayRenderer = PoseOverlayRenderer()
 
-    func analyze(videoData: Data, exercise: FormExerciseType) async throws -> LocalFormAnalysisArtifact {
+    func analyze(videoData: Data, preferredExercise: FormExerciseType? = nil) async throws -> LocalFormAnalysisArtifact {
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString)
             .appendingPathExtension("mov")
@@ -26,24 +29,32 @@ struct LocalFormAnalysisPipeline {
         } catch {
             #if DEBUG && targetEnvironment(simulator)
             guard DebugFormAnalysisVideoProvider.launchVideoURL != nil else { throw error }
-            sequence = .exerciseFixture(exercise, quality: .risky)
+            sequence = .exerciseFixture(preferredExercise ?? .benchPress, quality: .risky)
             #else
             throw error
             #endif
         }
+        let classification = classifier.classify(sequence)
+        let exercise = preferredExercise ?? classification.exercise
         let summary = ruleEngine.analyze(exercise: exercise, sequence: sequence)
         let feedbackPlan = feedbackPlanner.makePlan(
             exercise: exercise,
             sequence: sequence,
             issues: summary.issues
         )
-        let feedbackImage = try await overlayRenderer.render(videoURL: tempURL, plan: feedbackPlan)
+        let feedbackImage = try await overlayRenderer.render(
+            videoURL: tempURL,
+            plan: feedbackPlan,
+            summary: summary
+        )
 
         return LocalFormAnalysisArtifact(
             summary: summary,
             feedbackImageData: feedbackImage,
             duration: sequence.duration,
-            feedbackTimestamp: feedbackPlan.frame.timestamp
+            feedbackTimestamp: feedbackPlan.frame.timestamp,
+            classification: classification,
+            usedAutomaticDetection: preferredExercise == nil
         )
     }
 }

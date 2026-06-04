@@ -22,7 +22,7 @@ class AIAssistantViewModel: ObservableObject {
     @Published var pendingMediaData: Data?
     @Published var pendingMediaType: String? // "image" or "video"
     @Published var pendingThumbnail: UIImage?
-    @Published var pendingFormExerciseType: FormExerciseType = .squat
+    @Published var pendingFormExerciseType: FormExerciseType?
     
     private let aiService = AIService()
     private let modelContext: ModelContext
@@ -115,12 +115,16 @@ class AIAssistantViewModel: ObservableObject {
                 }
             } else {
                 // 图片
-                if let data = try? await item.loadTransferable(type: Data.self), let image = UIImage(data: data) {
-                    await MainActor.run {
-                        self.pendingMediaData = data
-                        self.pendingMediaType = "image"
-                        self.pendingThumbnail = image
+                do {
+                    guard let data = try await item.loadTransferable(type: Data.self) else {
+                        throw MediaImagePreprocessorError.unreadableImage
                     }
+                    let normalized = try MediaImagePreprocessor.normalizedJPEG(from: data)
+                    self.pendingMediaData = normalized
+                    self.pendingMediaType = "image"
+                    self.pendingThumbnail = UIImage(data: normalized)
+                } catch {
+                    self.errorMessage = error.localizedDescription
                 }
             }
         }
@@ -139,7 +143,7 @@ class AIAssistantViewModel: ObservableObject {
               let data = try? Data(contentsOf: url) else { return }
         pendingMediaData = data
         pendingMediaType = "video"
-        pendingFormExerciseType = .benchPress
+        pendingFormExerciseType = nil
 
         Task {
             let asset = AVAsset(url: url)
@@ -255,7 +259,7 @@ class AIAssistantViewModel: ObservableObject {
         if isVideo {
             await analyzeFormVideo(
                 mediaData,
-                exerciseType: pendingFormExerciseType,
+                preferredExercise: pendingFormExerciseType,
                 userId: userId,
                 bearerToken: bearerToken
             )
@@ -291,7 +295,7 @@ class AIAssistantViewModel: ObservableObject {
 
     private func analyzeFormVideo(
         _ videoData: Data,
-        exerciseType: FormExerciseType,
+        preferredExercise: FormExerciseType?,
         userId: String?,
         bearerToken: String?
     ) async {
@@ -302,7 +306,7 @@ class AIAssistantViewModel: ObservableObject {
         do {
             let artifact = try await LocalFormAnalysisPipeline().analyze(
                 videoData: videoData,
-                exercise: exerciseType
+                preferredExercise: preferredExercise
             )
             let content = formAnalysisMessage(for: artifact)
             let response = ChatMessage(
@@ -316,8 +320,8 @@ class AIAssistantViewModel: ObservableObject {
             messages.append(response)
 
             let record = FormAnalysisRecord(
-                exerciseName: exerciseType.displayName,
-                exerciseType: exerciseType,
+                exerciseName: artifact.summary.exerciseType.displayName,
+                exerciseType: artifact.summary.exerciseType,
                 score: artifact.summary.score,
                 issuesJSON: encodeJSONString(artifact.summary.issues),
                 metricsJSON: encodeJSONString(artifact.summary.metrics),
@@ -358,14 +362,42 @@ class AIAssistantViewModel: ObservableObject {
                 "\(index + 1). \(issue.title)：\(issue.detail)"
             }.joined(separator: "\n")
         }
-        return String(
+        let detectionText: String
+        if artifact.usedAutomaticDetection {
+            detectionText = String(
+                format: NSLocalizedString("assistant_form_detection_auto_format", comment: ""),
+                artifact.summary.exerciseType.displayName,
+                Int((artifact.classification.confidence * 100).rounded())
+            )
+        } else {
+            detectionText = String(
+                format: NSLocalizedString("assistant_form_detection_manual_format", comment: ""),
+                artifact.summary.exerciseType.displayName
+            )
+        }
+        let detectionReason = NSLocalizedString(artifact.classification.reasonKey, comment: "")
+        let metrics = artifact.summary.metrics
+            .filter { $0.key != "detected_frames" || $0.value > 0 }
+            .prefix(5)
+            .map { metric in
+                let value = metric.unit == "degrees"
+                    ? String(format: "%.0f°", metric.value)
+                    : String(format: "%.2f", metric.value)
+                return "• \(metric.label)：\(value)"
+            }
+            .joined(separator: "\n")
+        let confidenceNote = artifact.classification.confidence < 0.65
+            ? "\n\n" + NSLocalizedString("assistant_form_detection_low_confidence", comment: "")
+            : ""
+        return detectionText + "\n" + detectionReason + confidenceNote + "\n\n" + String(
             format: NSLocalizedString("assistant_form_analysis_result_format", comment: ""),
             artifact.summary.exerciseType.displayName,
             artifact.summary.score,
             artifact.feedbackTimestamp,
             issueText,
-            artifact.summary.recommendation
-        )
+            artifact.summary.recommendation,
+            metrics
+        ) + "\n\n" + NSLocalizedString("assistant_form_analysis_scope_note", comment: "")
     }
 
     // MARK: - 处理动作级别修改

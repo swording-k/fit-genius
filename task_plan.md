@@ -4,9 +4,9 @@ Last updated: 2026-06-04
 
 ## Goal
 
-Deliver a user-visible product improvement: make AI Assistant the unified entry
-for local video form analysis, return an annotated key frame with score and
-coaching feedback, and simplify Stats around useful progress.
+Turn FitGenius into a reliable, coherent product: repair multimodal AI,
+strengthen video-coaching credibility and usability, and simplify both training
+and diet statistics around useful decisions.
 
 ## Scope
 
@@ -25,6 +25,10 @@ coaching feedback, and simplify Stats around useful progress.
 | 4. Unify AI Assistant flow | complete | Unified entry, local result, annotated frame, and recent-analysis follow-up context |
 | 5. Simplify Stats | complete | Removed chart pile-up; added meaningful form progress |
 | 6. Validate and hand off | complete | Tests, build, simulator smoke test, and project docs updated |
+| 7. Repair multimodal AI | complete | Normalize image data and make cloud-session failures actionable |
+| 8. Strengthen form coaching | complete | Auto-detect exercise, validate scoring, improve feedback and overlays |
+| 9. Simplify diet Stats | complete | Replace overlapping charts with useful summaries |
+| 10. Release-quality regression | in_progress | Full build, backend, simulator, docs, and physical-device checklist |
 
 ## Errors Encountered
 
@@ -33,3 +37,4 @@ coaching feedback, and simplify Stats around useful progress.
 | Missing `PoseFeedbackPlanner.swift` | 1 | Expected RED state before implementing planner |
 | Swift test script rejected top-level expressions | 1 | Added explicit `@main` test entry |
 | Apple Vision unavailable in current Simulator | 1 | Added DEBUG-only fixture fallback for visual UI verification; real device still required |
+| Missing `FormExerciseClassifier.swift` | 1 | Expected RED state before implementing auto-detection |

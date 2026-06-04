@@ -4,6 +4,7 @@ import PhotosUI
 
 struct DietAIAssistantView: View {
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject private var auth: AuthViewModel
     @StateObject private var viewModel: DietAssistantViewModel
     @FocusState private var isInputFocused: Bool
     @State private var showCamera = false
@@ -11,6 +12,7 @@ struct DietAIAssistantView: View {
     @State private var showClearAlert = false
     @AppStorage("hasAcceptedMedicalDisclaimer") private var hasAcceptedDisclaimer = false
     @State private var showDisclaimerAlert = false
+    @State private var showLoginSheet = false
 
     init(modelContext: ModelContext) {
         _viewModel = StateObject(wrappedValue: DietAssistantViewModel(modelContext: modelContext))
@@ -22,6 +24,20 @@ struct DietAIAssistantView: View {
                 DisclaimerBanner {
                     showDisclaimerAlert = true
                 }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+            }
+
+            if !auth.hasBackendSession {
+                Button {
+                    showLoginSheet = true
+                } label: {
+                    Label("cloud_reconnect_ai_banner", systemImage: "exclamationmark.icloud")
+                        .font(.subheadline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .buttonStyle(.bordered)
+                .tint(.orange)
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
             }
@@ -89,7 +105,12 @@ struct DietAIAssistantView: View {
 				inputText: $viewModel.inputText,
 				isFocused: $isInputFocused,
 				isLoading: viewModel.isLoading,
+                canSendEmpty: viewModel.pendingMediaData != nil,
 				onSend: {
+                    guard auth.hasBackendSession else {
+                        showLoginSheet = true
+                        return
+                    }
 					Task { await viewModel.sendMessage() }
 				},
 				onCameraCapture: {
@@ -125,6 +146,9 @@ struct DietAIAssistantView: View {
         .sheet(isPresented: $showDisclaimerAlert) {
             MedicalDisclaimerView(isPresented: $showDisclaimerAlert)
         }
+        .sheet(isPresented: $showLoginSheet) {
+            LoginView()
+        }
         .onChange(of: capturedImage) { _, newImage in
             if let image = newImage, let data = image.jpegData(compressionQuality: 0.8) {
                 viewModel.handleMediaSelection(data: data)
@@ -138,6 +162,17 @@ struct DietAIAssistantView: View {
             }
         } message: {
             Text("确定要清空所有聊天记录吗？此操作无法撤销。")
+        }
+        .alert(
+            "media_image_error_title",
+            isPresented: Binding(
+                get: { viewModel.errorMessage != nil },
+                set: { if !$0 { viewModel.errorMessage = nil } }
+            )
+        ) {
+            Button("form_analysis_close") { viewModel.errorMessage = nil }
+        } message: {
+            Text(viewModel.errorMessage ?? "")
         }
     }
 }

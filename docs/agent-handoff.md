@@ -1,6 +1,6 @@
 # FitGenius Agent Handoff
 
-Last updated: 2026-06-04 12:22 Asia/Shanghai
+Last updated: 2026-06-04 15:40 Asia/Shanghai
 
 ## Read First
 
@@ -17,6 +17,22 @@ release.
 
 Completed in the current local milestone:
 
+- Fitness and Diet AI images are normalized to bounded JPEG data before upload;
+  attached images can be sent without typed text.
+- Diet AI now distinguishes an expired cloud session and presents the Apple
+  reconnect action instead of a generic failure.
+- Video exercise selection defaults to local automatic detection among squat,
+  deadlift, and bench press, while retaining a manual override.
+- New deterministic quality tests prove good fixtures score above risky
+  fixtures for all three supported lifts.
+- Deadlift back-position and bench elbow-angle rules were corrected after the
+  new tests exposed that their previous good/risky fixtures scored identically.
+- Annotated feedback now includes the exercise, score, key-frame time, and
+  concise stable/attention result directly on the image.
+- AI Assistant video feedback now explains auto-detection confidence, key
+  metrics, why an all-green result can occur, and the analysis scope.
+- Diet Stats no longer overlaps several area/line series. It now shows today's
+  nutrition, macro distribution, one calorie trend, and recent records.
 - AI Assistant is now the single user entry for training-video form analysis.
 - Selecting a video exposes squat/deadlift/bench choice and allows sending
   without a cloud session because pose analysis is local.
@@ -79,6 +95,22 @@ new reconnect prompt once to receive a new FitGenius cloud session.
 
 ## Latest Validation
 
+- XcodeBuildMCP simulator smoke test:
+  - automatic selection classified the supplied launch video as bench press at
+    95% confidence;
+  - the result returned 76 points for the deterministic risky fixture, a
+    specific elbow-angle issue, key metrics, and a red highlighted region;
+  - Diet Stats rendered the simplified layout without overlapping charts;
+  - Diet AI displayed the Apple reconnect banner for the expired session.
+- Deterministic score evidence:
+  - squat good 96 vs risky 46;
+  - deadlift good 96 vs risky 66;
+  - bench press good 96 vs risky 76.
+- Generic iOS Simulator build: succeeded after the latest UI changes.
+- `scripts/run-form-analysis-tests.sh`: all scripts passing.
+- `npm run test:backend`: 15/15 passing, including multimodal forwarding.
+- Real provider image acceptance and real-device Vision remain physical-iPhone
+  acceptance steps.
 - XcodeBuildMCP end-to-end simulator smoke test:
   - AI Assistant loaded the supplied bench video;
   - exercise selector defaulted to bench press;
@@ -123,12 +155,14 @@ cannot be fully accepted in Simulator.
 
 ## Next Recommended Work
 
-1. Run physical-device acceptance of real Vision joints and annotated feedback.
-2. Tune representative-frame selection and red issue highlighting with real
-   squat/deadlift/bench videos.
-3. Add conversation/session organization so AI history is manageable long term.
-4. Complete a full bilingual UX audit of Training, Diet, AI, Stats, and Profile.
-5. Create a TestFlight release candidate after physical-device acceptance.
+1. Run physical-device acceptance for normalized fitness/diet images and real
+   Vision joints using several camera angles.
+2. Tune thresholds using a labeled real-video set before claiming broader
+   exercise support.
+3. Add one new exercise at a time only after defining metrics, risky fixtures,
+   and real-device acceptance videos.
+4. Complete the remaining bilingual UX audit and prepare a TestFlight release
+   candidate.
 
 ## Risks
 

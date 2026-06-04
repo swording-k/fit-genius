@@ -42,6 +42,23 @@ try {
   assert.equal(sentBody.messages[0].role, "user");
   assert.equal(sentBody.stream, false);
 
+  // Multimodal message content must be forwarded without flattening or
+  // rewriting the image payload.
+  const multimodalMessages = [{
+    role: "user",
+    content: [
+      { type: "text", text: "describe" },
+      { type: "image_url", image_url: { url: "data:image/jpeg;base64,/9j/" } }
+    ]
+  }];
+  const multimodal = await invoke(handler, {
+    method: "POST",
+    headers: { authorization: `Bearer ${token}` },
+    body: { messages: multimodalMessages, model: "qwen-test" }
+  });
+  assert.equal(multimodal.statusCode, 200);
+  assert.deepEqual(JSON.parse(captured.init.body).messages, multimodalMessages);
+
   // Missing auth.
   const noAuth = await invoke(handler, { method: "POST", body: { messages: [] } });
   assert.equal(noAuth.statusCode, 401);

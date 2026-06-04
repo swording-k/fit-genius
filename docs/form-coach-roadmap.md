@@ -23,7 +23,8 @@ understanding what is wrong in a lifting video and what to change next time.
 
 The AI Assistant becomes the unified coaching surface:
 
-1. User selects a training video and exercise type in AI Assistant.
+1. User selects a training video in AI Assistant; FitGenius auto-detects the
+   supported exercise and allows a manual override.
 2. Apple Vision extracts pose joints locally.
 3. FitGenius rules produce the score and issues.
 4. FitGenius returns an annotated representative frame plus concise coaching.
@@ -77,6 +78,12 @@ Supported exercises:
 - Squat
 - Deadlift
 - Bench press
+
+The first release intentionally keeps three supported exercises. More movements
+must be added one at a time with an explicit rule set, good/risky fixtures, and
+real-video acceptance evidence. A multimodal model may help describe a video,
+but it must not silently invent the deterministic exercise type, score, or
+issue list.
 
 User flow:
 

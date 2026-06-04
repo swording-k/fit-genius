@@ -20,6 +20,9 @@ class DietStatsViewModel: ObservableObject {
     @Published var todayFat: Double = 0
     @Published var todayNotes: String = ""
 
+    var todayMacroTotal: Double { todayProtein + todayCarbs + todayFat }
+    var recentPoints: [DailyNutritionPoint] { Array(points.suffix(5).reversed()) }
+
     private let modelContext: ModelContext
 
     init(modelContext: ModelContext) {
