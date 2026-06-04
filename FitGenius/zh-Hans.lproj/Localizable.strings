@@ -71,10 +71,8 @@
 "select_from_album" = "从相册选择图片";
 "remove_custom_background" = "移除自定义背景";
 "preview" = "预览效果";
-"ai_service" = "AI 服务";
 "hide" = "隐藏";
 "show" = "显示";
-"save_api_key" = "保存 API Key";
 "clear" = "清除";
 "backend" = "后端配置";
 "backend_debug_only" = "后端调试（仅开发者）";

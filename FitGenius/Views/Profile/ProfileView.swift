@@ -8,13 +8,13 @@ struct ProfileView: View {
     @Query private var profiles: [UserProfile]
     @State private var showLoginSheet = false
     @AppStorage("notificationsEnabled") private var notificationsEnabled = false
-    @State private var apiKeyText: String = ""
-    @State private var showAPIKey: Bool = false
     @State private var showProfileEditor = false
     @State private var showSourcesInfo = false
+    #if DEBUG
     @State private var backendURLText: String = ""
     @State private var sessionTokenText: String = ""
     @State private var sessionUserIdText: String = ""
+    #endif
 
     var currentProfile: UserProfile? {
         profiles.first
@@ -123,31 +123,6 @@ struct ProfileView: View {
                     WidgetBackgroundSettingsView()
                 }
 
-                Section(header: Text("ai_service")) {
-                    HStack {
-                        if showAPIKey {
-                            TextField("ALIYUN_API_KEY", text: $apiKeyText)
-                                .textInputAutocapitalization(.never)
-                                .disableAutocorrection(true)
-                        } else {
-                            SecureField("ALIYUN_API_KEY", text: $apiKeyText)
-                        }
-                        Button(showAPIKey ? "hide" : "show") { showAPIKey.toggle() }
-                    }
-                    HStack {
-                        Button("save_api_key") {
-                            _ = Keychain.save(apiKeyText, for: "aliyun_api_key")
-                        }
-                        .disabled(apiKeyText.isEmpty)
-                        Spacer()
-                        Button("clear") {
-                            Keychain.delete("aliyun_api_key")
-                            apiKeyText = ""
-                        }
-                        .foregroundColor(.red)
-                    }
-                }
-
                 #if DEBUG
                 Section(header: Text("backend_debug_only")) {
                     // ⚠️ This section is only compiled into DEBUG builds. End users
@@ -237,14 +212,16 @@ struct ProfileView: View {
                 SourcesInfoView()
             }
             .onAppear {
-                apiKeyText = Keychain.read("aliyun_api_key") ?? ""
+                #if DEBUG
                 backendURLText = UserDefaults.standard.string(forKey: SyncSettings.backendBaseURLKey) ?? ""
                 sessionTokenText = UserDefaults.standard.string(forKey: SyncSettings.sessionTokenKey) ?? ""
                 sessionUserIdText = UserDefaults.standard.string(forKey: SyncSettings.sessionUserIdKey) ?? ""
+                #endif
             }
         }
     }
 
+    #if DEBUG
     private func saveBackendConfig() {
         let trimmed = backendURLText.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty {
@@ -253,6 +230,7 @@ struct ProfileView: View {
             UserDefaults.standard.set(trimmed, forKey: SyncSettings.backendBaseURLKey)
         }
     }
+    #endif
 
     private var maskedUserId: String {
         guard let id = auth.currentUserId else { return "not_logged_in".localized }

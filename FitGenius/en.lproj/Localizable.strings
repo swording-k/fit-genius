@@ -71,10 +71,8 @@
 "select_from_album" = "Select from Album";
 "remove_custom_background" = "Remove Custom Background";
 "preview" = "Preview";
-"ai_service" = "AI Service";
 "hide" = "Hide";
 "show" = "Show";
-"save_api_key" = "Save API Key";
 "clear" = "Clear";
 "backend" = "Backend";
 "backend_debug_only" = "Backend (Developer Only)";
