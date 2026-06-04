@@ -1,6 +1,6 @@
 # FitGenius Agent Handoff
 
-Last updated: 2026-06-03 18:25 Asia/Shanghai
+Last updated: 2026-06-04 10:55 Asia/Shanghai
 
 ## Read First
 
@@ -20,9 +20,9 @@ This document exists so another agent can continue safely if the current convers
 - Preserve Chinese-first product quality while supporting English users through system language switching.
 - Record progress in repo docs so future agents do not rely on chat history.
 
-## Current Status (verified 2026-06-03)
+## Current Status (verified 2026-06-04)
 
-The repository is committed in 7 clean milestone commits on top of the v1.1.0-stable baseline. All planned commits landed:
+The repository is committed in 9 clean milestone commits on top of the v1.1.0-stable baseline. All planned commits landed:
 
 | SHA | Subject | Status |
 |---|---|---|
@@ -33,14 +33,24 @@ The repository is committed in 7 clean milestone commits on top of the v1.1.0-st
 | `d84aa21` | feat(backend): Vercel + Neon + Apple auth + AI proxy | done |
 | `2288c39` | feat(ios): add AppleAuthAPIClient | done |
 | `60c6eaf` | feat(ios): wire Apple token exchange + AI proxy + sync trigger | done |
+| `644aedd` | feat(profile): add Backend section for backendBaseURL + session override | done |
+| `8427687` | fix(ios): hardcode prod backend URL in Info.plist; hide dev override | done |
+| `4709ceb` | fix(backend): use @neondatabase/serverless Pool (not neon() tag fn) | done |
+| `7b5947f` | chore(ios): remove dead direct-to-Aliyun fallback + obsolete AI service UI | done |
 
-Validation (re-run 2026-06-03 18:25):
+Deployment (verified 2026-06-03):
+
+- Vercel: `https://fitgenius-ashen.vercel.app` is live, all 5 env vars set, redeployed
+- Neon: schema applied (`users` + `form_analysis_records` + 2 indexes)
+- `/api/health` returns 200; `/api/auth/apple` and `/api/ai/chat` validate correctly with empty bodies (400/401)
+
+Validation (re-run 2026-06-04 10:50):
 
 - `xcodebuild ... build` → `** BUILD SUCCEEDED **`
-- `scripts/run-form-analysis-tests.sh` → 5/5 pass (`AppleAuthAPIClientTests` + 4 form analysis suites)
-- `npm run test:backend` → 8/8 pass
+- `scripts/run-form-analysis-tests.sh` → 5/5 pass
+- `npm run test:backend` → 15/15 pass (added `neonClient.test.mjs` in `4709ceb`)
 - Working tree clean
-- `git push origin main` via HTTPS → `1ef73fa..60c6eaf`
+- Pushed to `origin/main` via HTTPS
 
 ## What Actually Works Without Further Work
 
