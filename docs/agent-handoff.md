@@ -11,8 +11,8 @@ Last updated: 2026-06-04 12:22 Asia/Shanghai
 
 ## Current Status
 
-The backend stabilization milestone remains deployed. A new user-visible iOS
-milestone is implemented locally and awaiting physical-iPhone acceptance before
+The backend stabilization milestone remains deployed. The new user-visible iOS
+milestone is committed on `main` and awaiting physical-iPhone acceptance before
 release.
 
 Completed in the current local milestone:
