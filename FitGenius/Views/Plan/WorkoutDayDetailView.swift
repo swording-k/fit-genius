@@ -69,11 +69,23 @@ struct ExerciseRowView: View {
             HStack(spacing: 12) {
                 // 完成状态 Checkbox
                 Button(action: {
+                    let day = exercise.workoutDay
+                    let wasDayComplete = day?.isComplete ?? false
                     exercise.toggleCompletion(context: modelContext)
+                    try? modelContext.save()
                     // 刷新Widget数据
                     WidgetDataManager.updateWorkoutData(modelContext: modelContext)
                     // 发送通知
                     NotificationCenter.default.post(name: .workoutCompleted, object: nil)
+                    if let day,
+                       WorkoutCompletionPolicy.shouldSaveHealthWorkout(
+                        wasDayComplete: wasDayComplete,
+                        isDayComplete: day.isComplete
+                       ) {
+                        Task {
+                            try? await HealthKitWorkoutService.shared.saveCompletedStrengthWorkout(day: day)
+                        }
+                    }
                 }) {
                     Image(systemName: exercise.isCompleted ? "checkmark.circle.fill" : "circle")
                         .font(.title2)

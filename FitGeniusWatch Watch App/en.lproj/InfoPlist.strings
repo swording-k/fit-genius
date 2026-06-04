@@ -1,2 +1,2 @@
-"NSHealthShareUsageDescription" = "FitGenius uses heart rate during your strength workout.";
-"NSHealthUpdateUsageDescription" = "FitGenius saves completed strength workouts to Health.";
+"NSHealthShareUsageDescription" = "FitGenius reads heart rate during your strength workout.";
+"NSHealthUpdateUsageDescription" = "FitGenius saves completed strength workouts to Apple Health.";

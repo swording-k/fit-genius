@@ -31,7 +31,7 @@ struct ProfileEditorSheet: View {
                         }
                         
                         PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                            Label("选择头像", systemImage: "photo")
+                            Label("select_avatar", systemImage: "photo")
                                 .font(.headline)
                         }
                         .onChange(of: selectedPhotoItem) { _, newItem in
@@ -53,7 +53,7 @@ struct ProfileEditorSheet: View {
                                 profile.avatarData = nil
                                 try? modelContext.save()
                             } label: {
-                                Label("移除头像", systemImage: "trash")
+                                Label("remove_avatar", systemImage: "trash")
                                     .font(.caption)
                             }
                         }
@@ -62,55 +62,55 @@ struct ProfileEditorSheet: View {
                     .padding(.vertical, 8)
                 }
                 
-                Section(header: Text("个人信息")) {
+                Section(header: Text("personal_information")) {
                     HStack {
-                        Text("真实姓名")
+                        Text("real_name")
                             .foregroundColor(.secondary)
                         Spacer()
                         Text(profile.name)
                     }
                     
                     HStack {
-                        Text("昵称")
+                        Text("nickname")
                         Spacer()
-                        TextField("输入昵称", text: $nicknameText)
+                        TextField("enter_nickname", text: $nicknameText)
                             .multilineTextAlignment(.trailing)
                             .submitLabel(.done)
                     }
                 }
                 
-                Section(header: Text("身体数据")) {
+                Section(header: Text("body_data")) {
                     HStack {
-                        Text("年龄")
+                        Text("age")
                         Spacer()
-                        Text("\(profile.age)岁")
+                        Text("profile_age_format".localized(with: profile.age))
                             .foregroundColor(.secondary)
                     }
                     
                     HStack {
-                        Text("身高")
+                        Text("height")
                         Spacer()
                         Text("\(String(format: "%.0f", profile.height))cm")
                             .foregroundColor(.secondary)
                     }
                     
                     HStack {
-                        Text("体重")
+                        Text("weight")
                         Spacer()
                         Text("\(String(format: "%.1f", profile.weight))kg")
                             .foregroundColor(.secondary)
                     }
                 }
                 
-                Section(footer: Text("如需修改身体数据，请在设置中清空数据并重新设置")) {
+                Section(footer: Text("profile_body_data_edit_hint")) {
                     EmptyView()
                 }
             }
-            .navigationTitle("编辑个人资料")
+            .navigationTitle("edit_profile")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") {
+                    Button("cancel") {
                         // 恢复原值
                         nicknameText = profile.nickname ?? ""
                         dismiss()
@@ -118,7 +118,7 @@ struct ProfileEditorSheet: View {
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("保存") {
+                    Button("save") {
                         profile.nickname = nicknameText.isEmpty ? nil : nicknameText
                         try? modelContext.save()
                         dismiss()

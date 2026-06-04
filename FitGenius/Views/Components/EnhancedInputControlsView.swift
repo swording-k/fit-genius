@@ -8,14 +8,14 @@ struct InputControlsConfiguration {
     var showMicrophone: Bool = true
     var showPhotoLibrary: Bool = false
     var photoLibraryFilter: PHPickerFilter = .images
-    var placeholder: String = "输入消息..."
+    var placeholder: String = "assistant_input_placeholder".localized
     
     static let dietAssistant = InputControlsConfiguration(
         showCamera: true,
         showMicrophone: true,
         showPhotoLibrary: true,
         photoLibraryFilter: .images,
-        placeholder: "询问饮食建议或拍照识别食物..."
+        placeholder: "diet_assistant_input_placeholder".localized
     )
     
     static let fitnessAssistant = InputControlsConfiguration(
@@ -23,7 +23,7 @@ struct InputControlsConfiguration {
         showMicrophone: true,
         showPhotoLibrary: true,
         photoLibraryFilter: .any(of: [.images, .videos]),
-        placeholder: "上传身材照或训练视频并询问健身建议..."
+        placeholder: "fitness_assistant_input_placeholder".localized
     )
 }
 

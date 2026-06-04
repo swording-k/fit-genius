@@ -11,7 +11,7 @@ class AIAssistantViewModel: ObservableObject {
     @Published var messages: [ChatMessage] = []
     @Published var inputText: String = ""
     @Published var isLoading: Bool = false
-    @Published var loadingText: String = "AI 正在思考..."
+    @Published var loadingText: String = "assistant_thinking".localized
     @Published var errorMessage: String?
     @Published var showPlanRegenerationAlert: Bool = false
     @Published var showClearHistoryAlert: Bool = false
@@ -38,7 +38,7 @@ class AIAssistantViewModel: ObservableObject {
             messages = stored
         } else {
             let welcomeMessage = ChatMessage(
-                content: "你好！我是你的 AI 健身助手。你可以向我咨询健身建议，或者让我帮你调整训练计划。例如：\n\n• \"我膝盖疼，能把深蹲换掉吗？\"\n• \"增加一个练背的动作\"\n• \"第三天太累了，删掉一个动作\"",
+                content: "fitness_assistant_welcome".localized,
                 isUser: false,
                 topic: "fitness"
             )
@@ -59,7 +59,7 @@ class AIAssistantViewModel: ObservableObject {
             
             // 重新添加欢迎语
             let welcomeMessage = ChatMessage(
-                content: "你好！我是你的 AI 健身助手。你可以向我咨询健身建议，或者让我帮你调整训练计划。",
+                content: "fitness_assistant_welcome_short".localized,
                 isUser: false,
                 topic: "fitness"
             )
@@ -235,7 +235,7 @@ class AIAssistantViewModel: ObservableObject {
 		let trimmed = userText.trimmingCharacters(in: .whitespacesAndNewlines)
 		let contentText: String
 		if trimmed.isEmpty {
-			contentText = isVideo ? "分析训练视频动作" : "分析身材照片"
+			contentText = isVideo ? "assistant_analyze_training_video".localized : "assistant_analyze_physique_photo".localized
 		} else {
 			contentText = trimmed
 		}
@@ -282,10 +282,10 @@ class AIAssistantViewModel: ObservableObject {
 			modelContext.insert(aiMessage)
 			messages.append(aiMessage)
             isLoading = false
-            loadingText = "AI 正在思考..."
+            loadingText = "assistant_thinking".localized
 		} catch {
 			isLoading = false
-            loadingText = "AI 正在思考..."
+            loadingText = "assistant_thinking".localized
 			errorMessage = error.localizedDescription
 			let errMsg = ChatMessage(content: "抱歉，分析失败：\(error.localizedDescription)", isUser: false)
 			modelContext.insert(errMsg)

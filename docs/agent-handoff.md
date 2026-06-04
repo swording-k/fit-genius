@@ -18,12 +18,21 @@ Widget; it is validated and awaiting commit.
 
 Latest milestone:
 
-- Added an explicit Today Plan Apple Watch launcher. It immediately refreshes
-  today's application context, queues a prepare command when the Watch is
-  offline, and gives visible sent feedback instead of silently syncing.
-- Added an Apple Watch discovery/install card under Profile. The section is
-  hidden for users without a paired Watch and explains the iPhone Watch App
-  installation path when the companion is not installed.
+- Added an Apple Watch discovery/install/send card under Profile. The section
+  is hidden for users without a paired Watch, explains the iPhone Watch App
+  installation path when needed, and sends today's workout when installed.
+- Removed the Watch card from Today Plan so the core training screen stays
+  focused for users who do not use the companion.
+- Added an opt-in Apple Health workout sync setting. Completing a full workout
+  day on iPhone saves strength-workout type and estimated duration without
+  inventing calories; Watch sessions remain the richer heart-rate path.
+- Fixed unchecking an exercise so it removes today's corresponding log instead
+  of leaving duplicates in Stats when the exercise is checked again.
+- Diet AI now distinguishes a missing/expired session from provider failures:
+  it asks the user to reconnect instead of falsely claiming a local AI result.
+- Completed another bilingual pass across weekdays, AI response language,
+  speech recognition, fallback plans, Profile data/editor, assistant controls,
+  Diet labels, permission copy, and Widget workout metadata.
 - The Watch companion now acknowledges workouts prepared from iPhone.
 - Rebuilt the Widget around today's workout progress and next exercise.
   Small/medium/large layouts use system surfaces, support bilingual copy,
@@ -151,6 +160,18 @@ new reconnect prompt once to receive a new FitGenius cloud session.
 
 ## Latest Validation
 
+- Latest generic iOS Simulator build succeeded with iPhone, Widget, and Watch
+  embedded after the HealthKit and system-language changes.
+- English simulator verified `Thu` instead of the previously hard-coded Chinese
+  weekday, no Watch promotion on Today Plan, and no Watch Profile section when
+  a Watch is not paired.
+- English simulator verified localized Profile measurements, AI Assistant input
+  placeholder, and Clear/Suggestion/Edit menu actions. Existing stored Chinese
+  chat messages are intentionally preserved as user history.
+- Simulator verified Diet AI missing-session behavior leaves the meal record
+  unchanged and offers Apple reconnect.
+- Simulator verified uncheck/recheck keeps Stats exercise count stable instead
+  of creating a duplicate log.
 - Generic iOS Simulator build succeeded with the iPhone, Widget, and Watch
   targets embedded and validated.
 - XcodeBuildMCP build/run succeeded with zero diagnostics. Simulator screenshot
@@ -239,6 +260,9 @@ new reconnect prompt once to receive a new FitGenius cloud session.
 
 On a physical iPhone build:
 
+0. Accept the latest Apple Developer Program License Agreement, then enable
+   HealthKit for the iPhone and Watch App IDs/provisioning profiles if Xcode
+   still reports that the capability is missing.
 1. Open **My**.
 2. Tap the Apple reconnect prompt or log in with Apple.
 3. Open AI Assistant, choose a 10-30 second squat/deadlift/bench/standing

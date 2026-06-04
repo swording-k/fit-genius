@@ -10,6 +10,7 @@ struct DietHomeView: View {
     @State private var showCamera = false
     @State private var capturedImage: UIImage?
     @State private var showSourcesInfo = false
+    @State private var showLoginSheet = false
 
     init(modelContext: ModelContext) {
         _viewModel = StateObject(wrappedValue: DietViewModel(modelContext: modelContext))
@@ -32,9 +33,11 @@ struct DietHomeView: View {
                                 .font(.headline)
                             HStack(spacing: 12) {
                                 Text(String(format: "%.0f kcal", s.totalCalories))
-                                Text(String(format: "protein %.0f g", s.protein))
-                                Text(String(format: "carbs %.0f g", s.carbs))
-                                Text(String(format: "fat %.0f g", s.fat))
+                            }
+                            HStack(spacing: 12) {
+                                Text("protein_grams_format".localized(with: s.protein))
+                                Text("carbs_grams_format".localized(with: s.carbs))
+                                Text("fat_grams_format".localized(with: s.fat))
                             }
                             if !s.notes.isEmpty {
                                 Text(s.notes).foregroundColor(.secondary)
@@ -44,7 +47,7 @@ struct DietHomeView: View {
                     ForEach(day.entries ?? []) { entry in
                         VStack(alignment: .leading, spacing: 6) {
                             HStack {
-                                Text(entry.mealType.rawValue)
+                                Text(entry.mealType.localizedName)
                                 Spacer()
                                 Text(String(format: "%.0f kcal", entry.calories))
                             }
@@ -129,7 +132,7 @@ struct DietHomeView: View {
                         .background(viewModel.isSubmitting ? Color.gray : Color.blue)
                         .cornerRadius(12)
                     }
-                    .disabled(viewModel.isSubmitting)
+                    .disabled(viewModel.isSubmitting || (viewModel.day?.entries ?? []).isEmpty)
                 }
             }
             .padding(.horizontal, 16)
@@ -144,7 +147,7 @@ struct DietHomeView: View {
                 Form {
                     Picker("meal_type", selection: $viewModel.selectedMealType) {
                         ForEach(MealType.allCases, id: \.self) { type in
-                            Text(type.rawValue).tag(type)
+                            Text(type.localizedName).tag(type)
                         }
                     }
                     TextField("description_optional", text: $viewModel.inputText, axis: .vertical)
@@ -214,7 +217,9 @@ struct DietHomeView: View {
                         var datas: [Data] = []
                         for item in items {
                             if let data = try? await item.loadTransferable(type: Data.self) {
-                                datas.append(data)
+                                if let normalized = try? MediaImagePreprocessor.normalizedJPEG(from: data) {
+                                    datas.append(normalized)
+                                }
                             }
                         }
                         viewModel.selectedImagesData = datas
@@ -224,8 +229,10 @@ struct DietHomeView: View {
                     CameraPicker(selectedImage: $capturedImage)
                 }
                 .onChange(of: capturedImage) { _, newImage in
-                    if let image = newImage, let data = image.jpegData(compressionQuality: 0.8) {
-                        viewModel.selectedImagesData.append(data)
+                    if let image = newImage,
+                       let data = image.jpegData(compressionQuality: 0.8),
+                       let normalized = try? MediaImagePreprocessor.normalizedJPEG(from: data) {
+                        viewModel.selectedImagesData.append(normalized)
                         capturedImage = nil
                     }
                 }
@@ -260,12 +267,20 @@ struct DietHomeView: View {
             }
         }
         .alert("submit_result", isPresented: $viewModel.showSubmitAlert) {
-            Button("ok") {}
+            if viewModel.requiresBackendReconnect {
+                Button("cloud_reconnect_action") {
+                    showLoginSheet = true
+                }
+            }
+            Button("ok", role: .cancel) {}
         } message: {
             Text(viewModel.submitAlertMessage)
         }
         .sheet(isPresented: $showSourcesInfo) {
             SourcesInfoView()
+        }
+        .sheet(isPresented: $showLoginSheet) {
+            LoginView()
         }
     }
 }

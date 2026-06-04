@@ -79,12 +79,6 @@ struct PlanDashboardView: View {
                     .padding()
                     .background(Color.blue.opacity(0.1))
 
-                    if selectedDayIndex == todayDayIndex {
-                        WatchCompanionCard(placement: .todayPlan)
-                            .padding(.horizontal)
-                            .padding(.bottom, 8)
-                    }
-                    
                     // 天数选择器
                     TrainingDaySelector(
                         sortedDays: sortedDays,
@@ -244,7 +238,7 @@ struct DayTabButton: View {
     var weekdayString: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEE"
-        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.locale = .current
         return formatter.string(from: dayDate)
     }
     

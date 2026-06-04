@@ -14,7 +14,7 @@ struct TrainingDaySelector: View {
         VStack(spacing: 0) {
             // 头部：标题 + 编辑按钮
             HStack {
-                Text("训练日程")
+                Text("training_schedule")
                     .font(.caption)
                     .foregroundColor(.secondary)
                 Spacer()
@@ -41,7 +41,7 @@ struct TrainingDaySelector: View {
                 editMode = editMode == .active ? .inactive : .active
             }
         }) {
-            Text(editMode == .active ? "完成" : "编辑顺序")
+            Text(LocalizedStringKey(editMode == .active ? "done" : "edit_order"))
                 .font(.caption)
                 .foregroundColor(.blue)
         }
@@ -92,9 +92,9 @@ struct TrainingDaySelector: View {
                 .foregroundColor(.gray)
             
             VStack(alignment: .leading, spacing: 2) {
-                Text("第 \(day.dayNumber) 天")
+                Text("day_number".localized(with: day.dayNumber))
                     .font(.headline)
-                Text(day.isRestDay ? "休息日" : day.focus.localizedName)
+                Text(day.isRestDay ? "rest_day".localized : day.focus.localizedName)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }

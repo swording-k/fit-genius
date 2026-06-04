@@ -127,6 +127,7 @@ class AIService {
     // 只在 Vercel env 中存在,app bundle 不再持有任何 fallback key。
     private let model = "qwen3-omni-flash"
     private let settings: SyncSettings = .live
+    private let languagePolicy = AppLanguagePolicy.current
 
     /// 解析请求目标 URL。**只**走后端代理;未配置 backendBaseURL 时返回
     /// nil 让调用方抛 `backendNotConfigured`。
@@ -246,7 +247,7 @@ class AIService {
            - isRestDay: 是否休息日（true/false）
            - exercises: 动作数组（休息日为空数组）
         4. 每个 exercise 包含：name, sets, reps, weight, notes
-        5. 所有内容使用中文
+        5. \(languagePolicy.planContentInstruction)
         
         示例 JSON（4天循环）：
         {
@@ -361,7 +362,7 @@ class AIService {
         4. 每个 day 必须包含：dayNumber, focus, isRestDay, exercises
         5. 休息日必须设置：isRestDay: true, exercises: []
         6. 训练日必须设置：isRestDay: false
-        7. 所有字符串使用中文
+        7. \(languagePolicy.planContentInstruction)
         
         **完整示例（4天循环：胸背肩腿）**：
         {
@@ -525,6 +526,7 @@ class AIService {
         - reason: 修改原因
         
         重要：如果返回 JSON，不要包含任何 Markdown 标记（如 ```json），只返回纯 JSON。
+        \(languagePolicy.responseLanguageInstruction)
         """
         
 		let requestBody = ChatCompletionRequest(
@@ -692,33 +694,33 @@ class AIService {
     }
 
     private func fallbackPlan(for profile: UserProfile) -> WorkoutPlan {
-        let plan = WorkoutPlan(name: "基础训练计划")
+        let plan = WorkoutPlan(name: "fallback_plan_name".localized)
         plan.userProfile = profile
         
         // Day 1: 胸部
         let day1 = WorkoutDay(dayNumber: 1, focus: .chest, isRestDay: false)
         day1.plan = plan
-        let ex1_1 = Exercise(name: "俯卧撑", sets: 4, reps: "12-15", weight: 0, notes: "保持核心稳定")
+        let ex1_1 = Exercise(name: "fallback_push_up".localized, sets: 4, reps: "12-15", weight: 0, notes: "fallback_keep_core_stable".localized)
         ex1_1.workoutDay = day1
-        let ex1_2 = Exercise(name: "哑铃卧推", sets: 3, reps: "8-12", weight: 15, notes: "肩胛收紧")
+        let ex1_2 = Exercise(name: "fallback_dumbbell_bench_press".localized, sets: 3, reps: "8-12", weight: 15, notes: "fallback_retract_shoulders".localized)
         ex1_2.workoutDay = day1
         day1.exercises = [ex1_1, ex1_2]
         
         // Day 2: 背部
         let day2 = WorkoutDay(dayNumber: 2, focus: .back, isRestDay: false)
         day2.plan = plan
-        let ex2_1 = Exercise(name: "引体向上/高位下拉", sets: 4, reps: "8-12", weight: 0)
+        let ex2_1 = Exercise(name: "fallback_pull_up_lat_pulldown".localized, sets: 4, reps: "8-12", weight: 0)
         ex2_1.workoutDay = day2
-        let ex2_2 = Exercise(name: "坐姿划船", sets: 3, reps: "10-12", weight: 35)
+        let ex2_2 = Exercise(name: "fallback_seated_row".localized, sets: 3, reps: "10-12", weight: 35)
         ex2_2.workoutDay = day2
         day2.exercises = [ex2_1, ex2_2]
         
         // Day 3: 腿部
         let day3 = WorkoutDay(dayNumber: 3, focus: .legs, isRestDay: false)
         day3.plan = plan
-        let ex3_1 = Exercise(name: "深蹲/腿举", sets: 4, reps: "8-12", weight: 40)
+        let ex3_1 = Exercise(name: "fallback_squat_leg_press".localized, sets: 4, reps: "8-12", weight: 40)
         ex3_1.workoutDay = day3
-        let ex3_2 = Exercise(name: "弓步蹲", sets: 3, reps: "12-15", weight: 0)
+        let ex3_2 = Exercise(name: "fallback_lunge".localized, sets: 3, reps: "12-15", weight: 0)
         ex3_2.workoutDay = day3
         day3.exercises = [ex3_1, ex3_2]
         
@@ -731,7 +733,7 @@ class AIService {
     }
 
 	func dietChat(userMessage: String) async throws -> String {
-		let systemMessage = "你是一个专业的营养与饮食顾问。为用户提供饮食建议、营养科普，并可帮助规范化他们的饮食记录。回答使用中文，简洁可读。"
+		let systemMessage = "你是一个专业的营养与饮食顾问。为用户提供饮食建议、营养科普，并可帮助规范化他们的饮食记录。回复应简洁可读。\(languagePolicy.responseLanguageInstruction)"
 		let requestBody = ChatCompletionRequest(
 			model: model,
 			messages: [
@@ -748,7 +750,7 @@ class AIService {
 		var userContents: [VisionChatCompletionRequest.Content] = []
 		let intro = VisionChatCompletionRequest.Content(
 			type: "text",
-			text: "你是一个专业的营养与饮食顾问。用户会发送食物照片和文字问题，请结合图片和文字给出摄入热量和营养素的估算，以及简洁的饮食建议，回答使用中文。",
+			text: "你是一个专业的营养与饮食顾问。用户会发送食物照片和文字问题，请结合图片和文字给出摄入热量和营养素的估算，以及简洁的饮食建议。\(languagePolicy.responseLanguageInstruction)",
 			image_url: nil,
 			video_url: nil
 		)
@@ -813,7 +815,7 @@ class AIService {
         4) 每个 entries[i] 必须包含字段：name, portion, unit, calories, protein, carbs, fat, notes, mealType
         5) summary 字段必须包含：totalCalories, protein, carbs, fat, notes
         6) 若用户描述中为“一碗/一盘/一勺”等量词，请合理估算并换算为克(g)
-        7) 所有返回内容使用中文。
+        7) \(languagePolicy.responseLanguageInstruction)
         """
 		var description = "当天饮食记录（共" + String(entries.count) + "条）：\n"
 		for (index, e) in entries.enumerated() {
@@ -847,7 +849,7 @@ class AIService {
         4) 每个 entries[i] 必须包含字段：name, portion, unit, calories, protein, carbs, fat, notes, mealType
         5) summary 字段必须包含：totalCalories, protein, carbs, fat, notes
         6) 若用户描述中为“一碗/一盘/一勺”等量词，请合理估算并换算为克(g)
-        7) 所有返回内容使用中文
+        7) \(languagePolicy.responseLanguageInstruction)
         8) 对于无法从文字获得的信息，可以参考图片估算食物种类和份量
         """, image_url: nil, video_url: nil)
         userContents.append(textContent)
@@ -884,7 +886,7 @@ class AIService {
 
 	func analyzeFitnessMedia(userMessage: String, profile: UserProfile, plan: WorkoutPlan?, images: [Data], videos: [Data]) async throws -> String {
 		var systemContents: [VisionChatCompletionRequest.Content] = []
-        let systemText = "你是一个专业的私人教练与动作分析专家。用户会上传身材照片或训练视频，并提出与体型或动作相关的问题。请结合视觉信息和文字，给出客观分析和具体可执行的改进建议，回答使用中文。"
+        let systemText = "你是一个专业的私人教练与动作分析专家。用户会上传身材照片或训练视频，并提出与体型或动作相关的问题。请结合视觉信息和文字，给出客观分析和具体可执行的改进建议。\(languagePolicy.responseLanguageInstruction)"
         let systemContent = VisionChatCompletionRequest.Content(type: "text", text: systemText, image_url: nil, video_url: nil)
         systemContents.append(systemContent)
         var userContents: [VisionChatCompletionRequest.Content] = []

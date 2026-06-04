@@ -69,7 +69,7 @@ struct ProgressIndicator: View {
                         )
                     
                     // 标签
-                    Text(steps[index])
+                    Text(LocalizedStringKey(steps[index]))
                         .font(.caption2)
                         .foregroundColor(index <= currentStep.rawValue ? .primary : .secondary)
                 }

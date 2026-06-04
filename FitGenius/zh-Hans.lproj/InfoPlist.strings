@@ -1,0 +1,4 @@
+"NSCameraUsageDescription" = "FitGenius 需要使用相机拍摄餐食照片和训练视频。";
+"NSPhotoLibraryUsageDescription" = "FitGenius 需要访问相册以选择餐食照片和训练视频。";
+"NSHealthShareUsageDescription" = "FitGenius 读取已授权的训练数据，以保持训练记录一致。";
+"NSHealthUpdateUsageDescription" = "FitGenius 将完成的力量训练保存到苹果健康。";

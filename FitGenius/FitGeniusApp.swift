@@ -184,8 +184,10 @@ struct WidgetDataManager {
         }
 
         let workoutData = WidgetWorkoutData(
-            dayName: todayWorkout.isRestDay ? "休息日" : "第\(todayWorkout.dayNumber)天",
-            focus: todayWorkout.focus.rawValue,
+            dayName: todayWorkout.isRestDay
+                ? "rest_day".localized
+                : "day_number_format".localized(with: todayWorkout.dayNumber),
+            focus: todayWorkout.focus.localizedName,
             exercises: exerciseData,
             isRestDay: todayWorkout.isRestDay,
             cycleWeek: plan.getCurrentCycleWeek(),

@@ -139,8 +139,8 @@ The first watchOS experience should support training-session assistance, not vid
 - Mark set or exercise complete.
 - Heart-rate display.
 - HealthKit workout writing.
-- iPhone Today Plan entry that explicitly sends and prepares today's workout.
-- Profile discovery and install guidance shown only when an Apple Watch is paired.
+- Profile-only discovery, install guidance, and today's-workout send action,
+  shown only when an Apple Watch is paired.
 
 Video analysis stays on iPhone.
 
@@ -176,9 +176,12 @@ Implemented locally, pending paired-device acceptance:
 
 - Apple Watch companion for today's workout, current exercise, completion,
   per-set progress, rest timer, live heart rate, and HealthKit workout writing.
-- iPhone Watch discovery and Today Plan launch flow, plus a redesigned
+- Profile-only iPhone Watch discovery and workout preparation flow, plus a redesigned
   workout-first Widget with progress, next exercise, bilingual copy, and a
   direct Today Plan deep link.
+- Optional iPhone HealthKit workout writing when a full training day becomes
+  complete. It records strength-workout type and duration without inventing
+  sensor-derived calories.
 
 Not started:
 
@@ -235,6 +238,9 @@ Real video validation:
 UI issue fixed during smoke test:
 
 - Onboarding step labels now render localized titles instead of raw keys such as `basic_info`.
+- System-language behavior now also covers weekday formatting, AI reply
+  language, speech recognition, fallback workout plans, Profile data, assistant
+  controls, and Widget workout metadata.
 
 ## Immediate Next Steps
 

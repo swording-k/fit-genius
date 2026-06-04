@@ -6,6 +6,15 @@ enum MealType: String, Codable, CaseIterable {
     case lunch = "午餐"
     case dinner = "晚餐"
     case snack = "加餐"
+
+    var localizedName: String {
+        switch self {
+        case .breakfast: return "meal_breakfast".localized
+        case .lunch: return "meal_lunch".localized
+        case .dinner: return "meal_dinner".localized
+        case .snack: return "meal_snack".localized
+        }
+    }
 }
 
 @Model final class MealEntry {

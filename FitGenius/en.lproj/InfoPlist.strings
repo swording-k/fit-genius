@@ -1,0 +1,4 @@
+"NSCameraUsageDescription" = "FitGenius uses the camera for meal photos and training videos.";
+"NSPhotoLibraryUsageDescription" = "FitGenius accesses your library to select meal photos and training videos.";
+"NSHealthShareUsageDescription" = "FitGenius reads authorized workout data to keep training records consistent.";
+"NSHealthUpdateUsageDescription" = "FitGenius saves completed strength workouts to Apple Health.";

@@ -10,7 +10,13 @@ enum FitnessGoal: String, Codable, CaseIterable, Identifiable {
     var id: String { self.rawValue }
     
     var localizedName: String {
-        self.rawValue
+        switch self {
+        case .loseWeight: return "fitness_goal_lose_weight".localized
+        case .buildMuscle: return "fitness_goal_build_muscle".localized
+        case .improveEndurance: return "fitness_goal_endurance".localized
+        case .flexibility: return "fitness_goal_flexibility".localized
+        case .generalHealth: return "fitness_goal_general_health".localized
+        }
     }
 }
 
@@ -22,7 +28,11 @@ enum WorkoutEnvironment: String, Codable, CaseIterable, Identifiable {
     var id: String { self.rawValue }
     
     var localizedName: String {
-        self.rawValue
+        switch self {
+        case .gym: return "workout_environment_gym".localized
+        case .home: return "workout_environment_home".localized
+        case .outdoor: return "workout_environment_outdoor".localized
+        }
     }
 }
 
@@ -40,6 +50,16 @@ enum BodyPartFocus: String, Codable, CaseIterable, Identifiable {
     var id: String { self.rawValue }
     
     var localizedName: String {
-        self.rawValue
+        switch self {
+        case .chest: return "body_focus_chest".localized
+        case .back: return "body_focus_back".localized
+        case .legs: return "body_focus_legs".localized
+        case .shoulders: return "body_focus_shoulders".localized
+        case .arms: return "body_focus_arms".localized
+        case .core: return "body_focus_core".localized
+        case .fullBody: return "body_focus_full_body".localized
+        case .cardio: return "body_focus_cardio".localized
+        case .rest: return "body_focus_rest".localized
+        }
     }
 }

@@ -8,7 +8,7 @@ class DietAssistantViewModel: ObservableObject {
     @Published var messages: [ChatMessage] = []
 	@Published var inputText: String = ""
 	@Published var isLoading: Bool = false
-    @Published var loadingText: String = "AI 正在思考..."
+    @Published var loadingText: String = "assistant_thinking".localized
 	@Published var errorMessage: String?
     @Published var mediaErrorMessage: String?
 
@@ -41,7 +41,7 @@ class DietAssistantViewModel: ObservableObject {
     }
     
     private func addWelcomeMessage() {
-        let welcome = ChatMessage(content: "你好！我是你的 AI 饮食助手。你可以向我咨询饮食建议，或者发照片让我帮你分析营养。", isUser: false, topic: "diet")
+        let welcome = ChatMessage(content: "diet_assistant_welcome".localized, isUser: false, topic: "diet")
         modelContext.insert(welcome)
         messages.append(welcome)
     }
@@ -62,7 +62,7 @@ class DietAssistantViewModel: ObservableObject {
         var content = currentText
         if currentMedia != nil {
             if content.isEmpty {
-                content = "请分析这张图片"
+                content = "assistant_analyze_image".localized
             }
             // content += "（已附加图片）" // 视觉上不需要在文本里加这个，MessageBubble 会显示图片
         }
@@ -77,7 +77,7 @@ class DietAssistantViewModel: ObservableObject {
 		do {
             let reply: String
             if let media = currentMedia, currentMediaType == "image" {
-                reply = try await service.dietChatWithImages(userMessage: currentText.isEmpty ? "请分析这张图片" : currentText, images: [media])
+                reply = try await service.dietChatWithImages(userMessage: currentText.isEmpty ? "assistant_analyze_image".localized : currentText, images: [media])
             } else {
                 reply = try await service.dietChat(userMessage: currentText)
             }
@@ -87,7 +87,7 @@ class DietAssistantViewModel: ObservableObject {
 			messages.append(aiMsg)
         } catch {
             errorMessage = error.localizedDescription
-            let errMsg = ChatMessage(content: "出错了: \(error.localizedDescription)", isUser: false, topic: "diet")
+            let errMsg = ChatMessage(content: "assistant_error_format".localized(with: error.localizedDescription), isUser: false, topic: "diet")
             modelContext.insert(errMsg)
             messages.append(errMsg)
 		}

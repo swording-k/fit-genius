@@ -90,3 +90,23 @@ xcrun swiftc \
   scripts/widget-presentation-tests.swift \
   -o /tmp/widget-presentation-tests
 /tmp/widget-presentation-tests
+
+xcrun swiftc \
+  FitGenius/Models/Diet/DietAnalysisFailurePolicy.swift \
+  scripts/diet-analysis-failure-policy-tests.swift \
+  -o /tmp/diet-analysis-failure-policy-tests
+/tmp/diet-analysis-failure-policy-tests
+
+scripts/product-localization-regression-tests.sh
+
+xcrun swiftc \
+  FitGenius/Services/AppLanguagePolicy.swift \
+  scripts/app-language-policy-tests.swift \
+  -o /tmp/app-language-policy-tests
+/tmp/app-language-policy-tests
+
+xcrun swiftc \
+  FitGenius/Models/Plan/WorkoutCompletionPolicy.swift \
+  scripts/workout-completion-policy-tests.swift \
+  -o /tmp/workout-completion-policy-tests
+/tmp/workout-completion-policy-tests

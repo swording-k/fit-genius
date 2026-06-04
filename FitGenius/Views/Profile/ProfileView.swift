@@ -8,6 +8,7 @@ struct ProfileView: View {
     @Query private var profiles: [UserProfile]
     @State private var showLoginSheet = false
     @AppStorage("notificationsEnabled") private var notificationsEnabled = false
+    @AppStorage("healthKitWorkoutSyncEnabled") private var healthKitWorkoutSyncEnabled = false
     @State private var showProfileEditor = false
     @State private var showSourcesInfo = false
     @State private var showResetConfirmation = false
@@ -43,7 +44,13 @@ struct ProfileView: View {
                             Text(currentProfile?.nickname ?? currentProfile?.name ?? "user")
                                 .font(.headline)
                             if let profile = currentProfile {
-                                Text("\(profile.age)岁 · \(String(format: "%.0f", profile.height))cm · \(String(format: "%.1f", profile.weight))kg")
+                                Text(
+                                    "profile_summary_format".localized(
+                                        with: profile.age,
+                                        profile.height,
+                                        profile.weight
+                                    )
+                                )
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -138,9 +145,28 @@ struct ProfileView: View {
                     }
                 }
 
+                Section(header: Text("apple_health")) {
+                    Toggle(isOn: $healthKitWorkoutSyncEnabled) {
+                        Label("health_workout_sync", systemImage: "heart.text.square")
+                    }
+                    .onChange(of: healthKitWorkoutSyncEnabled) { _, enabled in
+                        guard enabled else { return }
+                        Task {
+                            let authorized = await HealthKitWorkoutService.shared.requestAuthorization()
+                            if !authorized {
+                                healthKitWorkoutSyncEnabled = false
+                            }
+                        }
+                    }
+
+                    Text("health_workout_sync_detail")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 if watchSync.preparationState != .unsupported && watchSync.preparationState != .notPaired {
                     Section(header: Text("apple_watch")) {
-                        WatchCompanionCard(placement: .profile)
+                        WatchCompanionCard()
                     }
                 }
 

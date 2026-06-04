@@ -127,7 +127,7 @@ struct DietAIAssistantView: View {
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
-                    Button("完成") { isInputFocused = false }
+                    Button("done") { isInputFocused = false }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -138,7 +138,7 @@ struct DietAIAssistantView: View {
                 }
             }
         }
-        .navigationTitle("AI 饮食助手")
+        .navigationTitle("diet_ai_assistant")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showCamera) {
             CameraPicker(selectedImage: $capturedImage)
@@ -155,13 +155,13 @@ struct DietAIAssistantView: View {
                 capturedImage = nil
             }
         }
-        .alert("清空记录", isPresented: $showClearAlert) {
-            Button("取消", role: .cancel) {}
-            Button("清空", role: .destructive) {
+        .alert("clear_history", isPresented: $showClearAlert) {
+            Button("cancel", role: .cancel) {}
+            Button("clear", role: .destructive) {
                 viewModel.clearHistory()
             }
         } message: {
-            Text("确定要清空所有聊天记录吗？此操作无法撤销。")
+            Text("clear_chat_history_confirm")
         }
         .alert(
             "media_image_error_title",

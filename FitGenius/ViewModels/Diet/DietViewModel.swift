@@ -21,6 +21,7 @@ class DietViewModel: ObservableObject {
     @Published var isSubmitting: Bool = false
     @Published var showSubmitAlert: Bool = false
     @Published var submitAlertMessage: String = ""
+    @Published var requiresBackendReconnect: Bool = false
 
     private let modelContext: ModelContext
     private let service = AIService()
@@ -92,6 +93,7 @@ class DietViewModel: ObservableObject {
 	func submitDayForAnalysis() async {
 		guard let day = day, !(day.entries ?? []).isEmpty else { return }
 		isSubmitting = true
+        requiresBackendReconnect = false
 		defer { isSubmitting = false }
 		do {
 			let entries = day.entries ?? []
@@ -122,20 +124,34 @@ class DietViewModel: ObservableObject {
             summary.day = day
             day.summary = summary
             day.submitted = true
-            submitAlertMessage = "已根据 AI 分析更新今日饮食统计"
+            submitAlertMessage = "diet_ai_analysis_success".localized
             showSubmitAlert = true
             NotificationCenter.default.post(name: .dietSummaryUpdated, object: nil)
         } catch {
+            let isMissingSession: Bool
+            if case AIServiceError.missingSessionToken = error {
+                isMissingSession = true
+            } else {
+                isMissingSession = false
+            }
+
+            if DietAnalysisFailurePolicy.classify(isMissingSession: isMissingSession) == .reconnectRequired {
+                requiresBackendReconnect = true
+                submitAlertMessage = "diet_ai_reconnect_required".localized
+                showSubmitAlert = true
+                return
+            }
+
             // 降级：对已有数值求和生成汇总
             let c = (day.entries ?? []).reduce(0) { $0 + $1.calories }
             let p = (day.entries ?? []).reduce(0) { $0 + $1.protein }
             let carb = (day.entries ?? []).reduce(0) { $0 + $1.carbs }
             let f = (day.entries ?? []).reduce(0) { $0 + $1.fat }
-            let summary = NutritionSummary(date: day.date, totalCalories: c, protein: p, carbs: carb, fat: f, notes: "AI 不可用，使用本地汇总")
+            let summary = NutritionSummary(date: day.date, totalCalories: c, protein: p, carbs: carb, fat: f)
             summary.day = day
             day.summary = summary
             day.submitted = true
-            submitAlertMessage = "AI 不可用，已使用本地汇总生成今日统计"
+            submitAlertMessage = "diet_ai_fallback_summary".localized(with: error.localizedDescription)
             showSubmitAlert = true
             NotificationCenter.default.post(name: .dietSummaryUpdated, object: nil)
         }

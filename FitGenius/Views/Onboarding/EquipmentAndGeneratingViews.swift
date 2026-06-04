@@ -60,7 +60,7 @@ struct EquipmentSelectionView: View {
                             viewModel.toggleEquipment(equipment)
                         }) {
                             HStack {
-                                Text(equipment)
+                                Text(equipment.localized)
                                     .font(.subheadline)
                                     .foregroundColor(.primary)
                                 Spacer()

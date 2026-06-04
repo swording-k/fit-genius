@@ -108,6 +108,7 @@ final class WatchSyncService: NSObject, ObservableObject {
               let plan = profile.workoutPlan,
               let day = plan.getTodayWorkout() else { return }
         let sorted = (day.exercises ?? []).sorted { $0.orderIndex < $1.orderIndex }
+        let wasDayComplete = day.isComplete
         guard let exercise = sorted.enumerated().first(where: {
             "\(day.dayNumber)-\($0.offset)-\($0.element.name)" == id
         })?.element, !exercise.isCompleted else { return }
@@ -115,6 +116,14 @@ final class WatchSyncService: NSObject, ObservableObject {
         try? context.save()
         WidgetDataManager.updateWorkoutData(modelContext: context)
         syncToday(context: context)
+        if WorkoutCompletionPolicy.shouldSaveHealthWorkout(
+            wasDayComplete: wasDayComplete,
+            isDayComplete: day.isComplete
+        ) {
+            Task {
+                try? await HealthKitWorkoutService.shared.saveCompletedStrengthWorkout(day: day)
+            }
+        }
     }
 }
 

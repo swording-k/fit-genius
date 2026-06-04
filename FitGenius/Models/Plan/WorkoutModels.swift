@@ -54,6 +54,11 @@ final class WorkoutDay {
         self.focus = focus
         self.isRestDay = isRestDay
     }
+
+    var isComplete: Bool {
+        let exercises = exercises ?? []
+        return !isRestDay && !exercises.isEmpty && exercises.allSatisfy(\.isCompleted)
+    }
 }
 
 @Model
@@ -94,6 +99,13 @@ final class Exercise {
             if logs == nil { logs = [] }
             logs?.append(log)
             context.insert(log)
+        } else {
+            let todayLogs = (logs ?? []).filter { Calendar.current.isDateInToday($0.date) }
+            for log in todayLogs {
+                context.delete(log)
+            }
+            logs?.removeAll { Calendar.current.isDateInToday($0.date) }
+            lastCompletedDate = logs?.map(\.date).max()
         }
     }
     func resetIfNeeded() {

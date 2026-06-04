@@ -31,9 +31,8 @@ class SpeechRecognizer: ObservableObject {
     // MARK: - Initialization
     
     init() {
-        // 初始化语音识别器，支持简体中文
-        // 如果需要英文，可以使用 Locale(identifier: "en-US")
-        self.speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "zh-CN"))
+        let speechLocale = AppLanguagePolicy.current.speechLocaleIdentifier
+        self.speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: speechLocale))
         
         // 检查当前授权状态
         self.authorizationStatus = SFSpeechRecognizer.authorizationStatus()

@@ -234,7 +234,7 @@ struct AIAssistantView: View {
                 .toolbar {
                     ToolbarItemGroup(placement: .keyboard) {
                         Spacer()
-                        Button("完成") {
+                        Button("done") {
                             isInputFocused = false
                         }
                     }
@@ -260,7 +260,7 @@ struct AIAssistantView: View {
                     Button(role: .destructive) {
                         viewModel.showClearHistoryAlert = true
                     } label: {
-                        Label("清空聊天记录", systemImage: "trash")
+                        Label("clear_chat_history", systemImage: "trash")
                     }
                     
                     Divider()
@@ -268,32 +268,32 @@ struct AIAssistantView: View {
                     Button {
                         viewModel.suggestionOnly = true
                     } label: {
-                        Label("建议模式（安全）", systemImage: viewModel.suggestionOnly ? "checkmark.circle.fill" : "circle")
+                        Label("suggestion_mode", systemImage: viewModel.suggestionOnly ? "checkmark.circle.fill" : "circle")
                     }
                     
                     Button {
                         viewModel.suggestionOnly = false
                     } label: {
-                        Label("编辑模式（改动计划）", systemImage: !viewModel.suggestionOnly ? "checkmark.circle.fill" : "circle")
+                        Label("plan_edit_mode", systemImage: !viewModel.suggestionOnly ? "checkmark.circle.fill" : "circle")
                     }
                 } label: {
                     Image(systemName: "ellipsis.circle")
                 }
             }
         }
-        .alert("清空记录", isPresented: $viewModel.showClearHistoryAlert) {
-            Button("取消", role: .cancel) {}
-            Button("清空", role: .destructive) {
+        .alert("clear_history", isPresented: $viewModel.showClearHistoryAlert) {
+            Button("cancel", role: .cancel) {}
+            Button("clear", role: .destructive) {
                 viewModel.clearHistory()
             }
         } message: {
-            Text("确定要清空所有聊天记录吗？此操作无法撤销。")
+            Text("clear_chat_history_confirm")
         }
-        .alert("重新生成训练计划", isPresented: $viewModel.showPlanRegenerationAlert) {
-            Button("取消", role: .cancel) {
+        .alert("regenerate_plan", isPresented: $viewModel.showPlanRegenerationAlert) {
+            Button("cancel", role: .cancel) {
                 // 取消操作
             }
-            Button("确认", role: .destructive) {
+            Button("confirm", role: .destructive) {
                 // 确认重新生成
                 if let profile = profile {
                     Task {
@@ -302,7 +302,7 @@ struct AIAssistantView: View {
                 }
             }
         } message: {
-            Text("检测到您想要修改训练计划的整体结构（如循环天数）。\n\n这将重新生成完整的训练计划，您手动修改的内容将会丢失。\n\n是否继续？")
+            Text("regenerate_plan_confirm")
         }
     }
     
@@ -345,7 +345,7 @@ struct AIAssistantView: View {
             }
         } else {
             Task {
-                await viewModel.provideSuggestionOnly(userMessage: viewModel.inputText, profile: profile, plan: WorkoutPlan(name: "临时计划"))
+                await viewModel.provideSuggestionOnly(userMessage: viewModel.inputText, profile: profile, plan: WorkoutPlan(name: "temporary_plan".localized))
                 viewModel.inputText = ""
             }
         }
@@ -395,7 +395,7 @@ struct MessageBubble: View {
                                 HStack(spacing: 8) {
                                     ProgressView()
                                         .tint(.white)
-                                    Text("正在生成预览...")
+                                    Text("generating_preview")
                                         .font(.caption)
                                         .foregroundColor(.white)
                                 }
