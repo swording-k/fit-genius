@@ -26,7 +26,8 @@ quality gates below.
 - Training plan actions are clear and do not lose data.
 - Apple login clearly distinguishes local identity from cloud connection.
 - AI chat opens at the latest message and gives actionable connection errors.
-- Squat, deadlift, and bench press expose a reachable form-analysis flow.
+- AI Assistant is the single entry for squat, deadlift, and bench video
+  analysis and returns understandable annotated feedback.
 - Stats never show raw keys, misleading charts, or duplicated empty states.
 - No developer-only controls are visible to users.
 
@@ -35,7 +36,7 @@ quality gates below.
 - Audit every screen in Chinese and English.
 - Standardize navigation, empty states, loading, errors, and destructive actions.
 - Make AI history manageable with conversation/session organization.
-- Add form-analysis history and trends to Stats.
+- Tune form-analysis history and trends in Stats with real-device data.
 - Verify training, diet, widget, notifications, account deletion, and sync on a
   physical iPhone.
 

@@ -20,6 +20,13 @@ xcrun swiftc \
 
 xcrun swiftc \
   FitGenius/Models/Form/PoseModels.swift \
+  FitGenius/Services/FormAnalysis/PoseFeedbackPlanner.swift \
+  scripts/pose-feedback-planner-tests.swift \
+  -o /tmp/pose-feedback-planner-tests
+/tmp/pose-feedback-planner-tests
+
+xcrun swiftc \
+  FitGenius/Models/Form/PoseModels.swift \
   FitGenius/Models/Form/FormAnalysisModels.swift \
   FitGenius/Models/Form/FormAnalysisSyncPayload.swift \
   FitGenius/Services/FormAnalysis/FormAnalysisSyncService.swift \

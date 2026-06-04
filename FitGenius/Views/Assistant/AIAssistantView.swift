@@ -107,6 +107,7 @@ struct AIAssistantView: View {
                                 inputText: $viewModel.inputText,
                                 isFocused: $isInputFocused,
                                 isLoading: viewModel.isLoading,
+                                canSendEmpty: viewModel.pendingMediaType == "video",
                                 onSend: sendSuggestionOnly,
                                 onCameraCapture: nil,
                                 onPhotoSelected: { item in
@@ -169,7 +170,8 @@ struct AIAssistantView: View {
 
                 VStack(spacing: 4) {
                     if viewModel.pendingMediaData != nil {
-                        HStack(spacing: 8) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(spacing: 8) {
                             ZStack {
                                 if let thumb = viewModel.pendingThumbnail {
                                     Image(uiImage: thumb)
@@ -198,6 +200,15 @@ struct AIAssistantView: View {
                                     .foregroundColor(.secondary)
                             }
                             Spacer()
+                            }
+                            if viewModel.pendingMediaType == "video" {
+                                Picker("form_analysis_exercise_type", selection: $viewModel.pendingFormExerciseType) {
+                                    ForEach(FormExerciseType.allCases) { type in
+                                        Text(type.displayName).tag(type)
+                                    }
+                                }
+                                .pickerStyle(.segmented)
+                            }
                         }
                         .padding(.horizontal)
                     }
@@ -206,6 +217,7 @@ struct AIAssistantView: View {
                         inputText: $viewModel.inputText,
                         isFocused: $isInputFocused,
                         isLoading: viewModel.isLoading,
+                        canSendEmpty: viewModel.pendingMediaType == "video",
                         onSend: sendMessage,
                         onCameraCapture: nil,
                         onPhotoSelected: { item in
@@ -223,8 +235,13 @@ struct AIAssistantView: View {
                 }
             }
         }
-        .navigationTitle("AI 助手")
+        .navigationTitle("ai_assistant")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            #if DEBUG
+            viewModel.loadDebugLaunchVideoIfNeeded()
+            #endif
+        }
         .sheet(isPresented: $showDisclaimerAlert) {
             MedicalDisclaimerView(isPresented: $showDisclaimerAlert)
         }
@@ -286,7 +303,8 @@ struct AIAssistantView: View {
     // 发送消息的辅助方法
     private func sendMessage() {
         guard let profile = profile, let plan = plan else { return }
-        guard auth.hasBackendSession else {
+        let isLocalVideoAnalysis = viewModel.pendingMediaType == "video"
+        guard isLocalVideoAnalysis || auth.hasBackendSession else {
             showLoginSheet = true
             return
         }
@@ -298,7 +316,8 @@ struct AIAssistantView: View {
 
     private func sendSuggestionOnly() {
         guard let profile = profile else { return }
-        guard auth.hasBackendSession else {
+        let isLocalVideoAnalysis = viewModel.pendingMediaType == "video"
+        guard isLocalVideoAnalysis || auth.hasBackendSession else {
             showLoginSheet = true
             return
         }
@@ -306,7 +325,15 @@ struct AIAssistantView: View {
         if let mediaData = viewModel.pendingMediaData, let type = viewModel.pendingMediaType {
             let isVideo = (type == "video")
             Task {
-                await viewModel.sendMediaMessage(profile: profile, plan: nil, mediaData: mediaData, isVideo: isVideo, userText: viewModel.inputText)
+                await viewModel.sendMediaMessage(
+                    profile: profile,
+                    plan: nil,
+                    mediaData: mediaData,
+                    isVideo: isVideo,
+                    userText: viewModel.inputText,
+                    userId: auth.currentSessionUserId,
+                    bearerToken: auth.currentBearerToken
+                )
                 viewModel.clearPendingMedia()
                 viewModel.inputText = ""
             }
@@ -323,6 +350,7 @@ struct AIAssistantView: View {
 struct MessageBubble: View {
     let message: ChatMessage
     @State private var thumbnail: UIImage?
+    @State private var previewImage: UIImage?
     
     var body: some View {
         HStack {
@@ -333,12 +361,16 @@ struct MessageBubble: View {
             VStack(alignment: message.isUser ? .trailing : .leading, spacing: 4) {
 				if let data = message.mediaData, let type = message.mediaType {
 					if type == "image", let uiImage = UIImage(data: data) {
-						Image(uiImage: uiImage)
-							.resizable()
-							.scaledToFill()
-							.frame(width: 160, height: 160)
-							.clipped()
-							.cornerRadius(12)
+                        Button {
+                            previewImage = uiImage
+                        } label: {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxWidth: 280, maxHeight: 360)
+                                .cornerRadius(8)
+                        }
+                        .buttonStyle(.plain)
 					} else if type == "video" {
                         ZStack {
                             if let thumb = thumbnail {
@@ -391,6 +423,26 @@ struct MessageBubble: View {
                 Spacer()
             }
         }
+        .sheet(item: $previewImage) { image in
+            NavigationStack {
+                ZStack {
+                    Color.black.ignoresSafeArea()
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+                .navigationTitle("form_feedback_image_title")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("form_analysis_close") {
+                            previewImage = nil
+                        }
+                    }
+                }
+            }
+        }
     }
     
     private var bubbleColor: Color {
@@ -424,6 +476,10 @@ struct MessageBubble: View {
             return nil
         }
     }
+}
+
+extension UIImage: @retroactive Identifiable {
+    public var id: ObjectIdentifier { ObjectIdentifier(self) }
 }
 
 #Preview {

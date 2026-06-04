@@ -35,6 +35,7 @@ struct EnhancedInputControlsView: View {
     @Binding var inputText: String
     @FocusState.Binding var isFocused: Bool
     let isLoading: Bool
+    var canSendEmpty: Bool = false
     
     // 回调
     let onSend: () -> Void
@@ -112,7 +113,7 @@ struct EnhancedInputControlsView: View {
                     .font(.title2)
                     .foregroundColor(inputText.isEmpty ? .gray : .blue)
             }
-            .disabled(inputText.isEmpty || isLoading)
+            .disabled((inputText.isEmpty && !canSendEmpty) || isLoading)
             .buttonStyle(.plain)
         }
         .padding()

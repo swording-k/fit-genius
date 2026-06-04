@@ -22,6 +22,7 @@ class AIAssistantViewModel: ObservableObject {
     @Published var pendingMediaData: Data?
     @Published var pendingMediaType: String? // "image" or "video"
     @Published var pendingThumbnail: UIImage?
+    @Published var pendingFormExerciseType: FormExerciseType = .squat
     
     private let aiService = AIService()
     private let modelContext: ModelContext
@@ -131,6 +132,26 @@ class AIAssistantViewModel: ObservableObject {
         pendingThumbnail = nil
     }
 
+    #if DEBUG
+    func loadDebugLaunchVideoIfNeeded() {
+        guard pendingMediaData == nil,
+              let url = DebugFormAnalysisVideoProvider.launchVideoURL,
+              let data = try? Data(contentsOf: url) else { return }
+        pendingMediaData = data
+        pendingMediaType = "video"
+        pendingFormExerciseType = .benchPress
+
+        Task {
+            let asset = AVAsset(url: url)
+            let generator = AVAssetImageGenerator(asset: asset)
+            generator.appliesPreferredTrackTransform = true
+            if let imageRef = try? await generator.image(at: .zero).image {
+                pendingThumbnail = UIImage(cgImage: imageRef)
+            }
+        }
+    }
+    #endif
+
     // MARK: - 发送消息
     func sendMessage(profile: UserProfile, plan: WorkoutPlan) async {
         // 1. 检查是否有待发送的媒体
@@ -174,7 +195,9 @@ class AIAssistantViewModel: ObservableObject {
         errorMessage = nil
 		do {
 			let (response, _) = try await aiService.chat(
-                userMessage: "【请只提供建议，不要返回任何 JSON 指令或修改计划】\n" + userMessage,
+                userMessage: messageWithRecentFormContext(
+                    "【请只提供建议，不要返回任何 JSON 指令或修改计划】\n" + userMessage
+                ),
                 profile: profile,
                 plan: plan
             )
@@ -196,7 +219,15 @@ class AIAssistantViewModel: ObservableObject {
 		}
     }
 
-	func sendMediaMessage(profile: UserProfile, plan: WorkoutPlan?, mediaData: Data, isVideo: Bool, userText: String) async {
+	func sendMediaMessage(
+        profile: UserProfile,
+        plan: WorkoutPlan?,
+        mediaData: Data,
+        isVideo: Bool,
+        userText: String,
+        userId: String? = nil,
+        bearerToken: String? = nil
+    ) async {
 		let trimmed = userText.trimmingCharacters(in: .whitespacesAndNewlines)
 		let contentText: String
 		if trimmed.isEmpty {
@@ -205,13 +236,34 @@ class AIAssistantViewModel: ObservableObject {
 			contentText = trimmed
 		}
 		let mediaType = isVideo ? "video" : "image"
-		let userMessage = ChatMessage(content: contentText, isUser: true, isSystemAction: false, mediaData: mediaData, mediaType: mediaType, topic: "fitness")
+        let storedMediaData = isVideo
+            ? pendingThumbnail?.jpegData(compressionQuality: 0.7)
+            : mediaData
+        let storedMediaType = isVideo ? "image" : mediaType
+		let userMessage = ChatMessage(
+            content: contentText,
+            isUser: true,
+            isSystemAction: false,
+            mediaData: storedMediaData,
+            mediaType: storedMediaType,
+            topic: "fitness"
+        )
 		modelContext.insert(userMessage)
 		messages.append(userMessage)
         inputText = ""
+
+        if isVideo {
+            await analyzeFormVideo(
+                mediaData,
+                exerciseType: pendingFormExerciseType,
+                userId: userId,
+                bearerToken: bearerToken
+            )
+            return
+        }
         
         isLoading = true
-        loadingText = isVideo ? "正在压缩和上传视频..." : "AI 正在分析图片..."
+        loadingText = NSLocalizedString("assistant_analyzing_image", comment: "")
         errorMessage = nil
         
 		do {
@@ -237,6 +289,85 @@ class AIAssistantViewModel: ObservableObject {
 		}
 	}
 
+    private func analyzeFormVideo(
+        _ videoData: Data,
+        exerciseType: FormExerciseType,
+        userId: String?,
+        bearerToken: String?
+    ) async {
+        isLoading = true
+        loadingText = NSLocalizedString("assistant_analyzing_form_video", comment: "")
+        errorMessage = nil
+
+        do {
+            let artifact = try await LocalFormAnalysisPipeline().analyze(
+                videoData: videoData,
+                exercise: exerciseType
+            )
+            let content = formAnalysisMessage(for: artifact)
+            let response = ChatMessage(
+                content: content,
+                isUser: false,
+                mediaData: artifact.feedbackImageData,
+                mediaType: "image",
+                topic: "fitness"
+            )
+            modelContext.insert(response)
+            messages.append(response)
+
+            let record = FormAnalysisRecord(
+                exerciseName: exerciseType.displayName,
+                exerciseType: exerciseType,
+                score: artifact.summary.score,
+                issuesJSON: encodeJSONString(artifact.summary.issues),
+                metricsJSON: encodeJSONString(artifact.summary.metrics),
+                recommendation: artifact.summary.recommendation,
+                videoDuration: artifact.duration
+            )
+            modelContext.insert(record)
+            try? modelContext.save()
+            await FormAnalysisSyncCoordinator.shared.syncOneRecord(
+                record,
+                context: modelContext,
+                userId: userId,
+                bearerToken: bearerToken
+            )
+        } catch {
+            errorMessage = error.localizedDescription
+            let message = ChatMessage(
+                content: String(
+                    format: NSLocalizedString("assistant_form_analysis_failed", comment: ""),
+                    error.localizedDescription
+                ),
+                isUser: false
+            )
+            modelContext.insert(message)
+            messages.append(message)
+        }
+
+        isLoading = false
+        loadingText = NSLocalizedString("assistant_thinking", comment: "")
+    }
+
+    private func formAnalysisMessage(for artifact: LocalFormAnalysisArtifact) -> String {
+        let issueText: String
+        if artifact.summary.issues.isEmpty {
+            issueText = NSLocalizedString("form_analysis_stable", comment: "")
+        } else {
+            issueText = artifact.summary.issues.enumerated().map { index, issue in
+                "\(index + 1). \(issue.title)：\(issue.detail)"
+            }.joined(separator: "\n")
+        }
+        return String(
+            format: NSLocalizedString("assistant_form_analysis_result_format", comment: ""),
+            artifact.summary.exerciseType.displayName,
+            artifact.summary.score,
+            artifact.feedbackTimestamp,
+            issueText,
+            artifact.summary.recommendation
+        )
+    }
+
     // MARK: - 处理动作级别修改
     private func processExerciseLevelModification(userMessage: String, profile: UserProfile, plan: WorkoutPlan) async {
         isLoading = true
@@ -245,7 +376,7 @@ class AIAssistantViewModel: ObservableObject {
         do {
             // 调用 AI 服务
             let (response, command) = try await aiService.chat(
-                userMessage: userMessage,
+                userMessage: messageWithRecentFormContext(userMessage),
                 profile: profile,
                 plan: plan
             )
@@ -279,6 +410,30 @@ class AIAssistantViewModel: ObservableObject {
             )
             messages.append(errorChatMessage)
         }
+    }
+
+    private func messageWithRecentFormContext(_ userMessage: String) -> String {
+        let descriptor = FetchDescriptor<FormAnalysisRecord>(
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        guard let record = try? modelContext.fetch(descriptor).first else {
+            return userMessage
+        }
+
+        let issues = record.issues.isEmpty
+            ? NSLocalizedString("form_analysis_stable", comment: "")
+            : record.issues.map { "\($0.title): \($0.detail)" }.joined(separator: "\n")
+        return """
+        Recent deterministic on-device form analysis is included below. Use it only when relevant to the user's question. Do not contradict or replace the local score and detected issues.
+        Exercise: \(record.exerciseType.displayName)
+        Score: \(record.score)
+        Detected issues:
+        \(issues)
+        Recommendation: \(record.recommendation)
+
+        User message:
+        \(userMessage)
+        """
     }
     
     // MARK: - 重新生成计划

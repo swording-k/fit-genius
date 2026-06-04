@@ -16,6 +16,22 @@ FitGenius should become a personalized strength-training coach, not just a worko
 
 The key product advantage should be the closed loop between training plan, video form analysis, and plan adjustment.
 
+### Current Product Focus
+
+FitGenius is narrowing the next release around one visible user pain point:
+understanding what is wrong in a lifting video and what to change next time.
+
+The AI Assistant becomes the unified coaching surface:
+
+1. User selects a training video and exercise type in AI Assistant.
+2. Apple Vision extracts pose joints locally.
+3. FitGenius rules produce the score and issues.
+4. FitGenius returns an annotated representative frame plus concise coaching.
+5. AI can explain or answer follow-up questions, but does not invent the score.
+
+Training plans and Stats support this loop. Watch, Android/Huawei, new exercise
+rules, and broader feature expansion stay paused until this experience is useful.
+
 ## Technical Direction
 
 The iOS MVP uses Apple Vision for local human pose detection. Vision only extracts body keypoints; FitGenius owns the exercise rules and coaching logic.
@@ -128,9 +144,12 @@ Cross-platform strategy:
 
 Implemented:
 
-- Reachable iOS form-analysis flow for squat, deadlift, and bench press.
+- AI Assistant unified form-analysis flow for squat, deadlift, and bench press.
 - Platform-neutral pose models, Apple Vision extraction, local rule engine,
   local history persistence, recommendation application, and cloud sync.
+- Representative-frame planning, skeleton/issue overlay rendering, tappable
+  annotated feedback, recent-analysis AI follow-up context, and form-progress
+  Stats.
 - Apple login exchange, FitGenius sessions, Vercel AI proxy, and Neon storage.
 - Offline training/diet baseline, Widget, compliance screens, and bilingual
   localization.
@@ -157,6 +176,10 @@ Last verified on 2026-06-04:
 - Production form-analysis storage returned HTTP 200 with `mode: stored`.
 - Secret scan found no provider key or database URL in deployable files.
 - Real-device Apple login and Apple Vision acceptance remain required.
+- Simulator UI verified the AI Assistant annotated-feedback flow with the
+  supplied bench video. The simulator used a DEBUG-only pose fixture because
+  its Vision body-pose request was unavailable; real-joint overlay acceptance
+  remains a physical-iPhone requirement.
 
 Real video validation:
 
@@ -182,16 +205,14 @@ UI issue fixed during smoke test:
 
 ## Immediate Next Steps
 
-1. Complete physical-iPhone acceptance for Apple reconnect, AI chat, and the
-   PhotosPicker-to-analysis flow. Real-device validation remains required for
-   Apple Vision.
-2. Complete the P0/P1 product-quality audit in `docs/product-quality-plan.md`.
-3. Tune remaining bench-specific report quality:
+1. Complete physical-iPhone acceptance for Apple reconnect and the unified AI
+   Assistant PhotosPicker-to-annotated-analysis flow.
+2. Tune representative key-frame and overlay quality with real videos:
    - Camera-angle warnings.
    - More precise bottom-position control.
    - More robust bar/wrist path interpretation across camera angles.
-4. Add form-analysis history and trends to Stats.
-5. Prepare a TestFlight release candidate before starting Apple Watch work.
+3. Complete the P0/P1 product-quality audit in `docs/product-quality-plan.md`.
+4. Prepare a TestFlight release candidate before starting Apple Watch work.
 
 ## Important Assumptions
 

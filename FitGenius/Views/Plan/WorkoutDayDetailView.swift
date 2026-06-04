@@ -10,7 +10,6 @@ struct ExerciseRowView: View {
     
     // 控制侧滑状态
     @State private var isExpanded = false
-    @State private var showFormAnalysis = false
     
     var body: some View {
         ZStack(alignment: .trailing) {
@@ -115,18 +114,6 @@ struct ExerciseRowView: View {
                 
                 Spacer()
 
-                if FormExerciseType.infer(from: exercise.name) != nil {
-                    Button {
-                        showFormAnalysis = true
-                    } label: {
-                        Image(systemName: "figure.strengthtraining.traditional")
-                            .font(.title3)
-                            .foregroundColor(.green)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("form_analysis_action")
-                }
-                
                 // 触发按钮
                 Button(action: {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
@@ -145,9 +132,6 @@ struct ExerciseRowView: View {
             .offset(x: isExpanded ? -140 : 0)  // 左移 140 点（两个按钮的宽度）
         }
         .clipped()  // 裁剪超出部分
-        .sheet(isPresented: $showFormAnalysis) {
-            FormAnalysisView(exercise: exercise)
-        }
     }
 }
 

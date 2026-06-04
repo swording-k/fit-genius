@@ -6,6 +6,7 @@ import Charts
 struct StatsView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var profiles: [UserProfile]
+    @Query(sort: \FormAnalysisRecord.date, order: .reverse) private var formRecords: [FormAnalysisRecord]
     @StateObject private var viewModel: StatsViewModel
     
     init(modelContext: ModelContext) {
@@ -15,7 +16,7 @@ struct StatsView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                if viewModel.allTrainingData.isEmpty {
+                if viewModel.allTrainingData.isEmpty && formRecords.isEmpty {
                     StatsEmptyState()
                 } else {
                     // 坚持天数大卡片
@@ -23,17 +24,15 @@ struct StatsView: View {
                         StreakDaysCard(streakDays: profile.streakDays)
                     }
 
-                    StatsCardsView(viewModel: viewModel)
+                    StatsCardsView(viewModel: viewModel, analysisCount: formRecords.count)
 
-                    // 动作筛选仅影响趋势和最近记录，总览始终展示完整数据。
-                    ExerciseFilterView(viewModel: viewModel)
+                    if !formRecords.isEmpty {
+                        FormProgressView(records: formRecords)
+                    }
 
-                    VolumeChartView(viewModel: viewModel)
-
-                    // 重量增长图表（仅显示有重量的动作）
-                    WeightProgressChartsView(viewModel: viewModel)
-
-                    RecentTrainingListView(viewModel: viewModel)
+                    if !viewModel.allTrainingData.isEmpty {
+                        RecentTrainingListView(viewModel: viewModel)
+                    }
                 }
             }
             .padding()
@@ -98,6 +97,7 @@ struct StreakDaysCard: View {
 // MARK: - 统计卡片
 struct StatsCardsView: View {
     @ObservedObject var viewModel: StatsViewModel
+    let analysisCount: Int
     
     var body: some View {
         VStack(spacing: 12) {
@@ -126,13 +126,101 @@ struct StatsCardsView: View {
                 )
 
                 StatCard(
-                    title: "volume",
-                    value: String(format: "%.0f", viewModel.totalVolume),
-                    icon: "chart.line.uptrend.xyaxis",
+                    title: "form_analysis_count",
+                    value: "\(analysisCount)",
+                    icon: "figure.strengthtraining.traditional",
                     color: .purple
                 )
             }
         }
+    }
+}
+
+struct FormProgressView: View {
+    let records: [FormAnalysisRecord]
+
+    private var recentRecords: [FormAnalysisRecord] {
+        Array(records.prefix(5))
+    }
+
+    private var chronologicalRecords: [FormAnalysisRecord] {
+        records.sorted { $0.date < $1.date }
+    }
+
+    private var averageScore: Int {
+        guard !records.isEmpty else { return 0 }
+        return Int((Double(records.reduce(0) { $0 + $1.score }) / Double(records.count)).rounded())
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("form_progress_title")
+                        .font(.headline)
+                    Text("form_progress_average")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                Spacer()
+                Text("\(averageScore)")
+                    .font(.title.bold())
+                    .foregroundColor(scoreColor(averageScore))
+            }
+
+            if chronologicalRecords.count >= 2 {
+                Chart(chronologicalRecords) { record in
+                    LineMark(
+                        x: .value("date", record.date),
+                        y: .value("score", record.score)
+                    )
+                    .foregroundStyle(.purple)
+                    PointMark(
+                        x: .value("date", record.date),
+                        y: .value("score", record.score)
+                    )
+                    .foregroundStyle(.purple)
+                }
+                .chartYScale(domain: 40...100)
+                .frame(height: 160)
+            } else {
+                Text("form_progress_more_needed")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+
+            Divider()
+
+            ForEach(recentRecords) { record in
+                HStack(spacing: 12) {
+                    Text("\(record.score)")
+                        .font(.headline)
+                        .foregroundColor(scoreColor(record.score))
+                        .frame(width: 42, alignment: .leading)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(record.exerciseType.displayName)
+                            .font(.subheadline.weight(.medium))
+                        Text(record.issues.first?.title ?? NSLocalizedString("form_analysis_stable", comment: ""))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                    }
+                    Spacer()
+                    Text(record.date, format: .dateTime.month().day())
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+        .padding()
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(8)
+    }
+
+    private func scoreColor(_ score: Int) -> Color {
+        if score >= 85 { return .green }
+        if score >= 70 { return .orange }
+        return .red
     }
 }
 
