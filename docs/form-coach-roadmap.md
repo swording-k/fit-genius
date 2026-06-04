@@ -79,8 +79,9 @@ Supported exercises:
 - Squat
 - Deadlift
 - Bench press
+- Standing overhead press
 
-The first release intentionally keeps three supported exercises. More movements
+The release intentionally keeps a small supported set. More movements
 must be added one at a time with an explicit rule set, good/risky fixtures, and
 real-video acceptance evidence. A multimodal model may help describe a video,
 but it must not silently invent the deterministic exercise type, score, or
@@ -155,12 +156,14 @@ Cross-platform strategy:
 
 Implemented:
 
-- AI Assistant unified form-analysis flow for squat, deadlift, and bench press.
+- AI Assistant unified form-analysis flow for squat, deadlift, bench press, and
+  standing overhead press. Unsupported/uncertain motion is rejected instead of
+  being forced into a misleading label.
 - Platform-neutral pose models, Apple Vision extraction, local rule engine,
   local history persistence, recommendation application, and cloud sync.
 - Representative-frame planning, skeleton/issue overlay rendering, tappable
-  annotated feedback, recent-analysis AI follow-up context, and form-progress
-  Stats.
+  annotated feedback, issue callout labels, recent-analysis AI follow-up
+  context, and form-progress Stats.
 - Apple login exchange, FitGenius sessions, Vercel AI proxy, and Neon storage.
 - Offline training/diet baseline, Widget, compliance screens, and bilingual
   localization.
@@ -184,6 +187,10 @@ Last verified on 2026-06-04:
 - Generic iOS Simulator build and XcodeBuildMCP build/run succeeded.
 - Simulator UI verified the form-analysis entry, newest-message AI chat,
   debug-free Profile, and localized Stats empty state.
+- Diet Stats now merges duplicate same-day records, excludes empty auto-created
+  days, and calculates macro distribution from 4/4/9 kcal shares.
+- 4K pose extraction is bounded to 720 px frames and annotated chat feedback to
+  1600 px, preventing long UI stalls on the supplied 157 MB video.
 - `scripts/run-form-analysis-tests.sh`: 5/5 binaries passed.
 - `npm run test:backend`: 15/15 tests passed.
 - `scripts/check-localization.sh`: 70/70 required form-coach keys passed.
@@ -226,16 +233,17 @@ UI issue fixed during smoke test:
 
 ## Immediate Next Steps
 
-1. Complete physical-iPhone acceptance for Apple reconnect and the unified AI
-   Assistant PhotosPicker-to-annotated-analysis flow.
+1. Complete physical-iPhone acceptance for Apple reconnect, Fitness/Diet image
+   AI, and the unified PhotosPicker-to-real-Vision annotated-analysis flow.
 2. Tune representative key-frame and overlay quality with real videos:
    - Camera-angle warnings.
    - More precise bottom-position control.
    - More robust bar/wrist path interpretation across camera angles.
 3. Verify cloud snapshot restore with two Apple-authenticated devices.
-4. Pair an Apple Watch and verify workout completion, heart rate, and HealthKit.
-3. Complete the P0/P1 product-quality audit in `docs/product-quality-plan.md`.
-4. Prepare a TestFlight release candidate before starting Apple Watch work.
+4. Pair a physical Apple Watch and verify workout completion, heart rate, and
+   HealthKit.
+5. Complete the P0/P1 product-quality audit in `docs/product-quality-plan.md`.
+6. Prepare a TestFlight release candidate.
 
 ## Important Assumptions
 

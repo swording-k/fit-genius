@@ -121,9 +121,9 @@ struct DietStatsView: View {
     private var macroSummary: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("today_macro_distribution").font(.headline)
-            MacroProgressRow(title: "protein", grams: viewModel.todayProtein, total: viewModel.todayMacroTotal, color: .blue)
-            MacroProgressRow(title: "carbs", grams: viewModel.todayCarbs, total: viewModel.todayMacroTotal, color: .green)
-            MacroProgressRow(title: "fat", grams: viewModel.todayFat, total: viewModel.todayMacroTotal, color: .pink)
+            MacroProgressRow(title: "protein", grams: viewModel.todayProtein, share: viewModel.todayMacroShare.protein, color: .blue)
+            MacroProgressRow(title: "carbs", grams: viewModel.todayCarbs, share: viewModel.todayMacroShare.carbs, color: .green)
+            MacroProgressRow(title: "fat", grams: viewModel.todayFat, share: viewModel.todayMacroShare.fat, color: .pink)
         }
         .padding()
         .background(Color(.secondarySystemBackground))
@@ -164,7 +164,7 @@ private struct NutritionPill: View {
 private struct MacroProgressRow: View {
     let title: String
     let grams: Double
-    let total: Double
+    let share: Double
     let color: Color
 
     var body: some View {
@@ -172,9 +172,10 @@ private struct MacroProgressRow: View {
             HStack {
                 Text(LocalizedStringKey(title))
                 Spacer()
-                Text(String(format: "%.0fg", grams)).foregroundColor(.secondary)
+                Text(String(format: "%.0fg · %.0f%%", grams, share * 100))
+                    .foregroundColor(.secondary)
             }
-            ProgressView(value: total > 0 ? grams / total : 0)
+            ProgressView(value: share)
                 .tint(color)
         }
     }

@@ -1,5 +1,9 @@
 import Foundation
 
+extension Notification.Name {
+    static let backendSessionChanged = Notification.Name("FitGeniusBackendSessionChanged")
+}
+
 /// Reads / writes the configuration that drives `FormAnalysisSyncCoordinator`
 /// and the Phase 2 backend auth / AI proxy clients.
 ///
@@ -103,5 +107,6 @@ struct SyncSettings {
             defaults.removeObject(forKey: Self.sessionTokenKey)
             defaults.removeObject(forKey: Self.sessionUserIdKey)
         }
+        NotificationCenter.default.post(name: .backendSessionChanged, object: nil)
     }
 }

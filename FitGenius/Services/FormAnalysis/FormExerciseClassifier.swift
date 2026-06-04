@@ -4,6 +4,7 @@ struct FormExerciseClassification: Hashable {
     let exercise: FormExerciseType
     let confidence: Double
     let reasonKey: String
+    let isReliable: Bool
 }
 
 struct FormExerciseClassifier {
@@ -24,7 +25,20 @@ struct FormExerciseClassifier {
             return FormExerciseClassification(
                 exercise: .benchPress,
                 confidence: confidence,
-                reasonKey: "form_detection_reason_bench"
+                reasonKey: "form_detection_reason_bench",
+                isReliable: true
+            )
+        }
+
+        let overheadRatio = overheadWristRatio(sequence)
+        if upperBodyCoverage >= 0.65,
+           lowerBodyCoverage >= 0.45,
+           overheadRatio >= 0.45 {
+            return FormExerciseClassification(
+                exercise: .overheadPress,
+                confidence: min(0.93, 0.66 + overheadRatio * 0.24),
+                reasonKey: "form_detection_reason_overhead_press",
+                isReliable: true
             )
         }
 
@@ -34,16 +48,20 @@ struct FormExerciseClassifier {
             return FormExerciseClassification(
                 exercise: .squat,
                 confidence: confidence,
-                reasonKey: "form_detection_reason_squat"
+                reasonKey: "form_detection_reason_squat",
+                isReliable: true
             )
         }
 
         let lean = maxTorsoLean(sequence)
-        let confidence = min(0.9, 0.62 + lean)
+        let hipTravel = hipVerticalTravel(sequence)
+        let isReliable = lowerBodyCoverage >= 0.60 && lean >= 0.02 && hipTravel >= 0.04
+        let confidence = isReliable ? min(0.9, 0.62 + lean + hipTravel) : 0.35
         return FormExerciseClassification(
             exercise: .deadlift,
             confidence: confidence,
-            reasonKey: "form_detection_reason_deadlift"
+            reasonKey: isReliable ? "form_detection_reason_deadlift" : "form_detection_reason_uncertain",
+            isReliable: isReliable
         )
     }
 
@@ -73,12 +91,28 @@ struct FormExerciseClassifier {
         }.min() ?? 1
     }
 
+    private func overheadWristRatio(_ sequence: PoseSequence) -> Double {
+        let matches = sequence.frames.compactMap { frame -> Bool? in
+            guard let shoulder = midpoint(frame, .leftShoulder, .rightShoulder),
+                  let wrist = midpoint(frame, .leftWrist, .rightWrist) else { return nil }
+            return wrist.y > shoulder.y + 0.04
+        }
+        guard !matches.isEmpty else { return 0 }
+        return Double(matches.filter { $0 }.count) / Double(matches.count)
+    }
+
     private func maxTorsoLean(_ sequence: PoseSequence) -> Double {
         sequence.frames.compactMap { frame in
             guard let shoulder = midpoint(frame, .leftShoulder, .rightShoulder),
                   let hip = midpoint(frame, .leftHip, .rightHip) else { return nil }
             return abs(shoulder.x - hip.x)
         }.max() ?? 0
+    }
+
+    private func hipVerticalTravel(_ sequence: PoseSequence) -> Double {
+        let values = sequence.frames.compactMap { midpoint($0, .leftHip, .rightHip)?.y }
+        guard let minimum = values.min(), let maximum = values.max() else { return 0 }
+        return maximum - minimum
     }
 
     private func midpoint(_ frame: PoseFrame, _ left: JointName, _ right: JointName) -> JointPoint? {

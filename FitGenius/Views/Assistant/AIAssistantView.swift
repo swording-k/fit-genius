@@ -202,13 +202,18 @@ struct AIAssistantView: View {
                             Spacer()
                             }
                             if viewModel.pendingMediaType == "video" {
-                                Picker("form_analysis_exercise_type", selection: $viewModel.pendingFormExerciseType) {
-                                    Text("form_exercise_auto_detect").tag(nil as FormExerciseType?)
-                                    ForEach(FormExerciseType.allCases) { type in
-                                        Text(type.displayName).tag(type as FormExerciseType?)
+                                HStack {
+                                    Label("form_analysis_exercise_type", systemImage: "figure.strengthtraining.traditional")
+                                        .font(.subheadline)
+                                    Spacer()
+                                    Picker("form_analysis_exercise_type", selection: $viewModel.pendingFormExerciseType) {
+                                        Text("form_exercise_auto_detect").tag(nil as FormExerciseType?)
+                                        ForEach(FormExerciseType.allCases) { type in
+                                            Text(type.displayName).tag(type as FormExerciseType?)
+                                        }
                                     }
+                                    .pickerStyle(.menu)
                                 }
-                                .pickerStyle(.segmented)
                             }
                         }
                         .padding(.horizontal)

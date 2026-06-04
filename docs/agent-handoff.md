@@ -1,6 +1,6 @@
 # FitGenius Agent Handoff
 
-Last updated: 2026-06-04 18:08 Asia/Shanghai
+Last updated: 2026-06-04 19:23 Asia/Shanghai
 
 ## Read First
 
@@ -11,12 +11,28 @@ Last updated: 2026-06-04 18:08 Asia/Shanghai
 
 ## Current Status
 
-The form-coach milestone remains deployed. A new local milestone adds real
-account cloud sync and the first Apple Watch companion. It is deployed for
-backend acceptance but is not committed yet.
+The cloud-sync and Apple Watch milestone is committed at `bafaf2e`. A newer
+local product-quality milestone expands and hardens the form coach, repairs Diet
+Stats semantics, and improves AI-session failure handling; it is not committed
+yet.
 
 Latest milestone:
 
+- Added standing overhead press as the fourth supported form-analysis movement,
+  with automatic classification, independent rules, metrics, recommendations,
+  localization, sync identifier, and good/risky score evidence.
+- Automatic detection now rejects uncertain/unsupported movement instead of
+  forcing every video into one of the supported labels.
+- Annotated key frames now add issue callout labels connected to relevant
+  joints, while retaining the red/green skeleton and result panel.
+- Bounded pose extraction to 720 px and annotated feedback to 1600 px. The
+  supplied 157 MB 4K video now completes the simulator UI flow in seconds
+  instead of leaving the interface unresponsive.
+- Diet Stats merges duplicate same-day data, excludes empty auto-created days,
+  and uses 4/4/9 kcal shares for macro percentages.
+- Backend-session changes now notify `AuthViewModel`, so an AI 401 immediately
+  exposes the Apple reconnect state. Diet AI no longer labels every request
+  failure as an image-processing failure.
 - Added offline-first account snapshots for profile, workout plan/history, and
   diet records. SwiftData remains primary; first sync uploads meaningful local
   data or restores remote data onto a new empty device.
@@ -44,9 +60,10 @@ Completed in the current local milestone:
 - Diet AI now distinguishes an expired cloud session and presents the Apple
   reconnect action instead of a generic failure.
 - Video exercise selection defaults to local automatic detection among squat,
-  deadlift, and bench press, while retaining a manual override.
+  deadlift, bench press, and standing overhead press, while retaining a manual
+  override.
 - New deterministic quality tests prove good fixtures score above risky
-  fixtures for all three supported lifts.
+  fixtures for all four supported lifts.
 - Deadlift back-position and bench elbow-angle rules were corrected after the
   new tests exposed that their previous good/risky fixtures scored identically.
 - Annotated feedback now includes the exercise, score, key-frame time, and
@@ -56,8 +73,8 @@ Completed in the current local milestone:
 - Diet Stats no longer overlaps several area/line series. It now shows today's
   nutrition, macro distribution, one calorie trend, and recent records.
 - AI Assistant is now the single user entry for training-video form analysis.
-- Selecting a video exposes squat/deadlift/bench choice and allows sending
-  without a cloud session because pose analysis is local.
+- Selecting a video exposes Auto plus all four supported movements and allows
+  sending without a cloud session because pose analysis is local.
 - Video analysis uses Apple Vision + local rules instead of uploading the video
   to the multimodal AI endpoint.
 - Analysis replies include score, representative timestamp, issues, coaching,
@@ -133,6 +150,20 @@ new reconnect prompt once to receive a new FitGenius cloud session.
 - watchOS 26.1 simulator runtime installed successfully.
 - XcodeBuildMCP iPhone build/run succeeded with zero diagnostics after embedding
   the Watch app.
+- Latest XcodeBuildMCP iPhone build/run succeeded with zero warnings and zero
+  errors after the form-coach/Diet Stats changes.
+- Latest form-analysis suite passes, including unsupported-motion rejection,
+  overhead-press scoring, feedback callouts, bounded 4K processing, same-day
+  Diet Stats aggregation, and backend-session notifications.
+- `scripts/predeploy-check.sh` passed: backend 25/25, all iOS script tests,
+  localization, and deployable-file secret scan.
+- Simulator verified:
+  - the selector shows Auto, Squat, Deadlift, Bench Press, and Standing
+    Overhead Press without a cramped segmented control;
+  - the supplied launch video returns annotated feedback in seconds;
+  - the feedback image contains a red issue callout connected to the elbow;
+  - an empty auto-created MealDay displays `0 days logged` and the real empty
+    state instead of a fake `0 kcal` recent record.
 - Watch simulator build, installation, and launch succeeded. After the iPhone
   app relaunched, WatchConnectivity delivered today's workout and the Watch UI
   displayed the current deadlift, `3 x 5`, `100 kg`, and `0 / 3` completed sets.
@@ -171,7 +202,8 @@ new reconnect prompt once to receive a new FitGenius cloud session.
 
 - XcodeBuildMCP simulator build and run: succeeded with zero diagnostics.
 - Simulator UI:
-  - form-analysis button appears for the three supported demo exercises;
+  - form-analysis button appeared for the three exercises in the then-current
+    demo plan;
   - form-analysis sheet opens with localized Chinese content;
   - AI chat opens at the newest message;
   - Profile has no backend debug section;
@@ -187,27 +219,28 @@ On a physical iPhone build:
 
 1. Open **My**.
 2. Tap the Apple reconnect prompt or log in with Apple.
-3. Open AI Assistant, choose a 10-30 second squat/deadlift/bench video, select
-   the exercise, and tap Send.
+3. Open AI Assistant, choose a 10-30 second squat/deadlift/bench/standing
+   overhead-press video, leave Auto selected, and tap Send.
 4. Confirm that the returned skeleton follows the real body, the key frame is
    useful, and any red highlight matches the detected issue.
 5. After this build is installed on two Apple-authenticated devices, edit a
    workout or diet record on one device and confirm the other restores it.
 6. Pair an Apple Watch and accept Health access, then verify heart rate,
    completion sync, rest timer, and saved HealthKit workout.
+7. In both Fitness AI and Diet AI, upload one photo after reconnecting Apple
+   login and confirm the real multimodal response succeeds.
 
 This is required because Apple authorization UI and real-device Vision behavior
 cannot be fully accepted in Simulator.
 
 ## Next Recommended Work
 
-1. Finish iPhone + Watch simulator build after the watchOS runtime installs.
-2. Run authenticated cloud-snapshot GET/PUT acceptance from the app.
-3. Run physical-device acceptance for normalized fitness/diet images and real
+1. Run authenticated cloud-snapshot GET/PUT acceptance from the app.
+2. Run physical-device acceptance for normalized fitness/diet images and real
    Vision joints using several camera angles.
-4. Tune thresholds using a labeled real-video set before claiming broader
+3. Tune thresholds using a labeled real-video set before claiming broader
    exercise support.
-5. Complete the remaining bilingual UX audit and prepare a TestFlight release
+4. Complete the remaining bilingual UX audit and prepare a TestFlight release
    candidate.
 
 ## Risks

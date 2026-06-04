@@ -26,7 +26,8 @@ quality gates below.
 - Training plan actions are clear and do not lose data.
 - Apple login clearly distinguishes local identity from cloud connection.
 - AI chat opens at the latest message and gives actionable connection errors.
-- AI Assistant is the single entry for squat, deadlift, and bench video
+- AI Assistant is the single entry for squat, deadlift, bench, and standing
+  overhead-press video
   analysis and returns understandable annotated feedback.
 - Stats never show raw keys, misleading charts, or duplicated empty states.
 - No developer-only controls are visible to users.
@@ -60,8 +61,8 @@ quality gates below.
 
 - A physical iPhone must reconnect Apple login once because the production
   session secret was repaired on 2026-06-04.
-- AI chat and video analysis need one real-device acceptance pass with that new
-  session.
+- Fitness/Diet image AI and real Vision video analysis need one physical-iPhone
+  acceptance pass after reconnecting that session.
 - Remaining screens still need a full bilingual UX audit.
 - Apple Watch MVP is implemented but requires paired-watch acceptance and is
   not on the current iPhone release critical path.

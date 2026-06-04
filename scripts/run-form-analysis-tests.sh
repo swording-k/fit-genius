@@ -34,6 +34,18 @@ xcrun swiftc \
 /tmp/form-coaching-quality-tests
 
 xcrun swiftc \
+  FitGenius/Services/FormAnalysis/FormAnalysisPerformancePolicy.swift \
+  scripts/form-analysis-performance-policy-tests.swift \
+  -o /tmp/form-analysis-performance-policy-tests
+/tmp/form-analysis-performance-policy-tests
+
+xcrun swiftc \
+  FitGenius/Models/Diet/DietStatsModels.swift \
+  scripts/diet-stats-calculator-tests.swift \
+  -o /tmp/diet-stats-calculator-tests
+/tmp/diet-stats-calculator-tests
+
+xcrun swiftc \
   FitGenius/Models/Form/PoseModels.swift \
   FitGenius/Models/Form/FormAnalysisModels.swift \
   FitGenius/Models/Form/FormAnalysisSyncPayload.swift \
@@ -59,3 +71,9 @@ xcrun swiftc \
   scripts/apple-auth-api-client-tests.swift \
   -o /tmp/apple-auth-api-client-tests
 /tmp/apple-auth-api-client-tests
+
+xcrun swiftc \
+  FitGenius/Services/FormAnalysis/SyncSettings.swift \
+  scripts/sync-settings-notification-tests.swift \
+  -o /tmp/sync-settings-notification-tests
+/tmp/sync-settings-notification-tests

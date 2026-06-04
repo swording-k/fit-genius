@@ -834,7 +834,6 @@ class AIService {
     }
 
 	func analyzeMealsWithImages(entries: [MealEntry]) async throws -> DietAnalyzeResponse {
-		let systemMessage = "你是一个专业的营养师。请根据用户提供的文字描述和食物照片，严格按照要求返回 JSON。"
         var description = "当天饮食记录：\n"
         for (index, e) in entries.enumerated() {
             description += "\(index+1). 餐次=\(e.mealType.rawValue)，描述=\(e.text.isEmpty ? "无" : e.text)\n"

@@ -24,6 +24,10 @@ struct PoseOverlayRenderer {
         let asset = AVURLAsset(url: videoURL)
         let generator = AVAssetImageGenerator(asset: asset)
         generator.appliesPreferredTrackTransform = true
+        generator.maximumSize = CGSize(
+            width: FormAnalysisPerformancePolicy.feedbackMaxDimension,
+            height: FormAnalysisPerformancePolicy.feedbackMaxDimension
+        )
         generator.requestedTimeToleranceBefore = CMTime(seconds: 0.12, preferredTimescale: 600)
         generator.requestedTimeToleranceAfter = CMTime(seconds: 0.12, preferredTimescale: 600)
 
@@ -71,6 +75,7 @@ struct PoseOverlayRenderer {
                 context.cgContext.strokeEllipse(in: rect)
             }
 
+            drawIssueCallouts(plan: plan, imageSize: image.size, context: context.cgContext)
             drawHeader(summary: summary, timestamp: plan.frame.timestamp, imageSize: image.size)
             drawFeedback(summary: summary, imageSize: image.size)
         }
@@ -79,6 +84,38 @@ struct PoseOverlayRenderer {
             throw PoseOverlayRendererError.imageEncodingFailed
         }
         return data
+    }
+
+    private func drawIssueCallouts(plan: PoseFeedbackPlan, imageSize: CGSize, context: CGContext) {
+        let padding = imageSize.width * 0.025
+        let calloutWidth = imageSize.width * 0.38
+        let calloutHeight = imageSize.width * 0.075
+        for (index, annotation) in plan.annotations.prefix(2).enumerated() {
+            guard let joint = annotation.joints.compactMap({ plan.frame.point($0) }).first else { continue }
+            let target = point(joint, imageSize: imageSize)
+            let preferredX = target.x < imageSize.width / 2
+                ? target.x + imageSize.width * 0.05
+                : target.x - calloutWidth - imageSize.width * 0.05
+            let x = min(max(padding, preferredX), imageSize.width - padding - calloutWidth)
+            let preferredY = target.y - calloutHeight - CGFloat(index) * (calloutHeight + padding * 0.4)
+            let y = min(max(imageSize.width * 0.20, preferredY), imageSize.height - imageSize.width * 0.22)
+            let rect = CGRect(x: x, y: y, width: calloutWidth, height: calloutHeight)
+
+            context.setStrokeColor(UIColor.systemRed.withAlphaComponent(0.9).cgColor)
+            context.setLineWidth(max(3, imageSize.width * 0.003))
+            context.move(to: target)
+            context.addLine(to: CGPoint(x: rect.midX, y: rect.midY))
+            context.strokePath()
+
+            UIColor.systemRed.withAlphaComponent(0.88).setFill()
+            UIBezierPath(roundedRect: rect, cornerRadius: imageSize.width * 0.012).fill()
+            drawText(
+                annotation.title,
+                in: rect.insetBy(dx: imageSize.width * 0.015, dy: imageSize.width * 0.012),
+                font: .boldSystemFont(ofSize: imageSize.width * 0.026),
+                color: .white
+            )
+        }
     }
 
     private func drawHeader(

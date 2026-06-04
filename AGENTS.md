@@ -242,7 +242,7 @@ FitGenius/
 | Watch 同步 | `WatchSyncService` | 今日训练、逐组完成、休息计时与完成状态 |
 | 数据模型（动作分析） | `Models/Form/FormAnalysisRecord` | `syncStatusRaw` ∈ `pending`/`failed`/`synced` |
 | 规则引擎 | `Services/FormAnalysis/FormRuleEngine` | 平台无关：`PoseFrame` / `JointPoint` / `FormMetric` / `FormIssue` |
-| 设备内分类标签 | `Models/Form/FormAnalysisLabel.swift` | 深蹲/硬拉/卧推（`FormAnalysisKind`） |
+| 设备内动作与姿态协议 | `Models/Form/PoseModels.swift` | 深蹲/硬拉/卧推/站姿推举；未知动作拒绝自动评分 |
 | 隐私清单 | `FitGenius/PrivacyInfo.xcprivacy` | Required Reason API 字典 |
 
 ---

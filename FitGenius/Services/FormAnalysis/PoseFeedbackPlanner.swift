@@ -9,6 +9,13 @@ struct PoseFeedbackPlan: Hashable {
     let frame: PoseFrame
     let segments: [PoseSegment]
     let highlightedJoints: Set<JointName>
+    let annotations: [PoseIssueAnnotation]
+}
+
+struct PoseIssueAnnotation: Hashable {
+    let title: String
+    let severity: Int
+    let joints: [JointName]
 }
 
 struct PoseFeedbackPlanner {
@@ -36,11 +43,17 @@ struct PoseFeedbackPlanner {
         let visibleSegments = skeletonSegments.filter {
             frame.point($0.start) != nil && frame.point($0.end) != nil
         }
-        let highlights = Set(issues.flatMap { highlightedJoints(for: $0.code) })
+        let annotations = issues.compactMap { issue -> PoseIssueAnnotation? in
+            let joints = highlightedJoints(for: issue.code)
+            guard !joints.isEmpty else { return nil }
+            return PoseIssueAnnotation(title: issue.title, severity: issue.severity, joints: joints)
+        }
+        let highlights = Set(annotations.flatMap(\.joints))
         return PoseFeedbackPlan(
             frame: frame,
             segments: visibleSegments,
-            highlightedJoints: highlights
+            highlightedJoints: highlights,
+            annotations: annotations
         )
     }
 
@@ -65,6 +78,10 @@ struct PoseFeedbackPlanner {
             return sequence.frames.min(by: {
                 averageY($0, .leftWrist, .rightWrist) > averageY($1, .leftWrist, .rightWrist)
             }) ?? fallback
+        case .overheadPress:
+            return sequence.frames.max(by: {
+                averageY($0, .leftWrist, .rightWrist) < averageY($1, .leftWrist, .rightWrist)
+            }) ?? fallback
         }
     }
 
@@ -74,6 +91,9 @@ struct PoseFeedbackPlanner {
         }
         if issueCode.contains("elbow") {
             return [.leftShoulder, .rightShoulder, .leftElbow, .rightElbow]
+        }
+        if issueCode.contains("lockout") {
+            return [.leftElbow, .rightElbow, .leftWrist, .rightWrist]
         }
         if issueCode.contains("wrist") || issueCode.contains("asymmetry") {
             return [.leftWrist, .rightWrist]

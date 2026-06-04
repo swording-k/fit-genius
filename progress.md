@@ -62,3 +62,18 @@
   press at 95% confidence and returned a specific highlighted elbow issue.
 - Simulator verified the simplified Diet Stats layout and Diet AI reconnect
   banner.
+- Committed cloud snapshots, account deletion, and the Apple Watch companion at
+  `bafaf2e`; paired simulators exchanged today's deadlift plan successfully.
+- Added standing overhead press with independent classifier/rules/metrics,
+  bilingual coaching, sync identity, and good 96 vs risky 76 fixture evidence.
+- Added unsupported-motion rejection so automatic detection no longer invents a
+  supported label for a static or unclear movement.
+- Added issue callout labels connected to highlighted joints on annotated key
+  frames.
+- Bounded 4K pose frames to 720 px and feedback images to 1600 px. The supplied
+  157 MB video now returns simulator feedback in seconds.
+- Fixed Diet Stats to merge same-day records, exclude empty auto-created days,
+  and calculate macro shares using 4/4/9 kcal.
+- Added backend-session change notifications and separated Diet image-selection
+  errors from AI request errors.
+- Latest XcodeBuildMCP build/run completed with zero warnings and zero errors.

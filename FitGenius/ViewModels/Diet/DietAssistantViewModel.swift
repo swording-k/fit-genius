@@ -10,6 +10,7 @@ class DietAssistantViewModel: ObservableObject {
 	@Published var isLoading: Bool = false
     @Published var loadingText: String = "AI 正在思考..."
 	@Published var errorMessage: String?
+    @Published var mediaErrorMessage: String?
 
     // 待发送的媒体
     @Published var pendingMediaData: Data?
@@ -99,9 +100,9 @@ class DietAssistantViewModel: ObservableObject {
             pendingMediaData = normalized
             pendingMediaType = "image"
             pendingThumbnail = UIImage(data: normalized)
-            errorMessage = nil
+            mediaErrorMessage = nil
         } catch {
-            errorMessage = error.localizedDescription
+            mediaErrorMessage = error.localizedDescription
         }
     }
     

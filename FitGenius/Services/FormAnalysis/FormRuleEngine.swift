@@ -9,6 +9,8 @@ struct FormRuleEngine {
             return analyzeDeadlift(sequence)
         case .benchPress:
             return analyzeBenchPress(sequence)
+        case .overheadPress:
+            return analyzeOverheadPress(sequence)
         }
     }
 
@@ -169,6 +171,51 @@ struct FormRuleEngine {
         )
     }
 
+    private func analyzeOverheadPress(_ sequence: PoseSequence) -> FormAnalysisSummary {
+        var issues = baseIssues(exercise: .overheadPress, sequence: sequence)
+        var metrics = baseMetrics(exercise: .overheadPress, sequence: sequence)
+
+        let topElbowAngle = maximumBilateralElbowAngle(sequence)
+        metrics.append(FormMetric(key: "overhead_top_elbow_angle", label: localized("form_metric_overhead_top_elbow_angle"), value: topElbowAngle, unit: "degrees"))
+        if topElbowAngle > 0, topElbowAngle < 150 {
+            issues.append(FormIssue(
+                code: "overhead_lockout_limited",
+                title: localized("form_issue_overhead_lockout_limited_title"),
+                detail: localized("form_issue_overhead_lockout_limited_detail"),
+                severity: 2
+            ))
+        }
+
+        let wristAsymmetry = averageWristAsymmetry(sequence)
+        metrics.append(FormMetric(key: "overhead_wrist_asymmetry", label: localized("form_metric_overhead_wrist_asymmetry"), value: wristAsymmetry, unit: "norm"))
+        if wristAsymmetry > 0.06 {
+            issues.append(FormIssue(
+                code: "overhead_wrist_asymmetry",
+                title: localized("form_issue_overhead_wrist_asymmetry_title"),
+                detail: localized("form_issue_overhead_wrist_asymmetry_detail"),
+                severity: 2
+            ))
+        }
+
+        let torsoLean = averageTorsoLean(sequence)
+        metrics.append(FormMetric(key: "overhead_torso_lean", label: localized("form_metric_overhead_torso_lean"), value: torsoLean, unit: "norm"))
+        if torsoLean > 0.14 {
+            issues.append(FormIssue(
+                code: "overhead_torso_lean",
+                title: localized("form_issue_overhead_torso_lean_title"),
+                detail: localized("form_issue_overhead_torso_lean_detail"),
+                severity: 3
+            ))
+        }
+
+        return summary(
+            exercise: .overheadPress,
+            issues: issues,
+            metrics: metrics,
+            fallbackRecommendation: localized("form_recommendation_overhead_press")
+        )
+    }
+
     private func summary(
         exercise: FormExerciseType,
         issues: [FormIssue],
@@ -265,6 +312,17 @@ struct FormRuleEngine {
         }.min() ?? 0
     }
 
+    private func maximumBilateralElbowAngle(_ sequence: PoseSequence) -> Double {
+        sequence.frames.compactMap { frame in
+            let angles = [
+                jointAngle(frame, first: .leftShoulder, vertex: .leftElbow, second: .leftWrist),
+                jointAngle(frame, first: .rightShoulder, vertex: .rightElbow, second: .rightWrist)
+            ].compactMap { $0 }
+            guard !angles.isEmpty else { return nil }
+            return average(angles)
+        }.max() ?? 0
+    }
+
     private func jointAngle(
         _ frame: PoseFrame,
         first: JointName,
@@ -354,7 +412,7 @@ struct FormRuleEngine {
                 .leftKnee, .rightKnee,
                 .leftAnkle, .rightAnkle
             ]
-        case .benchPress:
+        case .benchPress, .overheadPress:
             return [
                 .leftShoulder, .rightShoulder,
                 .leftElbow, .rightElbow,

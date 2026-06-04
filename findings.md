@@ -29,12 +29,21 @@
   red. It is not proof that every aspect of the lift is correct.
 - Diet Stats still overlays several area and line series, making the charts hard
   to interpret.
-- Deterministic quality tests now prove score separation for all three supported
-  lifts: squat 96/46, deadlift 96/66, and bench press 96/76 for good/risky
-  fixtures.
-- Automatic detection is intentionally limited to the three supported lifts.
+- Deterministic quality tests now prove score separation for all four supported
+  lifts: squat 96/46, deadlift 96/66, bench press 96/76, and standing overhead
+  press 96/76 for good/risky fixtures.
+- Automatic detection is intentionally limited to the four supported lifts and
+  rejects uncertain motion instead of forcing a label.
   Adding more labels without corresponding rules and real-video acceptance
   would make the product appear broader while reducing trust.
 - Simulator validation proves the local analysis UI and rule fixtures, but the
   actual pose joints from Apple Vision and real cloud image acceptance still
   require a physical iPhone.
+- The supplied bench video is 157 MB and 4K. Full-resolution frame decoding made
+  the simulator UI appear unresponsive; bounded extraction/feedback dimensions
+  fixed the simulator flow and should reduce physical-device memory/latency.
+- Empty `MealDay` rows are created when users merely open Diet. Counting them
+  produced fake `0 kcal` history; Diet Stats now filters them out.
+- Production multimodal live acceptance cannot be forged from the local
+  `/tmp/fitgenius-production.env` because encrypted values pull as empty.
+  A real Apple-authenticated phone session is required.

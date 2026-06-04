@@ -8,6 +8,7 @@ enum PoseExtractionError: LocalizedError {
     case noPoseDetected
     case unreadableVideo
     case poseDetectionUnavailable
+    case unsupportedExercise
 
     var errorDescription: String? {
         switch self {
@@ -21,6 +22,8 @@ enum PoseExtractionError: LocalizedError {
             return NSLocalizedString("form_error_unreadable_video", comment: "")
         case .poseDetectionUnavailable:
             return NSLocalizedString("form_error_pose_detection_unavailable", comment: "")
+        case .unsupportedExercise:
+            return NSLocalizedString("form_error_unsupported_exercise", comment: "")
         }
     }
 }
@@ -35,6 +38,10 @@ struct PoseExtractionService {
 
         let generator = AVAssetImageGenerator(asset: asset)
         generator.appliesPreferredTrackTransform = true
+        generator.maximumSize = CGSize(
+            width: FormAnalysisPerformancePolicy.extractionMaxDimension,
+            height: FormAnalysisPerformancePolicy.extractionMaxDimension
+        )
         generator.requestedTimeToleranceBefore = .zero
         generator.requestedTimeToleranceAfter = .zero
 

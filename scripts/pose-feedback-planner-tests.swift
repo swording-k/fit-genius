@@ -27,6 +27,8 @@ struct PoseFeedbackPlannerTests {
         require(squatPlan.highlightedJoints.contains(.leftKnee), "knee-cave feedback should highlight the left knee")
         require(squatPlan.highlightedJoints.contains(.rightKnee), "knee-cave feedback should highlight the right knee")
         require(!squatPlan.segments.isEmpty, "feedback should include skeleton segments")
+        require(squatPlan.annotations.first?.title == "Knee cave", "feedback should retain the issue title for image callouts")
+        require(squatPlan.annotations.first?.severity == 3, "feedback should retain issue severity for image callouts")
 
         let benchSequence = PoseSequence.exerciseFixture(.benchPress, quality: .risky)
         let benchIssue = FormIssue(

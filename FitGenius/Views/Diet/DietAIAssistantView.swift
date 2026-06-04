@@ -166,13 +166,13 @@ struct DietAIAssistantView: View {
         .alert(
             "media_image_error_title",
             isPresented: Binding(
-                get: { viewModel.errorMessage != nil },
-                set: { if !$0 { viewModel.errorMessage = nil } }
+                get: { viewModel.mediaErrorMessage != nil },
+                set: { if !$0 { viewModel.mediaErrorMessage = nil } }
             )
         ) {
-            Button("form_analysis_close") { viewModel.errorMessage = nil }
+            Button("form_analysis_close") { viewModel.mediaErrorMessage = nil }
         } message: {
-            Text(viewModel.errorMessage ?? "")
+            Text(viewModel.mediaErrorMessage ?? "")
         }
     }
 }

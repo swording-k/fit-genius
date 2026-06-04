@@ -24,17 +24,19 @@ struct LocalFormAnalysisPipeline {
         defer { try? FileManager.default.removeItem(at: tempURL) }
 
         let sequence: PoseSequence
-        do {
-            sequence = try await extractor.extractPoseSequence(from: tempURL)
-        } catch {
-            #if DEBUG && targetEnvironment(simulator)
-            guard DebugFormAnalysisVideoProvider.launchVideoURL != nil else { throw error }
+        #if DEBUG && targetEnvironment(simulator)
+        if DebugFormAnalysisVideoProvider.launchVideoURL != nil {
             sequence = .exerciseFixture(preferredExercise ?? .benchPress, quality: .risky)
-            #else
-            throw error
-            #endif
+        } else {
+            sequence = try await extractor.extractPoseSequence(from: tempURL)
         }
+        #else
+        sequence = try await extractor.extractPoseSequence(from: tempURL)
+        #endif
         let classification = classifier.classify(sequence)
+        if preferredExercise == nil, !classification.isReliable {
+            throw PoseExtractionError.unsupportedExercise
+        }
         let exercise = preferredExercise ?? classification.exercise
         let summary = ruleEngine.analyze(exercise: exercise, sequence: sequence)
         let feedbackPlan = feedbackPlanner.makePlan(

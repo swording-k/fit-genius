@@ -17,6 +17,7 @@ final class AuthViewModel: ObservableObject {
     private let settings: SyncSettings
     private let apiClient: AppleAuthAPIClient
     private let accountDeletionService: AccountDeletionService
+    private var cancellables = Set<AnyCancellable>()
 
     init(
         settings: SyncSettings? = nil,
@@ -28,6 +29,10 @@ final class AuthViewModel: ObservableObject {
         self.apiClient = apiClient ?? AppleAuthAPIClient()
         self.accountDeletionService = accountDeletionService ?? AccountDeletionService(settings: resolvedSettings)
         checkExistingSession()
+        NotificationCenter.default.publisher(for: .backendSessionChanged)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &cancellables)
     }
 
     private func checkExistingSession() {

@@ -6,6 +6,7 @@ enum FormAnalysisSyncPayloadTests {
         assertEqual(FormExerciseType.squat.syncIdentifier, "squat", "squat sync identifier")
         assertEqual(FormExerciseType.deadlift.syncIdentifier, "deadlift", "deadlift sync identifier")
         assertEqual(FormExerciseType.benchPress.syncIdentifier, "bench_press", "bench sync identifier")
+        assertEqual(FormExerciseType.overheadPress.syncIdentifier, "overhead_press", "overhead press sync identifier")
 
         let issue = FormIssue(
             code: "bench_wrist_path",

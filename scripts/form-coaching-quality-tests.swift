@@ -32,6 +32,16 @@ struct FormCoachingQualityTests {
             )
         }
 
+        let overheadGood = engine.analyze(
+            exercise: .overheadPress,
+            sequence: .exerciseFixture(.overheadPress, quality: .good)
+        )
+        let overheadRisky = engine.analyze(
+            exercise: .overheadPress,
+            sequence: .exerciseFixture(.overheadPress, quality: .risky)
+        )
+        require(overheadGood.score > overheadRisky.score, "overhead press good form must score above risky form")
+
         let classifier = FormExerciseClassifier()
         for exercise in FormExerciseType.allCases {
             let result = classifier.classify(.exerciseFixture(exercise, quality: .good))
@@ -44,6 +54,23 @@ struct FormCoachingQualityTests {
                 "\(exercise.rawValue): classifier should expose usable confidence"
             )
         }
+        require(
+            classifier.classify(.exerciseFixture(.overheadPress, quality: .good)).exercise == .overheadPress,
+            "classifier should identify a standing overhead press"
+        )
+        let unsupported = PoseSequence(frames: [
+            PoseFrame(timestamp: 0, joints: [
+                .leftShoulder: JointPoint(x: 0.43, y: 0.82, confidence: 0.95),
+                .rightShoulder: JointPoint(x: 0.57, y: 0.82, confidence: 0.95),
+                .leftHip: JointPoint(x: 0.44, y: 0.56, confidence: 0.95),
+                .rightHip: JointPoint(x: 0.56, y: 0.56, confidence: 0.95),
+                .leftKnee: JointPoint(x: 0.44, y: 0.36, confidence: 0.95),
+                .rightKnee: JointPoint(x: 0.56, y: 0.36, confidence: 0.95),
+                .leftAnkle: JointPoint(x: 0.42, y: 0.18, confidence: 0.95),
+                .rightAnkle: JointPoint(x: 0.58, y: 0.18, confidence: 0.95)
+            ])
+        ])
+        require(!classifier.classify(unsupported).isReliable, "unsupported static motion must not receive a confident exercise label")
 
         print("form-coaching-quality-tests: PASS")
     }

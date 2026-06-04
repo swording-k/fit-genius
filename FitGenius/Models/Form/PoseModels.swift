@@ -4,6 +4,7 @@ enum FormExerciseType: String, Codable, CaseIterable, Identifiable {
     case squat = "深蹲"
     case deadlift = "硬拉"
     case benchPress = "卧推"
+    case overheadPress = "站姿推举"
 
     var id: String { rawValue }
 
@@ -17,6 +18,8 @@ enum FormExerciseType: String, Codable, CaseIterable, Identifiable {
             return "deadlift"
         case .benchPress:
             return "bench_press"
+        case .overheadPress:
+            return "overhead_press"
         }
     }
 
@@ -28,6 +31,8 @@ enum FormExerciseType: String, Codable, CaseIterable, Identifiable {
             return "form_exercise_deadlift"
         case .benchPress:
             return "form_exercise_bench_press"
+        case .overheadPress:
+            return "form_exercise_overhead_press"
         }
     }
 
@@ -38,6 +43,9 @@ enum FormExerciseType: String, Codable, CaseIterable, Identifiable {
         }
         if name.contains("硬拉") || name.contains("deadlift") {
             return .deadlift
+        }
+        if name.contains("推举") || name.contains("肩推") || name.contains("overhead") || name.contains("military press") {
+            return .overheadPress
         }
         if name.contains("卧推") || name.contains("bench") || name.contains("press") {
             return .benchPress
@@ -140,6 +148,8 @@ extension PoseSequence {
             return hingeFixture(quality: quality)
         case .benchPress:
             return pressFixture(quality: quality)
+        case .overheadPress:
+            return overheadPressFixture(quality: quality)
         }
     }
 
@@ -191,6 +201,42 @@ extension PoseSequence {
                 .rightElbow: JointPoint(x: 0.70, y: elbowY, confidence: 0.95),
                 .leftWrist: JointPoint(x: 0.28, y: 0.70, confidence: 0.95),
                 .rightWrist: JointPoint(x: 0.72, y: 0.70, confidence: 0.95)
+            ])
+        ])
+    }
+
+    private static func overheadPressFixture(quality: PoseFixtureQuality) -> PoseSequence {
+        let topLeftWristY = quality == .good ? 0.94 : 0.78
+        let topRightWristY = quality == .good ? 0.94 : 0.68
+        let shoulderX = quality == .good ? 0.43 : 0.34
+        return PoseSequence(frames: [
+            PoseFrame(timestamp: 0, joints: [
+                .leftShoulder: JointPoint(x: 0.43, y: 0.75, confidence: 0.95),
+                .rightShoulder: JointPoint(x: 0.57, y: 0.75, confidence: 0.95),
+                .leftElbow: JointPoint(x: 0.40, y: 0.68, confidence: 0.95),
+                .rightElbow: JointPoint(x: 0.60, y: 0.68, confidence: 0.95),
+                .leftWrist: JointPoint(x: 0.42, y: 0.75, confidence: 0.95),
+                .rightWrist: JointPoint(x: 0.58, y: 0.75, confidence: 0.95),
+                .leftHip: JointPoint(x: 0.44, y: 0.50, confidence: 0.95),
+                .rightHip: JointPoint(x: 0.56, y: 0.50, confidence: 0.95),
+                .leftKnee: JointPoint(x: 0.44, y: 0.30, confidence: 0.95),
+                .rightKnee: JointPoint(x: 0.56, y: 0.30, confidence: 0.95),
+                .leftAnkle: JointPoint(x: 0.43, y: 0.12, confidence: 0.95),
+                .rightAnkle: JointPoint(x: 0.57, y: 0.12, confidence: 0.95)
+            ]),
+            PoseFrame(timestamp: 0.8, joints: [
+                .leftShoulder: JointPoint(x: shoulderX, y: 0.75, confidence: 0.95),
+                .rightShoulder: JointPoint(x: shoulderX + 0.14, y: 0.75, confidence: 0.95),
+                .leftElbow: JointPoint(x: 0.42, y: quality == .good ? 0.85 : 0.72, confidence: 0.95),
+                .rightElbow: JointPoint(x: 0.58, y: quality == .good ? 0.85 : 0.70, confidence: 0.95),
+                .leftWrist: JointPoint(x: 0.44, y: topLeftWristY, confidence: 0.95),
+                .rightWrist: JointPoint(x: 0.56, y: topRightWristY, confidence: 0.95),
+                .leftHip: JointPoint(x: 0.44, y: 0.50, confidence: 0.95),
+                .rightHip: JointPoint(x: 0.56, y: 0.50, confidence: 0.95),
+                .leftKnee: JointPoint(x: 0.44, y: 0.30, confidence: 0.95),
+                .rightKnee: JointPoint(x: 0.56, y: 0.30, confidence: 0.95),
+                .leftAnkle: JointPoint(x: 0.43, y: 0.12, confidence: 0.95),
+                .rightAnkle: JointPoint(x: 0.57, y: 0.12, confidence: 0.95)
             ])
         ])
     }

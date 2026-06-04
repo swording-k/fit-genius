@@ -11,9 +11,10 @@ and diet statistics around useful decisions.
 ## Scope
 
 - Keep Apple Vision and the local rule engine as the source of truth.
-- Reuse the existing chat, SwiftData history, backend sync, and three supported
+- Reuse the existing chat, SwiftData history, backend sync, and supported
   exercise rules.
-- Do not start Watch, Android, Huawei, diet expansion, or new exercise rules.
+- Keep Android/Huawei paused. Expand form coaching one movement at a time with
+  explicit rules and tests.
 
 ## Phases
 
@@ -29,6 +30,9 @@ and diet statistics around useful decisions.
 | 8. Strengthen form coaching | complete | Auto-detect exercise, validate scoring, improve feedback and overlays |
 | 9. Simplify diet Stats | complete | Replace overlapping charts with useful summaries |
 | 10. Release-quality regression | in_progress | Full build, backend, simulator, docs, and physical-device checklist |
+| 11. Cloud + Watch milestone | complete | Cloud snapshots, account deletion, and Watch companion verified |
+| 12. Trustworthy form-coach expansion | complete | Standing overhead press, unsupported-motion rejection, issue callouts, and bounded 4K processing |
+| 13. Repair Diet Stats semantics | complete | Merge same-day records, exclude empty days, and use calorie-based macro shares |
 
 ## Errors Encountered
 
