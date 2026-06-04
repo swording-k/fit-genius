@@ -6,6 +6,7 @@ import WatchConnectivity
 final class WatchConnectivityManager: NSObject, ObservableObject {
     @Published var workoutContext: WatchWorkoutContext?
     @Published private(set) var completedSets: [String: Int] = [:]
+    @Published private(set) var isPreparedFromPhone = false
 
     override init() {
         super.init()
@@ -50,6 +51,11 @@ final class WatchConnectivityManager: NSObject, ObservableObject {
         let activeIds = Set(context.exercises.filter { !$0.isCompleted }.map(\.id))
         completedSets = completedSets.filter { activeIds.contains($0.key) }
     }
+
+    private func receive(_ message: [String: Any]) {
+        guard message["action"] as? String == "prepareWorkout" else { return }
+        isPreparedFromPhone = true
+    }
 }
 
 extension WatchConnectivityManager: WCSessionDelegate {
@@ -61,5 +67,13 @@ extension WatchConnectivityManager: WCSessionDelegate {
 
     nonisolated func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) {
         Task { @MainActor in self.decode(applicationContext) }
+    }
+
+    nonisolated func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
+        Task { @MainActor in self.receive(message) }
+    }
+
+    nonisolated func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
+        Task { @MainActor in self.receive(userInfo) }
     }
 }

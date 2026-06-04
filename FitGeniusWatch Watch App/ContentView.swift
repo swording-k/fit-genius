@@ -8,6 +8,11 @@ struct ContentView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 header
+                if connectivity.isPreparedFromPhone, !workout.isActive {
+                    Label("watch_prepared_from_phone", systemImage: "iphone.and.arrow.forward")
+                        .font(.caption2.bold())
+                        .foregroundStyle(.green)
+                }
                 if let context = connectivity.workoutContext {
                     if context.isRestDay {
                         restDay

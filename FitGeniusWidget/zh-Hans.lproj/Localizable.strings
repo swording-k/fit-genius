@@ -1,0 +1,14 @@
+"widget_description" = "查看今日训练进度或饮食记录";
+"widget_today_workout" = "今日训练";
+"widget_today_diet" = "今日饮食";
+"widget_rest_day" = "今天是休息日";
+"widget_rest_detail" = "恢复也是训练的一部分";
+"widget_no_plan" = "暂无今日计划";
+"widget_open_to_create" = "打开 FitGenius 创建训练计划";
+"widget_workout_complete" = "今日训练已完成";
+"widget_no_exercises" = "今天没有训练动作";
+"widget_no_diet" = "今天还没有饮食记录";
+"widget_open_to_log" = "打开 FitGenius 开始记录";
+"widget_protein" = "蛋白质";
+"widget_carbs" = "碳水";
+"widget_fat" = "脂肪";

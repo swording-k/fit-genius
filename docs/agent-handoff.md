@@ -1,6 +1,6 @@
 # FitGenius Agent Handoff
 
-Last updated: 2026-06-04 19:23 Asia/Shanghai
+Last updated: 2026-06-04 20:52 Asia/Shanghai
 
 ## Read First
 
@@ -11,13 +11,25 @@ Last updated: 2026-06-04 19:23 Asia/Shanghai
 
 ## Current Status
 
-The cloud-sync and Apple Watch milestone is committed at `bafaf2e`. A newer
-local product-quality milestone expands and hardens the form coach, repairs Diet
-Stats semantics, and improves AI-session failure handling; it is not committed
-yet.
+The cloud-sync and Apple Watch milestone is committed at `bafaf2e`, and the
+form-coach product-quality milestone is committed at `ab59258`. The current
+local milestone adds the iPhone Watch discovery/launch flow and redesigns the
+Widget; it is validated and awaiting commit.
 
 Latest milestone:
 
+- Added an explicit Today Plan Apple Watch launcher. It immediately refreshes
+  today's application context, queues a prepare command when the Watch is
+  offline, and gives visible sent feedback instead of silently syncing.
+- Added an Apple Watch discovery/install card under Profile. The section is
+  hidden for users without a paired Watch and explains the iPhone Watch App
+  installation path when the companion is not installed.
+- The Watch companion now acknowledges workouts prepared from iPhone.
+- Rebuilt the Widget around today's workout progress and next exercise.
+  Small/medium/large layouts use system surfaces, support bilingual copy,
+  retain the diet preference, and deep-link directly to Today Plan.
+- Removed noisy PlanDashboard render logging and added deterministic Watch
+  state and Widget presentation tests.
 - Added standing overhead press as the fourth supported form-analysis movement,
   with automatic classification, independent rules, metrics, recommendations,
   localization, sync identifier, and good/risky score evidence.
@@ -139,6 +151,16 @@ new reconnect prompt once to receive a new FitGenius cloud session.
 
 ## Latest Validation
 
+- Generic iOS Simulator build succeeded with the iPhone, Widget, and Watch
+  targets embedded and validated.
+- XcodeBuildMCP build/run succeeded with zero diagnostics. Simulator screenshot
+  verified the Today Plan Apple Watch launcher and sent-workout action.
+- Opening `fitgenius://today` returned from Profile to the training-plan tab.
+- Simulator Profile verified that the paired-Watch discovery card appears with
+  the sent state; code hides the entire section when no Watch is paired.
+- Watch preparation-state and Widget presentation tests passed, including
+  paired/install guidance, queued preparation, progress, and next-exercise
+  selection.
 - `npm run test:backend`: 25/25 passing, including authenticated account
   deletion, cloud snapshot validation, lazy schema creation/retry, and the
   users-table foreign key regression.

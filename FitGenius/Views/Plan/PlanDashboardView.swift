@@ -14,15 +14,6 @@ struct PlanDashboardView: View {
     @State private var showDeleteDayAlert = false
     
     var workoutPlan: WorkoutPlan? {
-        print("📱 [PlanDashboard] 查询训练计划...")
-        print("📱 [PlanDashboard] ModelContext: \(modelContext)")
-        print("📱 [PlanDashboard] ModelContainer: \(modelContext.container)")
-        if let url = modelContext.container.configurations.first?.url {
-            print("📱 [PlanDashboard] Container URL: \(url.path)")
-        } else {
-            print("📱 [PlanDashboard] Container URL: nil")
-        }
-        print("📱 [PlanDashboard] profiles 数量: \(profiles.count)")
         return profiles.first?.workoutPlan
     }
     
@@ -87,6 +78,12 @@ struct PlanDashboardView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
                     .background(Color.blue.opacity(0.1))
+
+                    if selectedDayIndex == todayDayIndex {
+                        WatchCompanionCard(placement: .todayPlan)
+                            .padding(.horizontal)
+                            .padding(.bottom, 8)
+                    }
                     
                     // 天数选择器
                     TrainingDaySelector(

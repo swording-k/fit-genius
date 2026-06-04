@@ -56,6 +56,19 @@
 "settings" = "Settings";
 "feedback" = "Feedback";
 "about" = "About";
+"apple_watch" = "Apple Watch";
+"watch_companion_discover_title" = "FitGenius works on Apple Watch";
+"watch_companion_unsupported_detail" = "Pair an Apple Watch to log every set from your wrist.";
+"watch_companion_not_paired_detail" = "Pair an Apple Watch to log every set from your wrist.";
+"watch_companion_install_title" = "Install FitGenius on Apple Watch";
+"watch_companion_install_detail" = "Open the Watch app on iPhone and install FitGenius from Available Apps.";
+"watch_companion_start_title" = "Train on Apple Watch";
+"watch_companion_ready_detail" = "Send today's plan and log every set and rest period on your watch.";
+"watch_companion_sent_title" = "Today's workout is ready";
+"watch_companion_sent_detail" = "Open FitGenius on Apple Watch and tap Play to begin.";
+"watch_companion_unavailable_title" = "Send today's workout to Apple Watch";
+"watch_companion_unavailable_detail" = "Your watch is offline. The plan will arrive when it reconnects.";
+"watch_companion_send_action" = "Send Today's Workout";
 
 /* Form Coach */
 "form_analysis_title" = "Form Analysis";

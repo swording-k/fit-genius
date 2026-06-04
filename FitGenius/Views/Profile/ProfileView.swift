@@ -13,6 +13,7 @@ struct ProfileView: View {
     @State private var showResetConfirmation = false
     @State private var showDeleteAccountConfirmation = false
     @State private var showDeleteAccountError = false
+    @ObservedObject private var watchSync = WatchSyncService.shared
 
     var currentProfile: UserProfile? {
         profiles.first
@@ -137,6 +138,12 @@ struct ProfileView: View {
                     }
                 }
 
+                if watchSync.preparationState != .unsupported && watchSync.preparationState != .notPaired {
+                    Section(header: Text("apple_watch")) {
+                        WatchCompanionCard(placement: .profile)
+                    }
+                }
+
                 Section(header: Text("widget")) {
                     WidgetBackgroundSettingsView()
                 }
@@ -178,6 +185,9 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle("profile")
+            .onAppear {
+                watchSync.refreshState()
+            }
             .sheet(isPresented: $showLoginSheet) {
                 LoginView()
             }

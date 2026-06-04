@@ -77,3 +77,16 @@ xcrun swiftc \
   scripts/sync-settings-notification-tests.swift \
   -o /tmp/sync-settings-notification-tests
 /tmp/sync-settings-notification-tests
+
+xcrun swiftc \
+  FitGenius/Services/WatchPreparationState.swift \
+  scripts/watch-preparation-state-tests.swift \
+  -o /tmp/watch-preparation-state-tests
+/tmp/watch-preparation-state-tests
+
+xcrun swiftc \
+  FitGeniusWidget/FitGeniusWidget.swift \
+  FitGeniusWidget/WidgetPresentationModels.swift \
+  scripts/widget-presentation-tests.swift \
+  -o /tmp/widget-presentation-tests
+/tmp/widget-presentation-tests

@@ -56,6 +56,19 @@
 "settings" = "设置";
 "feedback" = "反馈";
 "about" = "关于";
+"apple_watch" = "Apple Watch";
+"watch_companion_discover_title" = "FitGenius 也支持 Apple Watch";
+"watch_companion_unsupported_detail" = "配对 Apple Watch 后，可在手腕上记录每一组训练。";
+"watch_companion_not_paired_detail" = "配对 Apple Watch 后，可在手腕上记录每一组训练。";
+"watch_companion_install_title" = "在 Apple Watch 上安装 FitGenius";
+"watch_companion_install_detail" = "打开 iPhone 的 Watch App，在“可用 App”中安装 FitGenius。";
+"watch_companion_start_title" = "在 Apple Watch 上训练";
+"watch_companion_ready_detail" = "发送今日计划，在手表上记录每一组和休息时间。";
+"watch_companion_sent_title" = "今日训练已发送";
+"watch_companion_sent_detail" = "打开手表上的 FitGenius，点击播放即可开始训练。";
+"watch_companion_unavailable_title" = "发送今日训练到 Apple Watch";
+"watch_companion_unavailable_detail" = "手表暂时不在线，计划会在连接后送达。";
+"watch_companion_send_action" = "发送今日训练";
 
 /* Form Coach */
 "form_analysis_title" = "动作分析";

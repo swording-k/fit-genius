@@ -92,6 +92,8 @@ struct FitGeniusApp: App {
                 object: nil,
                 userInfo: ["exerciseID": exerciseIDString]
             )
+        } else if url.host == "today" {
+            NotificationCenter.default.post(name: .openTodayPlanFromWidget, object: nil)
         }
     }
 
@@ -139,6 +141,7 @@ struct FitGeniusApp: App {
 // MARK: - 通知名称
 extension Notification.Name {
     static let completeExerciseFromWidget = Notification.Name("completeExerciseFromWidget")
+    static let openTodayPlanFromWidget = Notification.Name("openTodayPlanFromWidget")
 }
 
 // MARK: - Widget数据管理
