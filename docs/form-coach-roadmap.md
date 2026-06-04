@@ -30,8 +30,9 @@ The AI Assistant becomes the unified coaching surface:
 4. FitGenius returns an annotated representative frame plus concise coaching.
 5. AI can explain or answer follow-up questions, but does not invent the score.
 
-Training plans and Stats support this loop. Watch, Android/Huawei, new exercise
-rules, and broader feature expansion stay paused until this experience is useful.
+Training plans and Stats support this loop. The first Watch workout companion
+is now implemented, while Android/Huawei and broad exercise expansion remain
+paused until this experience is useful.
 
 ## Technical Direction
 
@@ -121,8 +122,11 @@ The iOS app remains offline-capable. Login and sync enhance the product but shou
 Vercel, Neon, Apple-session verification, AI proxy, and form-analysis storage
 are wired. A live authenticated AI request returned a real provider response,
 and a live authenticated form-analysis request returned `mode: stored` from
-Neon. Existing phone sessions must reconnect once because the production
-session secret was repaired.
+Neon. Account cloud snapshots for profile, workout plan/history, and diet are
+implemented and deployed. They remain offline-first and intentionally exclude
+large media and chat history. Authenticated account deletion removes all cloud
+rows through database cascades. Existing phone sessions must reconnect once
+because the production session secret was repaired.
 
 ### Phase 3: Apple Watch Experience
 
@@ -163,9 +167,13 @@ Implemented:
 - Product stabilization for AI connection state, newest-message chat opening,
   Profile debug-control removal, and Stats filtering/empty states.
 
+Implemented locally, pending paired-device acceptance:
+
+- Apple Watch companion for today's workout, current exercise, completion,
+  per-set progress, rest timer, live heart rate, and HealthKit workout writing.
+
 Not started:
 
-- Apple Watch companion.
 - Android/Huawei clients.
 - Subscription and billing.
 
@@ -181,6 +189,12 @@ Last verified on 2026-06-04:
 - `scripts/check-localization.sh`: 70/70 required form-coach keys passed.
 - Production AI non-streaming and streaming requests returned real Qwen output.
 - Production form-analysis storage returned HTTP 200 with `mode: stored`.
+- Production cloud-snapshot route deployed; unauthenticated and invalid-session
+  requests return HTTP 401. Authenticated first-sync acceptance remains a
+  physical-device step.
+- Apple Watch simulator build, installation, and launch succeeded. The paired
+  simulator received today's workout from iPhone and displayed its exercise,
+  programmed sets/reps/weight, and set progress.
 - Secret scan found no provider key or database URL in deployable files.
 - Real-device Apple login and Apple Vision acceptance remain required.
 - Simulator UI verified the AI Assistant annotated-feedback flow with the
@@ -218,6 +232,8 @@ UI issue fixed during smoke test:
    - Camera-angle warnings.
    - More precise bottom-position control.
    - More robust bar/wrist path interpretation across camera angles.
+3. Verify cloud snapshot restore with two Apple-authenticated devices.
+4. Pair an Apple Watch and verify workout completion, heart rate, and HealthKit.
 3. Complete the P0/P1 product-quality audit in `docs/product-quality-plan.md`.
 4. Prepare a TestFlight release candidate before starting Apple Watch work.
 

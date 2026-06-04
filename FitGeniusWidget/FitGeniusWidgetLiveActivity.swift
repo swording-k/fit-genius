@@ -55,26 +55,3 @@ struct FitGeniusWidgetLiveActivity: Widget {
         }
     }
 }
-
-extension FitGeniusWidgetAttributes {
-    fileprivate static var preview: FitGeniusWidgetAttributes {
-        FitGeniusWidgetAttributes(name: "World")
-    }
-}
-
-extension FitGeniusWidgetAttributes.ContentState {
-    fileprivate static var smiley: FitGeniusWidgetAttributes.ContentState {
-        FitGeniusWidgetAttributes.ContentState(emoji: "😀")
-     }
-     
-     fileprivate static var starEyes: FitGeniusWidgetAttributes.ContentState {
-         FitGeniusWidgetAttributes.ContentState(emoji: "🤩")
-     }
-}
-
-#Preview("Notification", as: .content, using: FitGeniusWidgetAttributes.preview) {
-   FitGeniusWidgetLiveActivity()
-} contentStates: {
-    FitGeniusWidgetAttributes.ContentState.smiley
-    FitGeniusWidgetAttributes.ContentState.starEyes
-}

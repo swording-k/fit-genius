@@ -163,6 +163,15 @@
 "show" = "Show";
 "clear" = "Clear";
 "reset_data" = "Reset Data & Reconfigure";
+"reset_data_confirm_title" = "Reset All Local Data?";
+"reset_data_confirm_message" = "This deletes plans, workout history, diet records, chats, and form analyses, returns to setup, and updates cloud sync after reconfiguration.";
+"reset_data_confirm_action" = "Reset and Reconfigure";
+"delete_account" = "Delete Account";
+"delete_account_confirm_title" = "Permanently Delete Account?";
+"delete_account_confirm_message" = "This permanently deletes your FitGenius cloud account, synced data, and all data on this device. This cannot be undone.";
+"delete_account_confirm_action" = "Permanently Delete Account";
+"delete_account_failed_title" = "Unable to Delete Account";
+"account_delete_failed_message" = "Your cloud account could not be deleted. Check your connection and try again.";
 "report_issue" = "Report Issue via Email";
 "report_issue_subject" = "Problem Feedback";
 

@@ -163,6 +163,15 @@
 "show" = "显示";
 "clear" = "清除";
 "reset_data" = "清空数据并重新设置";
+"reset_data_confirm_title" = "清空所有本地数据？";
+"reset_data_confirm_message" = "这会删除训练计划、训练记录、饮食记录、聊天和动作分析，然后返回初始设置；重新设置后云同步也会更新。";
+"reset_data_confirm_action" = "清空并重新设置";
+"delete_account" = "删除账户";
+"delete_account_confirm_title" = "永久删除账户？";
+"delete_account_confirm_message" = "这会永久删除 FitGenius 云端账户、云同步数据和此设备上的全部数据。此操作无法撤销。";
+"delete_account_confirm_action" = "永久删除账户";
+"delete_account_failed_title" = "无法删除账户";
+"account_delete_failed_message" = "暂时无法删除云端账户，请检查网络后重试。";
 "report_issue" = "通过邮件上报问题";
 "report_issue_subject" = "问题反馈";
 

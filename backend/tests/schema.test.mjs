@@ -8,5 +8,6 @@ assert.match(schema, /create table if not exists users/i);
 assert.match(schema, /email text/i);
 assert.match(schema, /id uuid primary key default gen_random_uuid\(\)/i);
 assert.match(schema, /unique \(user_id, local_identifier\)/i);
+assert.match(schema, /create table if not exists cloud_snapshots/i);
 
 console.log("schema tests passed");

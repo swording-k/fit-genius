@@ -1,6 +1,6 @@
 # FitGenius Agent Handoff
 
-Last updated: 2026-06-04 15:40 Asia/Shanghai
+Last updated: 2026-06-04 18:08 Asia/Shanghai
 
 ## Read First
 
@@ -11,9 +11,31 @@ Last updated: 2026-06-04 15:40 Asia/Shanghai
 
 ## Current Status
 
-The backend stabilization milestone remains deployed. The new user-visible iOS
-milestone is committed on `main` and awaiting physical-iPhone acceptance before
-release.
+The form-coach milestone remains deployed. A new local milestone adds real
+account cloud sync and the first Apple Watch companion. It is deployed for
+backend acceptance but is not committed yet.
+
+Latest milestone:
+
+- Added offline-first account snapshots for profile, workout plan/history, and
+  diet records. SwiftData remains primary; first sync uploads meaningful local
+  data or restores remote data onto a new empty device.
+- Deployed authenticated `GET/PUT /api/cloud-snapshot` to production. Its table
+  is created lazily after authentication, preventing a missed manual migration.
+- Cloud snapshots exclude avatars, meal photos, raw videos, and chat media.
+- Cloud snapshot digests are isolated per account, and retained local data is
+  never uploaded automatically after switching to a different account.
+- Added Apple Watch target with today's workout, current exercise, completion
+  sync after all planned sets, 90-second rest timer, live heart rate, and
+  HealthKit workout writing.
+- Reduced normalized AI image payload ceiling from 1.8 MB to 1.1 MB after a
+  physical-device console showed Vercel `FUNCTION_PAYLOAD_TOO_LARGE`; complex
+  images now retry at smaller dimensions before failing.
+- Fixed Reset Data so it requires confirmation, deletes every local product
+  model including form analyses, and clears stale Watch workout context.
+- Added a reachable confirmed Delete Account action. Authenticated deletion
+  removes the backend user row and cascades cloud snapshots/form analyses
+  before local data is cleared; backend failure preserves local data.
 
 Completed in the current local milestone:
 
@@ -88,12 +110,32 @@ Verified live on 2026-06-04:
 - Production Vercel environment values were repaired for `DATABASE_URL`,
   `ALIYUN_API_KEY`, `SESSION_SECRET`, `APPLE_BUNDLE_ID`, and
   `BACKEND_PUBLIC_URL`.
+- Deployment `dpl_ENLsB96UFzENTjYu3JDbxY5p4zrf` is live on
+  `https://fitgenius-ashen.vercel.app`.
+- `GET /api/cloud-snapshot` returns HTTP 401 without a session and with an
+  invalid session. A real Apple-authenticated GET/PUT remains to be accepted
+  from the app.
 
 Important: the production `SESSION_SECRET` changed during repair. Existing
 phone sessions are invalid. Users with the old local Apple identity must use the
 new reconnect prompt once to receive a new FitGenius cloud session.
 
 ## Latest Validation
+
+- `npm run test:backend`: 25/25 passing, including authenticated account
+  deletion, cloud snapshot validation, lazy schema creation/retry, and the
+  users-table foreign key regression.
+- Production deployment completed and `/api/health` returned HTTP 200.
+- Cloud snapshot missing/invalid authorization both returned HTTP 401.
+- Account deletion missing/invalid authorization both returned HTTP 401.
+- Localization check passed: 70/70 required keys in Chinese and English.
+- `git diff --check`: clean.
+- watchOS 26.1 simulator runtime installed successfully.
+- XcodeBuildMCP iPhone build/run succeeded with zero diagnostics after embedding
+  the Watch app.
+- Watch simulator build, installation, and launch succeeded. After the iPhone
+  app relaunched, WatchConnectivity delivered today's workout and the Watch UI
+  displayed the current deadlift, `3 x 5`, `100 kg`, and `0 / 3` completed sets.
 
 - XcodeBuildMCP simulator smoke test:
   - automatic selection classified the supplied launch video as bench press at
@@ -149,19 +191,23 @@ On a physical iPhone build:
    the exercise, and tap Send.
 4. Confirm that the returned skeleton follows the real body, the key frame is
    useful, and any red highlight matches the detected issue.
+5. After this build is installed on two Apple-authenticated devices, edit a
+   workout or diet record on one device and confirm the other restores it.
+6. Pair an Apple Watch and accept Health access, then verify heart rate,
+   completion sync, rest timer, and saved HealthKit workout.
 
 This is required because Apple authorization UI and real-device Vision behavior
 cannot be fully accepted in Simulator.
 
 ## Next Recommended Work
 
-1. Run physical-device acceptance for normalized fitness/diet images and real
+1. Finish iPhone + Watch simulator build after the watchOS runtime installs.
+2. Run authenticated cloud-snapshot GET/PUT acceptance from the app.
+3. Run physical-device acceptance for normalized fitness/diet images and real
    Vision joints using several camera angles.
-2. Tune thresholds using a labeled real-video set before claiming broader
+4. Tune thresholds using a labeled real-video set before claiming broader
    exercise support.
-3. Add one new exercise at a time only after defining metrics, risky fixtures,
-   and real-device acceptance videos.
-4. Complete the remaining bilingual UX audit and prepare a TestFlight release
+5. Complete the remaining bilingual UX audit and prepare a TestFlight release
    candidate.
 
 ## Risks

@@ -35,3 +35,11 @@ create index if not exists idx_form_analysis_records_user_analyzed_at
 
 create index if not exists idx_form_analysis_records_user_exercise_type
   on form_analysis_records (user_id, exercise_type);
+
+create table if not exists cloud_snapshots (
+  user_id text primary key references users(id) on delete cascade,
+  schema_version integer not null default 1,
+  snapshot jsonb not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);

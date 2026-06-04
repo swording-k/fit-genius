@@ -10,6 +10,9 @@ struct ProfileView: View {
     @AppStorage("notificationsEnabled") private var notificationsEnabled = false
     @State private var showProfileEditor = false
     @State private var showSourcesInfo = false
+    @State private var showResetConfirmation = false
+    @State private var showDeleteAccountConfirmation = false
+    @State private var showDeleteAccountError = false
 
     var currentProfile: UserProfile? {
         profiles.first
@@ -140,7 +143,7 @@ struct ProfileView: View {
 
                 Section(header: Text("settings")) {
                     Button(role: .destructive) {
-                        resetAllData()
+                        showResetConfirmation = true
                     } label: {
                         Label("reset_data", systemImage: "arrow.clockwise.circle")
                     }
@@ -149,6 +152,14 @@ struct ProfileView: View {
                         auth.signOut()
                     } label: {
                         Label("logout", systemImage: "rectangle.portrait.and.arrow.right")
+                    }
+
+                    if auth.isSignedIn {
+                        Button(role: .destructive) {
+                            showDeleteAccountConfirmation = true
+                        } label: {
+                            Label("delete_account", systemImage: "person.crop.circle.badge.minus")
+                        }
                     }
                 }
 
@@ -178,6 +189,40 @@ struct ProfileView: View {
             .sheet(isPresented: $showSourcesInfo) {
                 SourcesInfoView()
             }
+            .confirmationDialog(
+                "reset_data_confirm_title",
+                isPresented: $showResetConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("reset_data_confirm_action", role: .destructive) {
+                    resetAllData()
+                }
+                Button("cancel", role: .cancel) {}
+            } message: {
+                Text("reset_data_confirm_message")
+            }
+            .confirmationDialog(
+                "delete_account_confirm_title",
+                isPresented: $showDeleteAccountConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("delete_account_confirm_action", role: .destructive) {
+                    Task {
+                        let deleted = await auth.deleteAccount(context: modelContext)
+                        if !deleted {
+                            showDeleteAccountError = true
+                        }
+                    }
+                }
+                Button("cancel", role: .cancel) {}
+            } message: {
+                Text("delete_account_confirm_message")
+            }
+            .alert("delete_account_failed_title", isPresented: $showDeleteAccountError) {
+                Button("ok", role: .cancel) {}
+            } message: {
+                Text(auth.errorMessage ?? "account_delete_failed_message".localized)
+            }
         }
     }
 
@@ -190,9 +235,27 @@ struct ProfileView: View {
     }
 
     private func resetAllData() {
-        for profile in profiles { modelContext.delete(profile) }
+        let modelsToDelete: [any PersistentModel.Type] = [
+            UserProfile.self,
+            WorkoutPlan.self,
+            WorkoutDay.self,
+            Exercise.self,
+            ExerciseLog.self,
+            MealDay.self,
+            MealEntry.self,
+            NutritionSummary.self,
+            ChatMessage.self,
+            FormAnalysisRecord.self
+        ]
+        for modelType in modelsToDelete {
+            try? modelContext.delete(model: modelType)
+        }
         try? modelContext.save()
         UserDefaults.standard.set(false, forKey: "hasOnboarded")
+        CloudSnapshotCoordinator.shared.resetLocalOwnership()
+        WatchSyncService.shared.syncToday(context: modelContext)
+        WidgetDataManager.updateWorkoutData(modelContext: modelContext)
+        WidgetDataManager.updateDietData(modelContext: modelContext)
     }
 }
 

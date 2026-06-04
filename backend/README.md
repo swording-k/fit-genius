@@ -6,12 +6,14 @@ sync.
 
 ## Endpoints
 
-| Method | Path                 | Purpose                                                  | Auth required |
-| ------ | -------------------- | -------------------------------------------------------- | ------------- |
-| GET    | `/api/health`        | Health check.                                            | No            |
-| POST   | `/api/form-analyses` | Sync a form-analysis record for the current user.        | Bearer token  |
-| POST   | `/api/auth/apple`    | Exchange an Apple identityToken for a session JWT.       | None          |
-| POST   | `/api/ai/chat`       | Proxy an OpenAI-compatible chat completion to Aliyun.    | Bearer token  |
+| Method  | Path                  | Purpose                                               | Auth required |
+| ------- | --------------------- | ----------------------------------------------------- | ------------- |
+| GET     | `/api/health`         | Health check.                                         | No            |
+| POST    | `/api/form-analyses`  | Sync a form-analysis record for the current user.     | Bearer token  |
+| GET/PUT | `/api/cloud-snapshot` | Restore or save profile, plan, workout, and diet data.| Bearer token  |
+| DELETE  | `/api/account`        | Delete the current user and cascaded cloud data.     | Bearer token  |
+| POST    | `/api/auth/apple`     | Exchange an Apple identityToken for a session JWT.    | None          |
+| POST    | `/api/ai/chat`        | Proxy an OpenAI-compatible chat completion to Aliyun. | Bearer token  |
 
 `/api/ai/chat` forwards the request to
 `https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions` using
@@ -58,7 +60,9 @@ npm run db:migrate
 ```
 
 The migration is idempotent because every statement in
-`backend/schema.sql` uses `if not exists`.
+`backend/schema.sql` uses `if not exists`. The cloud-snapshot endpoint also
+creates its own table lazily after authentication, so a missed manual migration
+does not break the first sync.
 
 ## How iOS Uses the Backend
 
@@ -72,8 +76,12 @@ The migration is idempotent because every statement in
    `jose.createRemoteJWKSet`) and upserts a row in `users`.
 4. The backend returns a session JWT signed with `SESSION_SECRET`.
 5. iOS stores the session token in `UserDefaults` via `SyncSettings`
-   and uses it as a `Bearer` token for `/api/form-analyses` and
-   `/api/ai/chat`.
+   and uses it as a `Bearer` token for `/api/form-analyses`,
+   `/api/cloud-snapshot`, `/api/account`, and `/api/ai/chat`.
+
+Cloud snapshots intentionally exclude avatars, meal photos, raw training
+videos, and chat media. SwiftData remains the local source of truth; cloud sync
+is an account restore and multi-device continuity layer.
 
 ## Security Notes
 

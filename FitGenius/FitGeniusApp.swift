@@ -61,7 +61,13 @@ struct FitGeniusApp: App {
                         // App 回到前台时，重试所有 pending/failed 的表单分析上传。
                         // Sync coordinator 内部有 isSyncing 守卫，可重入安全。
                         Task { @MainActor in
+                            WatchSyncService.shared.syncToday(context: modelContainer.mainContext)
                             await FormAnalysisSyncCoordinator.shared.syncPendingRecords(
+                                context: modelContainer.mainContext,
+                                userId: auth.currentSessionUserId,
+                                bearerToken: auth.currentBearerToken
+                            )
+                            await CloudSnapshotCoordinator.shared.sync(
                                 context: modelContainer.mainContext,
                                 userId: auth.currentSessionUserId,
                                 bearerToken: auth.currentBearerToken

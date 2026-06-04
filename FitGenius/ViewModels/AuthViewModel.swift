@@ -16,10 +16,17 @@ final class AuthViewModel: ObservableObject {
     private let service = AuthService()
     private let settings: SyncSettings
     private let apiClient: AppleAuthAPIClient
+    private let accountDeletionService: AccountDeletionService
 
-    init(settings: SyncSettings? = nil, apiClient: AppleAuthAPIClient? = nil) {
-        self.settings = settings ?? .live
+    init(
+        settings: SyncSettings? = nil,
+        apiClient: AppleAuthAPIClient? = nil,
+        accountDeletionService: AccountDeletionService? = nil
+    ) {
+        let resolvedSettings = settings ?? .live
+        self.settings = resolvedSettings
         self.apiClient = apiClient ?? AppleAuthAPIClient()
+        self.accountDeletionService = accountDeletionService ?? AccountDeletionService(settings: resolvedSettings)
         checkExistingSession()
     }
 
@@ -116,6 +123,11 @@ final class AuthViewModel: ObservableObject {
                 userDisplayName = displayName
             }
             currentUserId = session.userId
+            await CloudSnapshotCoordinator.shared.sync(
+                context: context,
+                userId: session.userId,
+                bearerToken: session.sessionToken
+            )
             isLoading = false
         } catch {
             // Keep the local session but surface a non-fatal warning.
@@ -134,7 +146,18 @@ final class AuthViewModel: ObservableObject {
         errorMessage = nil
     }
 
-    func deleteAccount(context: ModelContext) async {
+    @discardableResult
+    func deleteAccount(context: ModelContext) async -> Bool {
+        errorMessage = nil
+        if let token = settings.sessionToken {
+            do {
+                try await accountDeletionService.deleteAccount(bearerToken: token)
+            } catch {
+                errorMessage = error.localizedDescription
+                return false
+            }
+        }
+
         // 1. 删除所有 SwiftData 模型
         let modelsToDelete: [any PersistentModel.Type] = [
             UserProfile.self,
@@ -145,7 +168,8 @@ final class AuthViewModel: ObservableObject {
             MealDay.self,
             MealEntry.self,
             NutritionSummary.self,
-            ChatMessage.self
+            ChatMessage.self,
+            FormAnalysisRecord.self
         ]
 
         for modelType in modelsToDelete {
@@ -183,6 +207,7 @@ final class AuthViewModel: ObservableObject {
 
         // 6. 刷新 Widget
         WidgetCenter.shared.reloadAllTimelines()
+        WatchSyncService.shared.clear()
 
         // 7. 跳转到 Apple 账户管理页面
         if let url = URL(string: "https://account.apple.com") {
@@ -190,6 +215,7 @@ final class AuthViewModel: ObservableObject {
                 UIApplication.shared.open(url)
             }
         }
+        return true
     }
 
     // 检查Apple ID是否仍然有效

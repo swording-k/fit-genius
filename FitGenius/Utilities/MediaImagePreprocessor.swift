@@ -21,18 +21,27 @@ struct MediaImagePreprocessor {
     static func normalizedJPEG(
         from data: Data,
         maxDimension: CGFloat = 1600,
-        maxBytes: Int = 1_800_000
+        maxBytes: Int = 1_100_000
     ) throws -> Data {
         guard let source = UIImage(data: data) else {
             throw MediaImagePreprocessorError.unreadableImage
         }
 
-        let image = resized(source, maxDimension: maxDimension)
-        for quality in stride(from: 0.84, through: 0.42, by: -0.08) {
-            if let encoded = image.jpegData(compressionQuality: quality),
-               encoded.count <= maxBytes {
-                return encoded
+        var encodedAnyImage = false
+        let dimensions = [maxDimension, 1280, 1024, 800].filter { $0 <= maxDimension }
+        for dimension in dimensions {
+            let image = resized(source, maxDimension: dimension)
+            for quality in stride(from: 0.84, through: 0.42, by: -0.08) {
+                if let encoded = image.jpegData(compressionQuality: quality) {
+                    encodedAnyImage = true
+                    if encoded.count <= maxBytes {
+                        return encoded
+                    }
+                }
             }
+        }
+        guard encodedAnyImage else {
+            throw MediaImagePreprocessorError.encodingFailed
         }
         throw MediaImagePreprocessorError.imageTooLarge
     }

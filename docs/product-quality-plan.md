@@ -14,9 +14,9 @@ quality gates below.
   pose extraction, and local form-analysis rules.
 - Vercel is the secure online gateway. It verifies Apple login, calls the AI
   provider without exposing its key, and receives cloud-sync requests.
-- Neon is the cloud database behind Vercel. It stores users and form-analysis
-  history.
-- Apple Watch will later assist during a workout. It will not analyze video.
+- Neon is the cloud database behind Vercel. It stores users, form-analysis
+  history, and account snapshots for profile, workout, and diet continuity.
+- Apple Watch assists during a workout. It does not analyze video.
 
 ## Quality Gates
 
@@ -30,6 +30,9 @@ quality gates below.
   analysis and returns understandable annotated feedback.
 - Stats never show raw keys, misleading charts, or duplicated empty states.
 - No developer-only controls are visible to users.
+- Reset Data requires confirmation and actually removes all local product data.
+- Delete Account is reachable, confirmed, and deletes cloud data before local
+  cleanup.
 
 ### P1: Product Coherence
 
@@ -49,7 +52,8 @@ quality gates below.
 
 ### P3: Expansion
 
-- Start the Apple Watch companion after the iPhone P0-P2 gates pass.
+- Validate and refine the implemented Apple Watch companion after the iPhone
+  P0-P2 gates pass.
 - Start Android/Huawei work only after the iOS form-coach loop proves useful.
 
 ## Current Release Blockers
@@ -59,5 +63,5 @@ quality gates below.
 - AI chat and video analysis need one real-device acceptance pass with that new
   session.
 - Remaining screens still need a full bilingual UX audit.
-- Apple Watch has not started and is intentionally not on the current release
-  critical path.
+- Apple Watch MVP is implemented but requires paired-watch acceptance and is
+  not on the current iPhone release critical path.

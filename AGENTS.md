@@ -8,8 +8,9 @@
 ## 1. 项目一句话
 
 FitGenius = iOS 健身 App（SwiftUI + SwiftData，训练 + 饮食双模式）
-**+** Vercel Serverless 后端（Apple Sign in 验证 + AI 代理 + 训练记录同步）
-**+** Neon Postgres（用户与表单分析持久化）。
+**+** Apple Watch 训练辅助 App（训练进度 + 休息计时 + 心率 + HealthKit）
+**+** Vercel Serverless 后端（Apple Sign in 验证 + AI 代理 + 云同步 + 账户删除）
+**+** Neon Postgres（用户、表单分析与账户快照持久化）。
 
 iOS 包内**不携带**任何 AI provider 真实 key；所有第三方 key 全部在后端 env vars。
 
@@ -67,6 +68,7 @@ iOS 包内**不携带**任何 AI provider 真实 key；所有第三方 key 全�
                   │  users           │
                   │  form_analysis_  │
                   │    records       │
+                  │  cloud_snapshots │
                   └──────────────────┘
 ```
 
@@ -123,11 +125,14 @@ FitGenius/
 │   └── FitGenius.entitlements
 │
 ├── FitGeniusWidget/               ← Widget Extension（独立 target）
+├── FitGeniusWatch Watch App/      ← watchOS 训练辅助 target
 │
 ├── api/                           ← Vercel Serverless Functions
 │   ├── auth/apple.js
 │   ├── ai/chat.js
-│   └── form-analyses.js
+│   ├── form-analyses.js
+│   ├── cloud-snapshot.js
+│   └── account.js
 │
 ├── backend/                       ← 后端共享模块（被 api/ 引用）
 │   ├── neonClient.mjs
@@ -137,6 +142,7 @@ FitGenius/
 │   ├── appleTokenVerifier.mjs
 │   ├── formAnalysisPayload.mjs
 │   ├── formAnalysisRepository.mjs
+│   ├── cloudSnapshotRepository.mjs
 │   ├── README.md                  ← 部署/环境配置说明
 │   └── tests/                     ← node --test 后端单测
 │
@@ -232,6 +238,8 @@ FitGenius/
 | Session 存储 | `SyncSettings.setSessionToken(...)` | `UserDefaults`，iOS 端零 Keychain 依赖 |
 | AI 代理 URL | `AIService.resolveBaseURL()` | `backendBaseURL + "/api/ai/chat"` |
 | 表单同步协调 | `FormAnalysisSyncCoordinator` | 3 次指数退避；`sleepProvider` 可注入 |
+| 账户快照同步 | `CloudSnapshotCoordinator` | 按账户隔离；SwiftData 仍是本地主数据源 |
+| Watch 同步 | `WatchSyncService` | 今日训练、逐组完成、休息计时与完成状态 |
 | 数据模型（动作分析） | `Models/Form/FormAnalysisRecord` | `syncStatusRaw` ∈ `pending`/`failed`/`synced` |
 | 规则引擎 | `Services/FormAnalysis/FormRuleEngine` | 平台无关：`PoseFrame` / `JointPoint` / `FormMetric` / `FormIssue` |
 | 设备内分类标签 | `Models/Form/FormAnalysisLabel.swift` | 深蹲/硬拉/卧推（`FormAnalysisKind`） |

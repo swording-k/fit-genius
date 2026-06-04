@@ -1,0 +1,13 @@
+"watch_ready" = "Ready";
+"watch_start_workout" = "Start Workout";
+"watch_end_workout" = "End Workout";
+"watch_heart_rate_format" = "Heart Rate %d";
+"watch_current_exercise" = "Current Exercise";
+"watch_complete_set" = "Complete Set";
+"watch_set_progress_format" = "Sets %d / %d";
+"watch_start_rest" = "Start Rest Timer";
+"watch_rest_format" = "Rest %d sec";
+"watch_progress_format" = "Progress %d / %d";
+"watch_rest_day" = "Today is a rest day";
+"watch_workout_complete" = "Today's workout is complete";
+"watch_open_iphone" = "Open FitGenius on iPhone to sync today's workout";
