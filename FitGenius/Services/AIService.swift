@@ -220,94 +220,8 @@ class AIService {
 
 		print("✅ [AIService] 已登录，使用后端代理模式")
         
-        // 构建 Prompt
-        let systemMessage = """
-        你是一个专业的健身教练。请根据用户数据生成 JSON 格式的训练计划。
-        
-        重要：根据用户情况选择合适的训练分化和循环天数：
-        
-        1. 新手/时间少：3-4天循环
-           - 3天：全身训练 + 休息（Day1:全身 → Day2:休息 → Day3:全身 → Day4:休息）
-           - 4天：推拉腿 + 休息（Day1:推 → Day2:拉 → Day3:腿 → Day4:休息）
-        
-        2. 中级/时间适中：4-5天循环
-           - 4天：推拉腿 + 休息
-           - 5天：上下肢分化 + 休息（Day1:上肢推 → Day2:下肢 → Day3:上肢拉 → Day4:休息 → Day5:全身）
-        
-        3. 高级/时间充足：6-7天循环
-           - 6天：5天分化 + 1休息（Day1:胸 → Day2:背 → Day3:腿 → Day4:肩 → Day5:手臂 → Day6:休息）
-           - 7天：6天分化 + 1休息
-        
-        JSON 格式要求：
-        1. 不要返回任何 Markdown 标记（如 ```json），只返回纯 JSON 字符串
-        2. 必须包含：name (计划名称), days (训练日数组)
-        3. 每个 day 包含：
-           - dayNumber: 第几天（1, 2, 3...）
-           - focus: 重点部位（胸部、背部、腿部、肩部、手臂、核心、全身、有氧、休息）
-           - isRestDay: 是否休息日（true/false）
-           - exercises: 动作数组（休息日为空数组）
-        4. 每个 exercise 包含：name, sets, reps, weight, notes
-        5. \(languagePolicy.planContentInstruction)
-        
-        示例 JSON（4天循环）：
-        {
-          "name": "推拉腿训练计划",
-          "days": [
-            {
-              "dayNumber": 1,
-              "focus": "胸部",
-              "isRestDay": false,
-              "exercises": [
-                {
-                  "name": "杠铃卧推",
-                  "sets": 4,
-                  "reps": "8-12",
-                  "weight": 60,
-                  "notes": "注意肩胛骨收紧"
-                }
-              ]
-            },
-            {
-              "dayNumber": 2,
-              "focus": "背部",
-              "isRestDay": false,
-              "exercises": []
-            },
-            {
-              "dayNumber": 3,
-              "focus": "腿部",
-              "isRestDay": false,
-              "exercises": []
-            },
-            {
-              "dayNumber": 4,
-              "focus": "休息",
-              "isRestDay": true,
-              "exercises": []
-            }
-          ]
-        }
-        """
-        
-        let userMessage = """
-        用户信息：
-        - 姓名：\(profile.name)
-        - 年龄：\(profile.age)
-        - 身高：\(profile.height) cm
-        - 体重：\(profile.weight) kg
-        - 健身目标：\(profile.goal.rawValue)
-        - 训练环境：\(profile.environment.rawValue)
-        - 可用器械：\(profile.availableEquipment.isEmpty ? "无" : profile.availableEquipment.joined(separator: ", "))
-        - 备注：\(profile.injuries.isEmpty ? "无" : profile.injuries)
-        
-        请根据以上信息生成合适的训练计划。注意：
-        1. 根据用户的年龄、目标和环境选择合适的循环天数（3/4/5/6/7天）
-        2. 如果用户是新手或年龄较大，建议 3-4 天循环
-        3. 如果用户目标是增肌且有充足时间，可以 5-7 天循环
-        4. 必须包含至少一天休息日
-        5. 根据可用器械选择合适的动作
-        6. 如果备注中提到伤病，避免相关动作
-        """
+        let systemMessage = languagePolicy.initialPlanSystemPrompt
+        let userMessage = profilePrompt(profile: profile, userRequest: nil)
         
         let requestBody = ChatCompletionRequest(
             model: model,
@@ -335,130 +249,8 @@ class AIService {
 			return fallbackPlan(for: profile)
 		}
 		
-        // 构建 Prompt
-        let systemMessage = """
-        你是一个专业的健身教练。用户想要修改训练计划的整体结构。
-        
-        请根据用户的要求重新生成完整的训练计划。
-        
-        **重要：根据用户要求选择合适的训练分化和循环天数**
-        
-        1. 新手/时间少：3-4天循环
-           - 3天：全身训练 + 休息
-           - 4天：推拉腿 + 休息
-        
-        2. 中级/时间适中：4-5天循环
-           - 4天：推拉腿 + 休息
-           - 5天：上下肢分化 + 休息
-        
-        3. 高级/时间充足：6-7天循环
-           - 6天：5天分化 + 1休息
-           - 7天：6天分化 + 1休息
-        
-        **JSON 格式要求（非常重要）**：
-        1. 只返回纯 JSON，不要有任何 Markdown 标记（如 ```json）
-        2. 不要有任何解释性文字，只返回 JSON
-        3. 必须包含：name, days
-        4. 每个 day 必须包含：dayNumber, focus, isRestDay, exercises
-        5. 休息日必须设置：isRestDay: true, exercises: []
-        6. 训练日必须设置：isRestDay: false
-        7. \(languagePolicy.planContentInstruction)
-        
-        **完整示例（4天循环：胸背肩腿）**：
-        {
-          "name": "四分化训练计划",
-          "days": [
-            {
-              "dayNumber": 1,
-              "focus": "胸部",
-              "isRestDay": false,
-              "exercises": [
-                {
-                  "name": "杠铃卧推",
-                  "sets": 4,
-                  "reps": "8-12",
-                  "weight": 60.0,
-                  "notes": "注意肩胛骨收紧"
-                },
-                {
-                  "name": "哑铃飞鸟",
-                  "sets": 3,
-                  "reps": "10-15",
-                  "weight": 15.0,
-                  "notes": "顶峰收缩"
-                }
-              ]
-            },
-            {
-              "dayNumber": 2,
-              "focus": "背部",
-              "isRestDay": false,
-              "exercises": [
-                {
-                  "name": "引体向上",
-                  "sets": 4,
-                  "reps": "6-10",
-                  "weight": 0.0,
-                  "notes": "可以使用辅助"
-                }
-              ]
-            },
-            {
-              "dayNumber": 3,
-              "focus": "肩部",
-              "isRestDay": false,
-              "exercises": [
-                {
-                  "name": "哑铃推举",
-                  "sets": 4,
-                  "reps": "8-12",
-                  "weight": 20.0,
-                  "notes": "保持核心稳定"
-                }
-              ]
-            },
-            {
-              "dayNumber": 4,
-              "focus": "腿部",
-              "isRestDay": false,
-              "exercises": [
-                {
-                  "name": "深蹲",
-                  "sets": 4,
-                  "reps": "8-12",
-                  "weight": 80.0,
-                  "notes": "膝盖不要超过脚尖"
-                }
-              ]
-            },
-            {
-              "dayNumber": 5,
-              "focus": "休息",
-              "isRestDay": true,
-              "exercises": []
-            }
-          ]
-        }
-        
-        请严格按照上述格式返回 JSON，不要有任何其他内容。
-        """
-        
-        let userMessage = """
-        用户信息：
-        - 姓名：\(profile.name)
-        - 年龄：\(profile.age)
-        - 身高：\(profile.height) cm
-        - 体重：\(profile.weight) kg
-        - 健身目标：\(profile.goal.rawValue)
-        - 训练环境：\(profile.environment.rawValue)
-        - 可用器械：\(profile.availableEquipment.isEmpty ? "无" : profile.availableEquipment.joined(separator: ", "))
-        - 备注：\(profile.injuries.isEmpty ? "无" : profile.injuries)
-        
-        用户要求：
-        \(userRequest)
-        
-        请根据用户要求重新生成训练计划。只返回 JSON，不要有任何其他文字。
-        """
+        let systemMessage = languagePolicy.regeneratePlanSystemPrompt
+        let userMessage = profilePrompt(profile: profile, userRequest: userRequest)
         
 		let requestBody = ChatCompletionRequest(
 			model: model,
@@ -484,48 +276,21 @@ class AIService {
 		// 序列化当前计划为 JSON（简化版）
         let planContext = serializePlanToContext(plan: plan, profile: profile)
         
-        // 构建 System Prompt
         let systemMessage = """
-        你是一个专业的健身教练 AI 助手。你正在帮助用户管理他们的训练计划。
-        
-        当前用户信息：
-        - 姓名：\(profile.name)
-        - 年龄：\(profile.age)
-        - 健身目标：\(profile.goal.rawValue)
-        - 训练环境：\(profile.environment.rawValue)
-        
-        当前训练计划：
+        \(languagePolicy.chatSystemIntro)
+
+        \(localizedProfileSummary(profile))
+
+        \(languagePolicy.prefersSimplifiedChinese ? "当前训练计划：" : "Current training plan:")
         \(planContext)
-        
-        你的任务：
-        1. 如果用户只是普通聊天、咨询建议，直接返回文本回复。
-        2. 如果用户想修改训练计划（例如："把深蹲换掉"、"我膝盖疼，调整一下"、"增加一个动作"），你必须返回以下 JSON 格式：
-        
-        {
-          "type": "update_plan",
-          "actions": [
-            {
-              "day": 1,
-              "old_exercise": "深蹲",
-              "new_exercise": "腿屈伸",
-              "sets": 4,
-              "reps": "12-15",
-              "weight": 40,
-              "reason": "膝盖友好的替代动作"
-            }
-          ]
-        }
-        
-        JSON 字段说明：
-        - type: "update_plan" (修改计划) 或 "add_exercise" (添加动作) 或 "remove_exercise" (删除动作)
-        - day: 第几天（1-7）
-        - old_exercise: 要替换的旧动作名称（仅 update_plan 需要）
-        - new_exercise: 新动作名称（update_plan 和 add_exercise 需要）
-        - exercise_name: 要删除的动作名称（仅 remove_exercise 需要）
-        - sets, reps, weight: 新动作的参数
-        - reason: 修改原因
-        
-        重要：如果返回 JSON，不要包含任何 Markdown 标记（如 ```json），只返回纯 JSON。
+
+        \(languagePolicy.prefersSimplifiedChinese ? "任务：" : "Tasks:")
+        \(languagePolicy.prefersSimplifiedChinese ? "1. 如果用户只是普通聊天、咨询建议，直接返回文本回复。" : "1. If the user is asking for normal advice, return a normal text reply.")
+        \(languagePolicy.prefersSimplifiedChinese ? "2. 如果用户想修改训练计划，必须返回下面的 JSON 格式。" : "2. If the user wants to modify the training plan, return the JSON format below.")
+
+        \(languagePolicy.actionJSONExample)
+
+        \(languagePolicy.prefersSimplifiedChinese ? "重要：如果返回 JSON，不要包含任何 Markdown 标记（如 ```json），只返回纯 JSON。" : "Important: if returning JSON, return raw JSON only. Do not include Markdown fences or explanatory text.")
         \(languagePolicy.responseLanguageInstruction)
         """
         
@@ -552,13 +317,22 @@ class AIService {
     
     // MARK: - 序列化计划为 Context
     private func serializePlanToContext(plan: WorkoutPlan, profile: UserProfile) -> String {
-        var context = "计划名称：\(plan.name)\n"
-        context += "训练天数：\((plan.days ?? []).count) 天\n\n"
+        var context = languagePolicy.prefersSimplifiedChinese
+            ? "计划名称：\(plan.name)\n"
+            : "Plan name: \(plan.name)\n"
+        context += languagePolicy.prefersSimplifiedChinese
+            ? "训练天数：\((plan.days ?? []).count) 天\n\n"
+            : "Training days: \((plan.days ?? []).count)\n\n"
         
         for day in (plan.days ?? []).sorted(by: { $0.dayNumber < $1.dayNumber }) {
-            context += "第 \(day.dayNumber) 天 - \(day.focus.rawValue)：\n"
+            let focusName = languagePolicy.prefersSimplifiedChinese ? day.focus.rawValue : day.focus.localizedName
+            context += languagePolicy.prefersSimplifiedChinese
+                ? "第 \(day.dayNumber) 天 - \(focusName)：\n"
+                : "Day \(day.dayNumber) - \(focusName):\n"
             for exercise in day.exercises ?? [] {
-                context += "  - \(exercise.name): \(exercise.sets)组 x \(exercise.reps)"
+                context += languagePolicy.prefersSimplifiedChinese
+                    ? "  - \(exercise.name): \(exercise.sets)组 x \(exercise.reps)"
+                    : "  - \(exercise.name): \(exercise.sets) sets x \(exercise.reps)"
                 if exercise.weight > 0 {
                     context += " @ \(exercise.weight)kg"
                 }
@@ -568,6 +342,108 @@ class AIService {
         }
         
         return context
+    }
+
+    private func profilePrompt(profile: UserProfile, userRequest: String?) -> String {
+        let equipment = profile.availableEquipment.isEmpty
+            ? languagePolicy.noValueText
+            : profile.availableEquipment.joined(separator: ", ")
+        let injuries = profile.injuries.isEmpty ? languagePolicy.noValueText : profile.injuries
+
+        if languagePolicy.prefersSimplifiedChinese {
+            var text = """
+            用户信息：
+            - 姓名：\(profile.name)
+            - 年龄：\(profile.age)
+            - 身高：\(profile.height) cm
+            - 体重：\(profile.weight) kg
+            - 健身目标：\(profile.goal.localizedName)
+            - 训练环境：\(profile.environment.localizedName)
+            - 可用器械：\(equipment)
+            - 备注：\(injuries)
+            """
+            if let userRequest {
+                text += "\n\n用户要求：\n\(userRequest)\n\n请根据用户要求重新生成训练计划。只返回 JSON，不要有任何其他文字。"
+            } else {
+                text += """
+
+                请根据以上信息生成合适的训练计划。注意：
+                1. 根据用户的年龄、目标和环境选择合适的循环天数（3/4/5/6/7天）
+                2. 如果用户是新手或年龄较大，建议 3-4 天循环
+                3. 如果用户目标是增肌且有充足时间，可以 5-7 天循环
+                4. 必须包含至少一天休息日
+                5. 根据可用器械选择合适的动作
+                6. 如果备注中提到伤病，避免相关动作
+                """
+            }
+            return text
+        }
+
+        var text = """
+        User profile:
+        - Name: \(profile.name)
+        - Age: \(profile.age)
+        - Height: \(profile.height) cm
+        - Weight: \(profile.weight) kg
+        - Fitness goal: \(profile.goal.localizedName)
+        - Training environment: \(profile.environment.localizedName)
+        - Available equipment: \(equipment)
+        - Notes or limitations: \(injuries)
+        """
+        if let userRequest {
+            text += "\n\nUser request:\n\(userRequest)\n\nRegenerate the training plan from the user's request. Return JSON only."
+        } else {
+            text += """
+
+            Generate an appropriate training plan from this profile:
+            1. Choose an appropriate cycle length (3/4/5/6/7 days) from age, goal, schedule, and environment.
+            2. Use a 3-4 day cycle for beginners, older users, or users with limited recovery.
+            3. Use a 5-7 day cycle only when the goal and context justify it.
+            4. Include at least one rest day.
+            5. Choose exercises that match the available equipment.
+            6. Avoid exercises that conflict with notes or injuries.
+            7. Keep every user-visible string in English.
+            """
+        }
+        return text
+    }
+
+    private func localizedProfileSummary(_ profile: UserProfile) -> String {
+        if languagePolicy.prefersSimplifiedChinese {
+            return """
+            当前用户信息：
+            - 姓名：\(profile.name)
+            - 年龄：\(profile.age)
+            - 健身目标：\(profile.goal.localizedName)
+            - 训练环境：\(profile.environment.localizedName)
+            """
+        }
+        return """
+        Current user profile:
+        - Name: \(profile.name)
+        - Age: \(profile.age)
+        - Fitness goal: \(profile.goal.localizedName)
+        - Training environment: \(profile.environment.localizedName)
+        """
+    }
+
+    private func localizedMediaProfileSummary(_ profile: UserProfile) -> String {
+        if languagePolicy.prefersSimplifiedChinese {
+            return """
+            用户信息：
+            - 姓名：\(profile.name)
+            - 年龄：\(profile.age) 岁
+            - 目标：\(profile.goal.localizedName)
+            - 训练环境：\(profile.environment.localizedName)
+            """
+        }
+        return """
+        User profile:
+        - Name: \(profile.name)
+        - Age: \(profile.age)
+        - Goal: \(profile.goal.localizedName)
+        - Training environment: \(profile.environment.localizedName)
+        """
     }
     
     // MARK: - 解析 AI 操作指令
@@ -733,7 +609,7 @@ class AIService {
     }
 
 	func dietChat(userMessage: String) async throws -> String {
-		let systemMessage = "你是一个专业的营养与饮食顾问。为用户提供饮食建议、营养科普，并可帮助规范化他们的饮食记录。回复应简洁可读。\(languagePolicy.responseLanguageInstruction)"
+		let systemMessage = languagePolicy.dietCoachSystemPrompt
 		let requestBody = ChatCompletionRequest(
 			model: model,
 			messages: [
@@ -750,7 +626,7 @@ class AIService {
 		var userContents: [VisionChatCompletionRequest.Content] = []
 		let intro = VisionChatCompletionRequest.Content(
 			type: "text",
-			text: "你是一个专业的营养与饮食顾问。用户会发送食物照片和文字问题，请结合图片和文字给出摄入热量和营养素的估算，以及简洁的饮食建议。\(languagePolicy.responseLanguageInstruction)",
+			text: languagePolicy.dietImageCoachPrompt,
 			image_url: nil,
 			video_url: nil
 		)
@@ -769,7 +645,7 @@ class AIService {
 			messages: [
 				VisionChatCompletionRequest.Message(
 					role: "system",
-					content: [VisionChatCompletionRequest.Content(type: "text", text: "你是一个专业的营养顾问。", image_url: nil, video_url: nil)]
+					content: [VisionChatCompletionRequest.Content(type: "text", text: languagePolicy.dietCoachSystemPrompt, image_url: nil, video_url: nil)]
 				),
 				VisionChatCompletionRequest.Message(
 					role: "user",
@@ -806,20 +682,16 @@ class AIService {
     }
 
 	func analyzeMeals(entries: [MealEntry]) async throws -> DietAnalyzeResponse {
-		let systemMessage = """
-        你是一个专业的营养师。请严格按照下述要求解析用户当天饮食：
-        
-        1) 仅返回纯 JSON（不包含任何 Markdown 代码块或解释性文字）
-        2) 数组 entries 的长度必须与用户输入的条目数完全一致，并与输入顺序一一对应
-        3) 每个条目的单位统一为：portion 使用克(g)，calories 使用千卡(kcal)
-        4) 每个 entries[i] 必须包含字段：name, portion, unit, calories, protein, carbs, fat, notes, mealType
-        5) summary 字段必须包含：totalCalories, protein, carbs, fat, notes
-        6) 若用户描述中为“一碗/一盘/一勺”等量词，请合理估算并换算为克(g)
-        7) \(languagePolicy.responseLanguageInstruction)
-        """
-		var description = "当天饮食记录（共" + String(entries.count) + "条）：\n"
+		let systemMessage = languagePolicy.dietAnalyzeSystemPrompt
+		var description = languagePolicy.prefersSimplifiedChinese
+            ? "当天饮食记录（共" + String(entries.count) + "条）：\n"
+            : "Meal records for today (\(entries.count) total):\n"
 		for (index, e) in entries.enumerated() {
-			description += "\(index+1). 餐次=\(e.mealType.rawValue)，描述=\(e.text.isEmpty ? "无" : e.text)\n"
+			if languagePolicy.prefersSimplifiedChinese {
+				description += "\(index+1). 餐次=\(e.mealType.rawValue)，描述=\(e.text.isEmpty ? languagePolicy.noValueText : e.text)\n"
+			} else {
+				description += "\(index+1). mealType=\(e.mealType.rawValue), description=\(e.text.isEmpty ? languagePolicy.noValueText : e.text)\n"
+			}
 		}
 		let requestBody = ChatCompletionRequest(
 			model: model,
@@ -836,22 +708,16 @@ class AIService {
     }
 
 	func analyzeMealsWithImages(entries: [MealEntry]) async throws -> DietAnalyzeResponse {
-        var description = "当天饮食记录：\n"
+        var description = languagePolicy.prefersSimplifiedChinese ? "当天饮食记录：\n" : "Meal records for today:\n"
         for (index, e) in entries.enumerated() {
-            description += "\(index+1). 餐次=\(e.mealType.rawValue)，描述=\(e.text.isEmpty ? "无" : e.text)\n"
+            if languagePolicy.prefersSimplifiedChinese {
+                description += "\(index+1). 餐次=\(e.mealType.rawValue)，描述=\(e.text.isEmpty ? languagePolicy.noValueText : e.text)\n"
+            } else {
+                description += "\(index+1). mealType=\(e.mealType.rawValue), description=\(e.text.isEmpty ? languagePolicy.noValueText : e.text)\n"
+            }
         }
         var userContents: [VisionChatCompletionRequest.Content] = []
-        let textContent = VisionChatCompletionRequest.Content(type: "text", text: """
-        你将看到用户一天内的多条饮食记录。先阅读下面的文字描述，再结合后续的食物照片，输出严格符合下列要求的 JSON：
-        1) 仅返回纯 JSON，不包含任何 Markdown 代码块或解释性文字
-        2) 数组 entries 的长度必须与用户输入的条目数完全一致，并与输入顺序一一对应
-        3) 每个条目的单位统一为：portion 使用克(g)，calories 使用千卡(kcal)
-        4) 每个 entries[i] 必须包含字段：name, portion, unit, calories, protein, carbs, fat, notes, mealType
-        5) summary 字段必须包含：totalCalories, protein, carbs, fat, notes
-        6) 若用户描述中为“一碗/一盘/一勺”等量词，请合理估算并换算为克(g)
-        7) \(languagePolicy.responseLanguageInstruction)
-        8) 对于无法从文字获得的信息，可以参考图片估算食物种类和份量
-        """, image_url: nil, video_url: nil)
+        let textContent = VisionChatCompletionRequest.Content(type: "text", text: languagePolicy.dietImageAnalyzePrompt, image_url: nil, video_url: nil)
         userContents.append(textContent)
         let descContent = VisionChatCompletionRequest.Content(type: "text", text: description, image_url: nil, video_url: nil)
         userContents.append(descContent)
@@ -869,7 +735,7 @@ class AIService {
 			messages: [
 				VisionChatCompletionRequest.Message(
 					role: "system",
-					content: [VisionChatCompletionRequest.Content(type: "text", text: "你是一个专业的营养师。", image_url: nil, video_url: nil)]
+					content: [VisionChatCompletionRequest.Content(type: "text", text: languagePolicy.dietAnalyzeSystemPrompt, image_url: nil, video_url: nil)]
 				),
 				VisionChatCompletionRequest.Message(
 					role: "user",
@@ -886,16 +752,17 @@ class AIService {
 
 	func analyzeFitnessMedia(userMessage: String, profile: UserProfile, plan: WorkoutPlan?, images: [Data], videos: [Data]) async throws -> String {
 		var systemContents: [VisionChatCompletionRequest.Content] = []
-        let systemText = "你是一个专业的私人教练与动作分析专家。用户会上传身材照片或训练视频，并提出与体型或动作相关的问题。请结合视觉信息和文字，给出客观分析和具体可执行的改进建议。\(languagePolicy.responseLanguageInstruction)"
+        let systemText = languagePolicy.fitnessMediaSystemPrompt
         let systemContent = VisionChatCompletionRequest.Content(type: "text", text: systemText, image_url: nil, video_url: nil)
         systemContents.append(systemContent)
         var userContents: [VisionChatCompletionRequest.Content] = []
-        let profileText = "用户信息：\n- 姓名：\(profile.name)\n- 年龄：\(profile.age) 岁\n- 目标：\(profile.goal.rawValue)\n- 训练环境：\(profile.environment.rawValue)\n"
+        let profileText = localizedMediaProfileSummary(profile)
         let profileContent = VisionChatCompletionRequest.Content(type: "text", text: profileText, image_url: nil, video_url: nil)
         userContents.append(profileContent)
         if let plan = plan {
             let planContext = serializePlanToContext(plan: plan, profile: profile)
-            let planContent = VisionChatCompletionRequest.Content(type: "text", text: "当前训练计划：\n\(planContext)", image_url: nil, video_url: nil)
+            let title = languagePolicy.prefersSimplifiedChinese ? "当前训练计划：" : "Current training plan:"
+            let planContent = VisionChatCompletionRequest.Content(type: "text", text: "\(title)\n\(planContext)", image_url: nil, video_url: nil)
             userContents.append(planContent)
         }
         let questionContent = VisionChatCompletionRequest.Content(type: "text", text: userMessage, image_url: nil, video_url: nil)

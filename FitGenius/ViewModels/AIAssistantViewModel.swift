@@ -26,6 +26,7 @@ class AIAssistantViewModel: ObservableObject {
     
     private let aiService = AIService()
     private let modelContext: ModelContext
+    private var languagePolicy: AppLanguagePolicy { AppLanguagePolicy.current }
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -200,12 +201,12 @@ class AIAssistantViewModel: ObservableObject {
 		do {
 			let (response, _) = try await aiService.chat(
                 userMessage: messageWithRecentFormContext(
-                    "【请只提供建议，不要返回任何 JSON 指令或修改计划】\n" + userMessage
+                    suggestionOnlyPromptPrefix + userMessage
                 ),
                 profile: profile,
                 plan: plan
             )
-			let tip = ChatMessage(content: "已启用建议模式：我只会给出文字建议，你可在训练页自行调整。", isUser: false, isSystemAction: true)
+			let tip = ChatMessage(content: suggestionOnlyEnabledMessage, isUser: false, isSystemAction: true)
 			modelContext.insert(tip)
 			messages.append(tip)
 			if !response.isEmpty {
@@ -217,7 +218,7 @@ class AIAssistantViewModel: ObservableObject {
 		} catch {
 			isLoading = false
 			errorMessage = error.localizedDescription
-			let errMsg = ChatMessage(content: "抱歉，生成建议失败：\(error.localizedDescription)", isUser: false)
+			let errMsg = ChatMessage(content: localizedFailure(prefixChinese: "抱歉，生成建议失败", prefixEnglish: "Sorry, generating advice failed", error: error), isUser: false)
 			modelContext.insert(errMsg)
 			messages.append(errMsg)
 		}
@@ -287,7 +288,7 @@ class AIAssistantViewModel: ObservableObject {
 			isLoading = false
             loadingText = "assistant_thinking".localized
 			errorMessage = error.localizedDescription
-			let errMsg = ChatMessage(content: "抱歉，分析失败：\(error.localizedDescription)", isUser: false)
+			let errMsg = ChatMessage(content: localizedFailure(prefixChinese: "抱歉，分析失败", prefixEnglish: "Sorry, analysis failed", error: error), isUser: false)
 			modelContext.insert(errMsg)
 			messages.append(errMsg)
 		}
@@ -420,7 +421,7 @@ class AIAssistantViewModel: ObservableObject {
             errorMessage = error.localizedDescription
             
             let errorChatMessage = ChatMessage(
-                content: "抱歉，出现了错误：\(error.localizedDescription)",
+                content: localizedFailure(prefixChinese: "抱歉，出现了错误", prefixEnglish: "Sorry, something went wrong", error: error),
                 isUser: false
             )
             messages.append(errorChatMessage)
@@ -438,6 +439,19 @@ class AIAssistantViewModel: ObservableObject {
         let issues = record.issues.isEmpty
             ? NSLocalizedString("form_analysis_stable", comment: "")
             : record.issues.map { "\($0.title): \($0.detail)" }.joined(separator: "\n")
+        if languagePolicy.prefersSimplifiedChinese {
+            return """
+            下面包含最近一次确定性的设备端动作分析。只有在和用户问题相关时才使用它。不要否定或替换本地分数和检测到的问题。
+            动作：\(record.exerciseType.displayName)
+            分数：\(record.score)
+            检测到的问题：
+            \(issues)
+            建议：\(record.recommendation)
+
+            用户消息：
+            \(userMessage)
+            """
+        }
         return """
         Recent deterministic on-device form analysis is included below. Use it only when relevant to the user's question. Do not contradict or replace the local score and detected issues.
         Exercise: \(record.exerciseType.displayName)
@@ -469,7 +483,7 @@ class AIAssistantViewModel: ObservableObject {
             
             // 验证新计划有效后再切换链接
             guard !(newPlan.days ?? []).isEmpty else {
-                throw NSError(domain: "AIAssistant", code: -1, userInfo: [NSLocalizedDescriptionKey: "生成的计划为空，请稍后重试"])
+                throw NSError(domain: "AIAssistant", code: -1, userInfo: [NSLocalizedDescriptionKey: emptyPlanMessage])
             }
             profile.workoutPlan = newPlan
             try modelContext.save()
@@ -478,7 +492,7 @@ class AIAssistantViewModel: ObservableObject {
             
             // 添加成功消息
             let successMessage = ChatMessage(
-                content: "✅ 已根据您的要求重新生成训练计划！新计划已应用。",
+                content: planRegeneratedMessage,
                 isUser: false,
                 isSystemAction: true
             )
@@ -491,7 +505,7 @@ class AIAssistantViewModel: ObservableObject {
             errorMessage = error.localizedDescription
             
             let errorChatMessage = ChatMessage(
-                content: "抱歉，重新生成计划失败：\(error.localizedDescription)",
+                content: localizedFailure(prefixChinese: "抱歉，重新生成计划失败", prefixEnglish: "Sorry, regenerating the plan failed", error: error),
                 isUser: false
             )
             messages.append(errorChatMessage)
@@ -520,14 +534,14 @@ class AIAssistantViewModel: ObservableObject {
                 }
                 
             default:
-                feedbackMessages.append("未知的操作类型：\(command.type)")
+                feedbackMessages.append(languagePolicy.prefersSimplifiedChinese ? "未知的操作类型：\(command.type)" : "Unknown action type: \(command.type)")
             }
         }
         
         // 保存修改
         try modelContext.save()
         
-        return feedbackMessages.isEmpty ? "操作完成" : feedbackMessages.joined(separator: "\n")
+        return feedbackMessages.isEmpty ? (languagePolicy.prefersSimplifiedChinese ? "操作完成" : "Done") : feedbackMessages.joined(separator: "\n")
     }
     
     // MARK: - 更新动作
@@ -540,7 +554,7 @@ class AIAssistantViewModel: ObservableObject {
         
         // 找到对应的训练日
         guard let day = (plan.days ?? []).first(where: { $0.dayNumber == dayNumber }) else {
-            return "❌ 未找到第 \(dayNumber) 天的训练"
+            return dayNotFoundMessage(dayNumber)
         }
         
         // 找到要替换的动作（优先精确匹配，失败时仅在唯一近似匹配时回退）
@@ -553,7 +567,7 @@ class AIAssistantViewModel: ObservableObject {
             targetExercise = (fuzzyMatches.count == 1) ? fuzzyMatches.first : nil
         }
         guard let exercise = targetExercise else {
-            return "❌ 在第 \(dayNumber) 天未找到唯一匹配的动作：\(oldName)，请提供更精确的名称"
+            return exerciseNotFoundMessage(dayNumber: dayNumber, exerciseName: oldName)
         }
         
         // 更新动作信息
@@ -568,8 +582,10 @@ class AIAssistantViewModel: ObservableObject {
             exercise.weight = weight
         }
         
-        let reason = action.reason ?? "根据您的需求调整"
-        return "✅ 已将第 \(dayNumber) 天的「\(oldName)」替换为「\(newName)」\n原因：\(reason)"
+        let reason = action.reason ?? defaultUpdateReason
+        return languagePolicy.prefersSimplifiedChinese
+            ? "✅ 已将第 \(dayNumber) 天的「\(oldName)」替换为「\(newName)」\n原因：\(reason)"
+            : "✅ Replaced \(oldName) with \(newName) on day \(dayNumber).\nReason: \(reason)"
     }
     
     // MARK: - 添加动作
@@ -581,7 +597,7 @@ class AIAssistantViewModel: ObservableObject {
         
         // 找到对应的训练日
         guard let day = (plan.days ?? []).first(where: { $0.dayNumber == dayNumber }) else {
-            return "❌ 未找到第 \(dayNumber) 天的训练"
+            return dayNotFoundMessage(dayNumber)
         }
         
         // 创建新动作
@@ -597,8 +613,10 @@ class AIAssistantViewModel: ObservableObject {
         day.exercises?.append(newExercise)
         modelContext.insert(newExercise)
         
-        let reason = action.reason ?? "根据您的需求添加"
-        return "✅ 已在第 \(dayNumber) 天添加动作「\(exerciseName)」\n原因：\(reason)"
+        let reason = action.reason ?? defaultAddReason
+        return languagePolicy.prefersSimplifiedChinese
+            ? "✅ 已在第 \(dayNumber) 天添加动作「\(exerciseName)」\n原因：\(reason)"
+            : "✅ Added \(exerciseName) to day \(dayNumber).\nReason: \(reason)"
     }
     
     // MARK: - 删除动作
@@ -610,7 +628,7 @@ class AIAssistantViewModel: ObservableObject {
         
         // 找到对应的训练日
         guard let day = (plan.days ?? []).first(where: { $0.dayNumber == dayNumber }) else {
-            return "❌ 未找到第 \(dayNumber) 天的训练"
+            return dayNotFoundMessage(dayNumber)
         }
         
         // 找到要删除的动作（优先精确匹配，失败时仅在唯一近似匹配时回退）
@@ -627,14 +645,69 @@ class AIAssistantViewModel: ObservableObject {
             index = (fuzzyIndexes.count == 1) ? fuzzyIndexes.first : nil
         }
         guard let index = index else {
-            return "❌ 在第 \(dayNumber) 天未找到唯一匹配的动作：\(exerciseName)，请提供更精确的名称"
+            return exerciseNotFoundMessage(dayNumber: dayNumber, exerciseName: exerciseName)
         }
         
         let exercise = (day.exercises ?? [])[index]
         day.exercises?.remove(at: index)
         modelContext.delete(exercise)
         
-        let reason = action.reason ?? "根据您的需求删除"
-        return "✅ 已从第 \(dayNumber) 天删除动作「\(exerciseName)」\n原因：\(reason)"
+        let reason = action.reason ?? defaultRemoveReason
+        return languagePolicy.prefersSimplifiedChinese
+            ? "✅ 已从第 \(dayNumber) 天删除动作「\(exerciseName)」\n原因：\(reason)"
+            : "✅ Removed \(exerciseName) from day \(dayNumber).\nReason: \(reason)"
+    }
+
+    private var suggestionOnlyPromptPrefix: String {
+        languagePolicy.prefersSimplifiedChinese
+            ? "【请只提供建议，不要返回任何 JSON 指令或修改计划】\n"
+            : "[Advice only. Do not return JSON commands and do not modify the plan.]\n"
+    }
+
+    private var suggestionOnlyEnabledMessage: String {
+        languagePolicy.prefersSimplifiedChinese
+            ? "已启用建议模式：我只会给出文字建议，你可在训练页自行调整。"
+            : "Advice mode is on: I will only give text suggestions. You can adjust the plan from the training page."
+    }
+
+    private var emptyPlanMessage: String {
+        languagePolicy.prefersSimplifiedChinese
+            ? "生成的计划为空，请稍后重试"
+            : "The generated plan is empty. Please try again later."
+    }
+
+    private var planRegeneratedMessage: String {
+        languagePolicy.prefersSimplifiedChinese
+            ? "✅ 已根据您的要求重新生成训练计划！新计划已应用。"
+            : "✅ Regenerated the training plan from your request. The new plan has been applied."
+    }
+
+    private var defaultUpdateReason: String {
+        languagePolicy.prefersSimplifiedChinese ? "根据您的需求调整" : "Adjusted from your request"
+    }
+
+    private var defaultAddReason: String {
+        languagePolicy.prefersSimplifiedChinese ? "根据您的需求添加" : "Added from your request"
+    }
+
+    private var defaultRemoveReason: String {
+        languagePolicy.prefersSimplifiedChinese ? "根据您的需求删除" : "Removed from your request"
+    }
+
+    private func localizedFailure(prefixChinese: String, prefixEnglish: String, error: Error) -> String {
+        let prefix = languagePolicy.prefersSimplifiedChinese ? prefixChinese : prefixEnglish
+        return "\(prefix): \(error.localizedDescription)"
+    }
+
+    private func dayNotFoundMessage(_ dayNumber: Int) -> String {
+        languagePolicy.prefersSimplifiedChinese
+            ? "❌ 未找到第 \(dayNumber) 天的训练"
+            : "❌ Could not find training day \(dayNumber)."
+    }
+
+    private func exerciseNotFoundMessage(dayNumber: Int, exerciseName: String) -> String {
+        languagePolicy.prefersSimplifiedChinese
+            ? "❌ 在第 \(dayNumber) 天未找到唯一匹配的动作：\(exerciseName)，请提供更精确的名称"
+            : "❌ Could not find a unique match for \(exerciseName) on day \(dayNumber). Please use a more specific name."
     }
 }

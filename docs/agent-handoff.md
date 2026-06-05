@@ -1,6 +1,6 @@
 # FitGenius Agent Handoff
 
-Last updated: 2026-06-05 11:50 Asia/Shanghai
+Last updated: 2026-06-05 22:59 Asia/Shanghai
 
 ## Read First
 
@@ -19,6 +19,25 @@ detection report into structured coaching feedback.
 
 Latest milestone:
 
+- AI language output is now driven by `AppLanguagePolicy.current`, which reads
+  the app/system preferred language through `Locale.preferredLanguages`. The
+  product no longer relies on Qwen/user input to guess the language.
+- Training-plan generation, plan regeneration, training AI chat, Diet AI chat,
+  Diet image analysis, Diet JSON nutrition analysis, and fitness media analysis
+  now use language-specific system prompts. English prompts explicitly require
+  English user-visible strings while preserving internal enum contracts such as
+  workout `focus` and meal `mealType`.
+- AI Assistant suggestion-only prompts, recent form-analysis context, plan
+  regeneration results, and plan-edit command feedback now also follow the
+  same language policy, preventing hidden Chinese prefixes from biasing English
+  replies.
+- `scripts/app-language-policy-tests.swift` now checks English plan examples,
+  Diet analysis prompts, and fitness-media prompts so future changes do not
+  quietly reintroduce Chinese prompt text into English mode.
+- Diet entry deletion remains available through the visible Delete button and
+  List swipe actions. TestFlight feedback clarified that swiping the meal title
+  / text region works, while the photo strip is a horizontal scroll area and is
+  not a reliable swipe-delete trigger.
 - Diet meal cards now show per-entry calories, protein, carbs, and fat instead
   of hiding macros until the daily summary. Each scanned/added meal also has
   visible Edit and Delete controls in addition to swipe actions, so mistaken
@@ -202,6 +221,15 @@ new reconnect prompt once to receive a new FitGenius cloud session.
 
 ## Latest Validation
 
+- `swiftc FitGenius/Services/AppLanguagePolicy.swift scripts/app-language-policy-tests.swift`
+  passed after the AI language-policy hardening. The tests now cover both
+  Simplified Chinese and English branches and ensure English mode uses English
+  examples/prompts for workout plans, Diet analysis, and fitness media.
+- `scripts/predeploy-check.sh` passed after the AI language-policy hardening:
+  backend 25/25, all iOS script tests, localization check, deployable-file
+  secret scan, and app language policy regression tests.
+- XcodeBuildMCP iPhone simulator build/run succeeded with zero warnings and
+  zero errors after the AIService and AIAssistantViewModel language changes.
 - `scripts/predeploy-check.sh` passed after the Diet per-meal macro/delete
   changes and calendar-day workout-cycle fix. The suite includes the new
   `Workout cycle calculator tests passed` regression.
