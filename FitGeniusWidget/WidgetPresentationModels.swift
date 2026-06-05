@@ -16,3 +16,27 @@ struct WidgetWorkoutPresentation {
         upcomingExercises = Array(pending.prefix(2))
     }
 }
+
+struct WidgetDietPresentation {
+    let totalCalories: Double
+    let proteinShare: Double
+    let carbsShare: Double
+    let fatShare: Double
+
+    init(diet: WidgetDietData) {
+        totalCalories = diet.totalCalories
+        let proteinCalories = max(diet.protein, 0) * 4
+        let carbsCalories = max(diet.carbs, 0) * 4
+        let fatCalories = max(diet.fat, 0) * 9
+        let macroCalories = proteinCalories + carbsCalories + fatCalories
+        if macroCalories > 0 {
+            proteinShare = proteinCalories / macroCalories
+            carbsShare = carbsCalories / macroCalories
+            fatShare = fatCalories / macroCalories
+        } else {
+            proteinShare = 0
+            carbsShare = 0
+            fatShare = 0
+        }
+    }
+}

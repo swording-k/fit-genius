@@ -1,6 +1,6 @@
 # FitGenius Agent Handoff
 
-Last updated: 2026-06-04 20:52 Asia/Shanghai
+Last updated: 2026-06-05 10:50 Asia/Shanghai
 
 ## Read First
 
@@ -18,6 +18,22 @@ Widget; it is validated and awaiting commit.
 
 Latest milestone:
 
+- TestFlight feedback on 2026-06-05 exposed a form-analysis trust issue: a
+  bench video with a social-media ending screen selected the ending avatar as
+  the annotated key frame. Added `PoseFrameQualityPolicy` and wired it into
+  extraction and feedback planning so tiny/person-in-avatar frames are filtered
+  before scoring and key-frame selection.
+- Added a regression test that appends a 31.9s tiny outro pose to a valid bench
+  sequence and proves the feedback key frame remains in the actual lift.
+- Split WidgetKit into three addable widgets: Overview, Workout, and Nutrition.
+  Workout and Diet are no longer mutually exclusive; users can add both from
+  the iOS widget gallery. Nutrition now shows macro ratio based on 4/4/9 kcal
+  shares instead of an equal-width decorative bar.
+- Updated the Profile Apple Watch card with TestFlight-specific installation
+  guidance: install the iPhone beta first, then use the Apple Watch button in
+  the TestFlight app details Information section.
+- Fixed the Chinese duplicate `sets` localization that rendered labels like
+  `3 组数`; it now renders as `3 组`.
 - Added an Apple Watch discovery/install/send card under Profile. The section
   is hidden for users without a paired Watch, explains the iPhone Watch App
   installation path when needed, and sends today's workout when installed.
@@ -160,6 +176,12 @@ new reconnect prompt once to receive a new FitGenius cloud session.
 
 ## Latest Validation
 
+- `scripts/predeploy-check.sh` passed after the form-frame filter and Widget
+  changes: backend 25/25, all iOS script tests, localization, and secret scan.
+- New `pose-frame-quality-policy-tests` passed, covering the 31.9s social-media
+  outro regression from the TestFlight screenshots.
+- XcodeBuildMCP build/run succeeded with zero warnings and zero errors after
+  the Watch TestFlight hint and three-widget bundle changes.
 - Latest generic iOS Simulator build succeeded with iPhone, Widget, and Watch
   embedded after the HealthKit and system-language changes.
 - English simulator verified `Thu` instead of the previously hard-coded Chinese

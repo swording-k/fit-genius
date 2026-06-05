@@ -115,6 +115,7 @@
 "watch_companion_unavailable_title" = "Send today's workout to Apple Watch";
 "watch_companion_unavailable_detail" = "Your watch is offline. The plan will arrive when it reconnects.";
 "watch_companion_send_action" = "Send Today's Workout";
+"watch_companion_testflight_hint" = "For TestFlight builds, install the iPhone beta first, then open its TestFlight app details and use the Apple Watch button in the Information section.";
 
 /* Form Coach */
 "form_analysis_title" = "Form Analysis";
@@ -186,7 +187,7 @@
 "form_note_prefix" = "Form analysis advice: ";
 "form_error_video_too_short" = "The video is too short. Choose a video at least 3 seconds long.";
 "form_error_video_too_long" = "The video is too long. Choose a video under 30 seconds.";
-"form_error_no_pose_detected" = "No clear body pose was detected. Keep your full body visible.";
+"form_error_no_pose_detected" = "No clear lifting frames were detected. Keep your body large in frame and trim intro or ending screens before uploading.";
 "form_error_unreadable_video" = "This video could not be read. Record again or choose another video.";
 "form_error_pose_detection_unavailable" = "Pose detection is currently unavailable. Try again later or use a physical device.";
 "logout" = "Log Out";
@@ -210,7 +211,7 @@
 "daily_training_reminder" = "Daily Training Reminder";
 "widget" = "Widget";
 "widget_display" = "Widget Display";
-"widget_content_preference" = "Small Widget Display Preference";
+"widget_content_preference" = "Add Workout, Nutrition, or Overview widgets separately from the iOS widget gallery. You can place workout and diet widgets on the same Home Screen.";
 "widget_background_description" = "Widget uses system background style";
 "background_style" = "Background Style";
 "follow_system" = "Follow System";

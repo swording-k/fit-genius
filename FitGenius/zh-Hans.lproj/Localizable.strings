@@ -115,6 +115,7 @@
 "watch_companion_unavailable_title" = "发送今日训练到 Apple Watch";
 "watch_companion_unavailable_detail" = "手表暂时不在线，计划会在连接后送达。";
 "watch_companion_send_action" = "发送今日训练";
+"watch_companion_testflight_hint" = "TestFlight 测试版需要先在 iPhone 安装 App，再进入 TestFlight 中 FitGenius 的详情页，在“信息”区域安装 Apple Watch App。";
 
 /* Form Coach */
 "form_analysis_title" = "动作分析";
@@ -186,7 +187,7 @@
 "form_note_prefix" = "动作分析建议：";
 "form_error_video_too_short" = "视频太短，请选择至少 3 秒的视频。";
 "form_error_video_too_long" = "视频太长，请选择 30 秒以内的视频。";
-"form_error_no_pose_detected" = "未识别到清晰的人体姿态，请确保身体完整入镜。";
+"form_error_no_pose_detected" = "没有检测到清晰的动作过程。请让身体在画面中占比更大，并尽量裁掉片头、片尾或平台结尾动画。";
 "form_error_unreadable_video" = "无法读取该视频，请重新拍摄或选择其他视频。";
 "form_error_pose_detection_unavailable" = "当前设备暂时无法进行姿态识别，请稍后重试或使用真机。";
 "logout" = "退出登录";
@@ -210,7 +211,7 @@
 "daily_training_reminder" = "每日训练提醒";
 "widget" = "小组件";
 "widget_display" = "小组件显示";
-"widget_content_preference" = "Small尺寸小组件的显示内容偏好";
+"widget_content_preference" = "可在 iOS 小组件库分别添加训练、饮食或综合小组件；训练和饮食可以同时放在同一个主屏幕。";
 "widget_background_description" = "小组件使用系统背景样式";
 "background_style" = "背景样式";
 "follow_system" = "跟随系统";
@@ -370,7 +371,7 @@
 "add" = "添加";
 "exercise_info" = "动作信息";
 "exercise_name" = "动作名称";
-"sets" = "组数";
+"sets" = "组";
 "reps" = "次数";
 "weight_kg" = "重量 (公斤)";
 "weight" = "重量";

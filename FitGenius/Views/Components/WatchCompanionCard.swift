@@ -34,6 +34,12 @@ struct WatchCompanionCard: View {
                 .buttonStyle(.borderedProminent)
                 .tint(.blue)
             }
+
+            if watchSync.preparationState == .appNotInstalled {
+                Label("watch_companion_testflight_hint", systemImage: "testtube.2")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding(.vertical, 6)
         .onAppear {

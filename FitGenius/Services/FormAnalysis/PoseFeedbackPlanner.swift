@@ -61,25 +61,30 @@ struct PoseFeedbackPlanner {
         for exercise: FormExerciseType,
         sequence: PoseSequence
     ) -> PoseFrame {
-        guard let fallback = sequence.frames.max(by: { $0.joints.count < $1.joints.count }) else {
+        let candidateFrames = sequence.frames.filter {
+            PoseFrameQualityPolicy.isUsableForFormAnalysis($0)
+        }
+        let frames = candidateFrames.isEmpty ? sequence.frames : candidateFrames
+
+        guard let fallback = frames.max(by: { $0.joints.count < $1.joints.count }) else {
             return PoseFrame(timestamp: 0, joints: [:])
         }
 
         switch exercise {
         case .squat:
-            return sequence.frames.min(by: {
+            return frames.min(by: {
                 averageY($0, .leftHip, .rightHip) > averageY($1, .leftHip, .rightHip)
             }) ?? fallback
         case .deadlift:
-            return sequence.frames.max(by: {
+            return frames.max(by: {
                 torsoLean($0) < torsoLean($1)
             }) ?? fallback
         case .benchPress:
-            return sequence.frames.min(by: {
+            return frames.min(by: {
                 averageY($0, .leftWrist, .rightWrist) > averageY($1, .leftWrist, .rightWrist)
             }) ?? fallback
         case .overheadPress:
-            return sequence.frames.max(by: {
+            return frames.max(by: {
                 averageY($0, .leftWrist, .rightWrist) < averageY($1, .leftWrist, .rightWrist)
             }) ?? fallback
         }

@@ -1,4 +1,10 @@
 "widget_description" = "查看今日训练进度或饮食记录";
+"widget_summary_display_name" = "FitGenius 综合";
+"widget_summary_description" = "同时查看训练进度和饮食概览";
+"widget_workout_display_name" = "FitGenius 训练";
+"widget_workout_description" = "查看今日训练进度和后续动作";
+"widget_diet_display_name" = "FitGenius 饮食";
+"widget_diet_description" = "查看今日热量和营养比例";
 "widget_today_workout" = "今日训练";
 "widget_today_diet" = "今日饮食";
 "widget_rest_day" = "今天是休息日";

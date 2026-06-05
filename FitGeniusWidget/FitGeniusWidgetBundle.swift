@@ -12,5 +12,7 @@ import SwiftUI
 struct FitGeniusWidgetBundle: WidgetBundle {
     var body: some Widget {
         FitGeniusWidget()
+        FitGeniusWorkoutWidget()
+        FitGeniusDietWidget()
     }
 }

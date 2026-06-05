@@ -297,49 +297,20 @@ struct ProfileView: View {
 
 // MARK: - Widget背景设置视图
 struct WidgetBackgroundSettingsView: View {
-    @State private var widgetContent: String = "workout"
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            // 小组件显示内容偏好
-            VStack(alignment: .leading, spacing: 8) {
-                Text("widget_display")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-
-                Picker("widget_display", selection: $widgetContent) {
-                    Text("training_plan").tag("workout")
-                    Text("todays_diet").tag("diet")
-                }
-                .pickerStyle(.segmented)
-                .onChange(of: widgetContent) { _, newValue in
-                    WidgetDataManager.setWidgetContent(newValue)
-                }
-
-                Text("widget_content_preference")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-
-            Divider()
-
-            // 背景样式说明
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Image(systemName: "paintpalette")
+                Image(systemName: "square.grid.2x2")
                     .foregroundColor(.blue)
-                Text("widget_background_description")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("widget_display")
+                        .font(.subheadline)
+                    Text("widget_content_preference")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             }
         }
         .padding(.vertical, 8)
-        .onAppear {
-            loadCurrentSettings()
-        }
-    }
-
-    private func loadCurrentSettings() {
-        let defaults = UserDefaults(suiteName: WidgetDataManager.appGroupID)
-        widgetContent = defaults?.string(forKey: "widgetContent") ?? "workout"
     }
 }

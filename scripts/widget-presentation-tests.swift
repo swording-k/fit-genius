@@ -29,6 +29,13 @@ struct WidgetPresentationTests {
         expect(presentation.progress == 0.25, "progress should be normalized")
         expect(presentation.nextExercise?.name == "Incline Press", "next exercise should be first pending exercise")
         expect(presentation.upcomingExercises.map(\.name) == ["Incline Press", "Fly"], "medium widget should show at most two upcoming exercises")
+
+        let diet = WidgetDietData(totalCalories: 1800, protein: 100, carbs: 200, fat: 60, hasData: true)
+        let dietPresentation = WidgetDietPresentation(diet: diet)
+        let totalShare = dietPresentation.proteinShare + dietPresentation.carbsShare + dietPresentation.fatShare
+        expect(abs(totalShare - 1.0) < 0.0001, "macro shares should be normalized from 4/4/9 calories")
+        expect(dietPresentation.carbsShare > dietPresentation.proteinShare, "carb share should reflect gram and calorie contribution")
+        expect(dietPresentation.fatShare > dietPresentation.proteinShare, "fat share should use 9 kcal per gram")
         print("Widget presentation tests passed")
     }
 }

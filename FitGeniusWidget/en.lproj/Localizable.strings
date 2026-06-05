@@ -1,4 +1,10 @@
 "widget_description" = "See today's workout progress or nutrition log";
+"widget_summary_display_name" = "FitGenius Overview";
+"widget_summary_description" = "See workout progress and nutrition together";
+"widget_workout_display_name" = "FitGenius Workout";
+"widget_workout_description" = "See today's workout progress and next exercises";
+"widget_diet_display_name" = "FitGenius Nutrition";
+"widget_diet_description" = "See today's calories and macro ratio";
 "widget_today_workout" = "Today's Workout";
 "widget_today_diet" = "Today's Nutrition";
 "widget_rest_day" = "Rest Day";

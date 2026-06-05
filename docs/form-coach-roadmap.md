@@ -1,6 +1,6 @@
 # FitGenius Form Coach Roadmap
 
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
 ## Product Vision
 
@@ -33,6 +33,11 @@ The AI Assistant becomes the unified coaching surface:
 Training plans and Stats support this loop. The first Watch workout companion
 is now implemented, while Android/Huawei and broad exercise expansion remain
 paused until this experience is useful.
+
+TestFlight feedback from 2026-06-05 tightened the MVP bar: annotated form
+feedback must never select social-media intro/outro frames or tiny creator
+avatars as the key frame. Pose frames now need to pass a body-size/quality gate
+before scoring or feedback-frame selection.
 
 ## Technical Direction
 
@@ -177,8 +182,8 @@ Implemented locally, pending paired-device acceptance:
 - Apple Watch companion for today's workout, current exercise, completion,
   per-set progress, rest timer, live heart rate, and HealthKit workout writing.
 - Profile-only iPhone Watch discovery and workout preparation flow, plus a redesigned
-  workout-first Widget with progress, next exercise, bilingual copy, and a
-  direct Today Plan deep link.
+  Widget set with separate Overview, Workout, and Nutrition widgets. Users can
+  place training and diet widgets on the same Home Screen.
 - Optional iPhone HealthKit workout writing when a full training day becomes
   complete. It records strength-workout type and duration without inventing
   sensor-derived calories.

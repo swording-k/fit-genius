@@ -20,10 +20,19 @@ xcrun swiftc \
 
 xcrun swiftc \
   FitGenius/Models/Form/PoseModels.swift \
+  FitGenius/Services/FormAnalysis/PoseFrameQualityPolicy.swift \
   FitGenius/Services/FormAnalysis/PoseFeedbackPlanner.swift \
   scripts/pose-feedback-planner-tests.swift \
   -o /tmp/pose-feedback-planner-tests
 /tmp/pose-feedback-planner-tests
+
+xcrun swiftc \
+  FitGenius/Models/Form/PoseModels.swift \
+  FitGenius/Services/FormAnalysis/PoseFrameQualityPolicy.swift \
+  FitGenius/Services/FormAnalysis/PoseFeedbackPlanner.swift \
+  scripts/pose-frame-quality-policy-tests.swift \
+  -o /tmp/pose-frame-quality-policy-tests
+/tmp/pose-frame-quality-policy-tests
 
 xcrun swiftc \
   FitGenius/Models/Form/PoseModels.swift \

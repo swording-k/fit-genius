@@ -45,6 +45,12 @@ struct FitGeniusEntry: TimelineEntry {
 }
 
 struct FitGeniusProvider: TimelineProvider {
+    let preferredContent: String
+
+    init(preferredContent: String = "smart") {
+        self.preferredContent = preferredContent
+    }
+
     func placeholder(in context: Context) -> FitGeniusEntry {
         FitGeniusEntry(
             date: Date(),
@@ -61,7 +67,7 @@ struct FitGeniusProvider: TimelineProvider {
                 cycleDay: 1
             ),
             dietData: WidgetDietData(totalCalories: 1800, protein: 120, carbs: 200, fat: 60, hasData: true),
-            widgetContent: "workout"
+            widgetContent: preferredContent == "smart" ? "summary" : preferredContent
         )
     }
 
@@ -78,11 +84,14 @@ struct FitGeniusProvider: TimelineProvider {
         let defaults = UserDefaults(suiteName: "group.com.swordingk.fitgenius")
         let workout = defaults?.data(forKey: "widgetWorkout").flatMap { try? JSONDecoder().decode(WidgetWorkoutData.self, from: $0) }
         let diet = defaults?.data(forKey: "widgetDiet").flatMap { try? JSONDecoder().decode(WidgetDietData.self, from: $0) }
+        let content = preferredContent == "smart"
+            ? "summary"
+            : preferredContent
         return FitGeniusEntry(
             date: Date(),
             workoutData: workout,
             dietData: diet,
-            widgetContent: defaults?.string(forKey: "widgetContent") ?? "workout"
+            widgetContent: content
         )
     }
 }
@@ -93,11 +102,49 @@ struct FitGeniusWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: FitGeniusProvider()) { entry in
             FitGeniusWidgetEntryView(entry: entry)
-                .containerBackground(.background, for: .widget)
+                .containerBackground(for: .widget) {
+                    WidgetBackgroundView(accent: .blue)
+                }
                 .widgetURL(URL(string: "fitgenius://today"))
         }
-        .configurationDisplayName("FitGenius")
-        .description("widget_description")
+        .configurationDisplayName("widget_summary_display_name")
+        .description("widget_summary_description")
+        .supportedFamilies([.systemMedium, .systemLarge])
+        .contentMarginsDisabled()
+    }
+}
+
+struct FitGeniusWorkoutWidget: Widget {
+    let kind = "FitGeniusWorkoutWidget"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: FitGeniusProvider(preferredContent: "workout")) { entry in
+            FitGeniusWidgetEntryView(entry: entry)
+                .containerBackground(for: .widget) {
+                    WidgetBackgroundView(accent: .blue)
+                }
+                .widgetURL(URL(string: "fitgenius://today"))
+        }
+        .configurationDisplayName("widget_workout_display_name")
+        .description("widget_workout_description")
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
+        .contentMarginsDisabled()
+    }
+}
+
+struct FitGeniusDietWidget: Widget {
+    let kind = "FitGeniusDietWidget"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: FitGeniusProvider(preferredContent: "diet")) { entry in
+            FitGeniusWidgetEntryView(entry: entry)
+                .containerBackground(for: .widget) {
+                    WidgetBackgroundView(accent: .orange)
+                }
+                .widgetURL(URL(string: "fitgenius://diet"))
+        }
+        .configurationDisplayName("widget_diet_display_name")
+        .description("widget_diet_description")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
         .contentMarginsDisabled()
     }
@@ -109,13 +156,92 @@ struct FitGeniusWidgetEntryView: View {
 
     var body: some View {
         Group {
-            if entry.widgetContent == "diet" {
+            if entry.widgetContent == "summary" {
+                SummaryWidgetView(workout: entry.workoutData, diet: entry.dietData, family: family)
+            } else if entry.widgetContent == "diet" {
                 DietWidgetView(diet: entry.dietData, family: family)
             } else {
                 WorkoutWidgetView(workout: entry.workoutData, family: family)
             }
         }
         .padding(16)
+    }
+}
+
+private struct WidgetBackgroundView: View {
+    let accent: Color
+
+    var body: some View {
+        LinearGradient(
+            colors: [
+                accent.opacity(0.22),
+                Color.white.opacity(0.94),
+                Color.gray.opacity(0.10)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+}
+
+private struct SummaryWidgetView: View {
+    let workout: WidgetWorkoutData?
+    let diet: WidgetDietData?
+    let family: WidgetFamily
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Label("FitGenius", systemImage: "sparkles")
+                    .font(.caption.bold())
+                    .foregroundStyle(.blue)
+                Spacer()
+                if let workout {
+                    Text("\(WidgetWorkoutPresentation(workout: workout).completedCount)/\(workout.exercises.count)")
+                        .font(.caption.monospacedDigit().bold())
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            if let workout, !workout.isRestDay {
+                let presentation = WidgetWorkoutPresentation(workout: workout)
+                HStack(alignment: .center, spacing: 10) {
+                    ProgressRing(progress: presentation.progress, color: .blue, lineWidth: 6)
+                        .frame(width: 42, height: 42)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(workout.focus)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                        Text(presentation.nextExercise?.name ?? NSLocalizedString("widget_workout_complete", comment: ""))
+                            .font(.headline)
+                            .lineLimit(1)
+                    }
+                }
+            } else {
+                Label("widget_rest_day", systemImage: "moon.zzz.fill")
+                    .font(.headline)
+                    .foregroundStyle(.indigo)
+            }
+
+            Divider().opacity(0.35)
+
+            if let diet, diet.hasData {
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text(Int(diet.totalCalories), format: .number)
+                        .font(.title3.bold())
+                    Text("kcal")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                }
+                MacroRatioBar(diet: diet)
+            } else {
+                Text("widget_no_diet")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
     }
 }
 
@@ -165,6 +291,20 @@ private struct WorkoutWidgetView: View {
                     .foregroundStyle(.green)
                 Spacer()
             } else if let next = presentation.nextExercise {
+                if family == .systemSmall {
+                    HStack(spacing: 10) {
+                        ProgressRing(progress: presentation.progress, color: .blue, lineWidth: 6)
+                            .frame(width: 38, height: 38)
+                        Text(workout.focus)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                } else {
+                    ProgressView(value: presentation.progress)
+                        .tint(.blue)
+                }
+
                 Text(workout.focus)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -199,8 +339,6 @@ private struct WorkoutWidgetView: View {
                     Spacer(minLength: 0)
                 }
 
-                ProgressView(value: presentation.progress)
-                    .tint(.blue)
             } else {
                 Spacer()
                 Text("widget_no_exercises")
@@ -253,13 +391,14 @@ private struct DietWidgetView: View {
                 Spacer()
 
                 if family == .systemSmall {
-                    nutrientBar(diet)
+                    MacroRatioBar(diet: diet)
                 } else {
                     HStack {
                         nutrient("widget_protein", value: diet.protein, color: .red)
                         nutrient("widget_carbs", value: diet.carbs, color: .blue)
                         nutrient("widget_fat", value: diet.fat, color: .orange)
                     }
+                    MacroRatioBar(diet: diet)
                 }
             }
         } else {
@@ -286,12 +425,44 @@ private struct DietWidgetView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func nutrientBar(_ diet: WidgetDietData) -> some View {
-        HStack(spacing: 3) {
-            Capsule().fill(.red).frame(maxWidth: .infinity)
-            Capsule().fill(.blue).frame(maxWidth: .infinity)
-            Capsule().fill(.orange).frame(maxWidth: .infinity)
+}
+
+private struct ProgressRing: View {
+    let progress: Double
+    let color: Color
+    let lineWidth: CGFloat
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(color.opacity(0.18), lineWidth: lineWidth)
+            Circle()
+                .trim(from: 0, to: min(max(progress, 0), 1))
+                .stroke(color, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                .rotationEffect(.degrees(-90))
         }
-        .frame(height: 5)
+    }
+}
+
+private struct MacroRatioBar: View {
+    let diet: WidgetDietData
+
+    var body: some View {
+        let presentation = WidgetDietPresentation(diet: diet)
+        GeometryReader { proxy in
+            let width = proxy.size.width
+            HStack(spacing: 3) {
+                Capsule()
+                    .fill(.red)
+                    .frame(width: max(width * presentation.proteinShare - 2, 3))
+                Capsule()
+                    .fill(.blue)
+                    .frame(width: max(width * presentation.carbsShare - 2, 3))
+                Capsule()
+                    .fill(.orange)
+                    .frame(width: max(width * presentation.fatShare - 2, 3))
+            }
+        }
+        .frame(height: 6)
     }
 }

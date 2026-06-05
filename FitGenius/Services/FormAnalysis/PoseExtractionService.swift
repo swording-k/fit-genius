@@ -53,7 +53,8 @@ struct PoseExtractionService {
         var frames: [PoseFrame] = []
         for time in times {
             guard let cgImage = try? generator.copyCGImage(at: time, actualTime: nil) else { continue }
-            if let frame = try detectPose(in: cgImage, timestamp: CMTimeGetSeconds(time)) {
+            if let frame = try detectPose(in: cgImage, timestamp: CMTimeGetSeconds(time)),
+               PoseFrameQualityPolicy.isUsableForFormAnalysis(frame) {
                 frames.append(frame)
             }
         }
