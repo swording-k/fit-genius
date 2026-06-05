@@ -1,4 +1,14 @@
-# FitGenius - AI 健身计划管理 iOS 应用
+# FitGenius / Fit-Genius - AI 健身计划管理 iOS 应用
+
+> **品牌名（App Store 用户可见）**
+> - 中文区：**FitGenius**
+> - 英文区：**Fit-Genius**（带连字符，避开英文区同名占用）
+> - Slogan：让每一次训练都不白费
+>
+> **工程层标识（永远不变）**
+> - Bundle ID：`com.swordingk.fitgenius`（已上架锁定）
+> - App Group：`group.com.swordingk.fitgenius`
+> - URL Scheme：`fitgenius://`
 
 <div align="center">
 

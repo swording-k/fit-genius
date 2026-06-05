@@ -1,4 +1,13 @@
-# FitGenius App 文档
+# FitGenius / Fit-Genius App 文档
+
+> **品牌名（App Store 用户可见）**
+> - 中文区：**FitGenius**
+> - 英文区：**Fit-Genius**（带连字符，避开英文区同名占用）
+> - Slogan：让每一次训练都不白费
+> - "慧"=AI/智慧，"练"=训练
+>
+> **工程层标识（永远不变）**
+> - Bundle ID：`com.swordingk.fitgenius`（已上架锁定）
 
 ## 项目概述
 

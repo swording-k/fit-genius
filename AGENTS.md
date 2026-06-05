@@ -7,6 +7,18 @@
 
 ## 1. 项目一句话
 
+**品牌名（App Store 用户可见，对外）**
+- 中文区：**FitGenius**
+- 英文区：**Fit-Genius**（带连字符变体，避开英文区同名占用）
+- Slogan：让每一次训练都不白费
+
+**工程层（永远不变）**
+- Bundle ID：`com.swordingk.fitgenius`（已上架，锁死，不可改）
+- App Group：`group.com.swordingk.fitgenius`（同上）
+- URL Scheme：`fitgenius://`（同上）
+
+> Brand 与工程标识分离：用户看到的名字改了不影响工程内部任何东西，**老用户照常升级**。连字符变体对 App Store 搜索零影响（搜索是 token 模糊匹配，会忽略标点）。
+
 FitGenius = iOS 健身 App（SwiftUI + SwiftData，训练 + 饮食双模式）
 **+** Apple Watch 训练辅助 App（训练进度 + 休息计时 + 心率 + HealthKit）
 **+** Vercel Serverless 后端（Apple Sign in 验证 + AI 代理 + 云同步 + 账户删除）
