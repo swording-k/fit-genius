@@ -27,8 +27,12 @@ The AI Assistant becomes the unified coaching surface:
    supported exercise and allows a manual override.
 2. Apple Vision extracts pose joints locally.
 3. FitGenius rules produce the score and issues.
-4. FitGenius returns an annotated representative frame plus concise coaching.
-5. AI can explain or answer follow-up questions, but does not invent the score.
+4. FitGenius returns an annotated representative frame plus structured
+   coaching: evidence, why it matters, how to fix it, a drill, and the next
+   training focus.
+5. AI can explain the annotated frame, answer follow-up questions, or generate
+   correct-form teaching examples, but it must not invent or replace the local
+   score, exercise type, or detected issue list.
 
 Training plans and Stats support this loop. The first Watch workout companion
 is now implemented, while Android/Huawei and broad exercise expansion remain
@@ -38,6 +42,14 @@ TestFlight feedback from 2026-06-05 tightened the MVP bar: annotated form
 feedback must never select social-media intro/outro frames or tiny creator
 avatars as the key frame. Pose frames now need to pass a body-size/quality gate
 before scoring or feedback-frame selection.
+
+The same feedback clarified the product bar for coaching depth: a video reply
+must teach the user what to change, not merely report a score. AI Assistant
+video feedback now needs to explain the selected key frame, visible evidence,
+priority corrections, concrete cues, practice drills, next-session focus, and
+better filming guidance. Future multimodal LLM work should enhance the
+teaching layer and correct-form examples while preserving deterministic local
+rules as the source of truth.
 
 ## Technical Direction
 

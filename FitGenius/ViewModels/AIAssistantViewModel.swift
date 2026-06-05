@@ -354,28 +354,6 @@ class AIAssistantViewModel: ObservableObject {
     }
 
     private func formAnalysisMessage(for artifact: LocalFormAnalysisArtifact) -> String {
-        let issueText: String
-        if artifact.summary.issues.isEmpty {
-            issueText = NSLocalizedString("form_analysis_stable", comment: "")
-        } else {
-            issueText = artifact.summary.issues.enumerated().map { index, issue in
-                "\(index + 1). \(issue.title)：\(issue.detail)"
-            }.joined(separator: "\n")
-        }
-        let detectionText: String
-        if artifact.usedAutomaticDetection {
-            detectionText = String(
-                format: NSLocalizedString("assistant_form_detection_auto_format", comment: ""),
-                artifact.summary.exerciseType.displayName,
-                Int((artifact.classification.confidence * 100).rounded())
-            )
-        } else {
-            detectionText = String(
-                format: NSLocalizedString("assistant_form_detection_manual_format", comment: ""),
-                artifact.summary.exerciseType.displayName
-            )
-        }
-        let detectionReason = NSLocalizedString(artifact.classification.reasonKey, comment: "")
         let metrics = artifact.summary.metrics
             .filter { $0.key != "detected_frames" || $0.value > 0 }
             .prefix(5)
@@ -389,15 +367,20 @@ class AIAssistantViewModel: ObservableObject {
         let confidenceNote = artifact.classification.confidence < 0.65
             ? "\n\n" + NSLocalizedString("assistant_form_detection_low_confidence", comment: "")
             : ""
-        return detectionText + "\n" + detectionReason + confidenceNote + "\n\n" + String(
-            format: NSLocalizedString("assistant_form_analysis_result_format", comment: ""),
-            artifact.summary.exerciseType.displayName,
-            artifact.summary.score,
-            artifact.feedbackTimestamp,
-            issueText,
-            artifact.summary.recommendation,
-            metrics
-        ) + "\n\n" + NSLocalizedString("assistant_form_analysis_scope_note", comment: "")
+        let coaching = FormCoachFeedbackBuilder().build(
+            summary: artifact.summary,
+            feedbackTimestamp: artifact.feedbackTimestamp,
+            classificationConfidence: artifact.classification.confidence,
+            usedAutomaticDetection: artifact.usedAutomaticDetection
+        )
+        let detectionReason = NSLocalizedString(artifact.classification.reasonKey, comment: "")
+        let metricsSection = String(
+            format: NSLocalizedString("assistant_form_analysis_metrics_format", comment: ""),
+            metrics.isEmpty ? NSLocalizedString("form_analysis_stable", comment: "") : metrics
+        )
+        return [detectionReason + confidenceNote, coaching.assistantText, metricsSection]
+            .filter { !$0.isEmpty }
+            .joined(separator: "\n\n")
     }
 
     // MARK: - 处理动作级别修改

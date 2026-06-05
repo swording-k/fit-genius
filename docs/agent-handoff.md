@@ -1,6 +1,6 @@
 # FitGenius Agent Handoff
 
-Last updated: 2026-06-05 10:50 Asia/Shanghai
+Last updated: 2026-06-05 11:20 Asia/Shanghai
 
 ## Read First
 
@@ -11,13 +11,28 @@ Last updated: 2026-06-05 10:50 Asia/Shanghai
 
 ## Current Status
 
-The cloud-sync and Apple Watch milestone is committed at `bafaf2e`, and the
-form-coach product-quality milestone is committed at `ab59258`. The current
-local milestone adds the iPhone Watch discovery/launch flow and redesigns the
-Widget; it is validated and awaiting commit.
+The cloud-sync and Apple Watch milestone is committed at `bafaf2e`, the
+form-coach product-quality milestone is committed at `ab59258`, and the
+form-keyframe / Widget TestFlight fix is committed at `e715c2d`. The current
+local milestone upgrades AI Assistant video-analysis copy from a terse
+detection report into structured coaching feedback.
 
 Latest milestone:
 
+- Added `FormCoachFeedbackBuilder`, a deterministic teaching layer for
+  AI Assistant video analysis. It turns the local Vision + rule result into
+  coach-style feedback: why the key frame was selected, what looked good,
+  prioritized corrections, evidence, why the issue matters, how to fix it,
+  a concrete drill, next-session focus, filming guidance, and the medical /
+  training-scope limitation.
+- AI Assistant now uses the new coaching text for video replies while keeping
+  score, detected exercise, issues, and key metrics deterministic. LLMs may
+  later explain the annotated key frame or generate correct-form examples, but
+  must not replace the local score or detected issue list.
+- Added `form-coach-feedback-builder-tests` and wired it into
+  `scripts/run-form-analysis-tests.sh`; the test requires risky bench feedback
+  to include evidence, why, fix, drill, next-session plan, and filming guidance,
+  and verifies stable clips do not invent problems.
 - TestFlight feedback on 2026-06-05 exposed a form-analysis trust issue: a
   bench video with a social-media ending screen selected the ending avatar as
   the annotated key frame. Added `PoseFrameQualityPolicy` and wired it into
@@ -176,6 +191,8 @@ new reconnect prompt once to receive a new FitGenius cloud session.
 
 ## Latest Validation
 
+- `scripts/run-form-analysis-tests.sh` passed after the coach-feedback builder
+  changes, including the new teaching-feedback regression.
 - `scripts/predeploy-check.sh` passed after the form-frame filter and Widget
   changes: backend 25/25, all iOS script tests, localization, and secret scan.
 - New `pose-frame-quality-policy-tests` passed, covering the 31.9s social-media

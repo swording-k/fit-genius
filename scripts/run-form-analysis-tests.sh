@@ -37,6 +37,14 @@ xcrun swiftc \
 xcrun swiftc \
   FitGenius/Models/Form/PoseModels.swift \
   FitGenius/Services/FormAnalysis/FormRuleEngine.swift \
+  FitGenius/Services/FormAnalysis/FormCoachFeedbackBuilder.swift \
+  scripts/form-coach-feedback-builder-tests.swift \
+  -o /tmp/form-coach-feedback-builder-tests
+/tmp/form-coach-feedback-builder-tests
+
+xcrun swiftc \
+  FitGenius/Models/Form/PoseModels.swift \
+  FitGenius/Services/FormAnalysis/FormRuleEngine.swift \
   FitGenius/Services/FormAnalysis/FormExerciseClassifier.swift \
   scripts/form-coaching-quality-tests.swift \
   -o /tmp/form-coaching-quality-tests
