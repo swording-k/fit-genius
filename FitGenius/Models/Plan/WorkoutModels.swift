@@ -17,9 +17,10 @@ final class WorkoutPlan {
     }
     var cycleDays: Int { days?.count ?? 0 }
     func getTodayCyclePosition() -> Int {
-        let calendar = Calendar.current
-        let daysSinceStart = calendar.dateComponents([.day], from: creationDate, to: Date()).day ?? 0
-        return daysSinceStart % max(cycleDays, 1)
+        WorkoutCycleCalculator.cyclePosition(
+            creationDate: creationDate,
+            cycleDays: cycleDays
+        )
     }
     func getTodayWorkout() -> WorkoutDay? {
         let position = getTodayCyclePosition()
@@ -27,16 +28,18 @@ final class WorkoutPlan {
         return sortedDays[safe: position]
     }
     func getCurrentCycleWeek() -> Int {
-        let calendar = Calendar.current
-        let daysSinceStart = calendar.dateComponents([.day], from: creationDate, to: Date()).day ?? 0
-        return (daysSinceStart / max(cycleDays, 1)) + 1
+        WorkoutCycleCalculator.cycleWeek(
+            creationDate: creationDate,
+            cycleDays: cycleDays
+        )
     }
     func getDateForDay(dayNumber: Int) -> Date {
         let calendar = Calendar.current
-        let daysSinceStart = calendar.dateComponents([.day], from: creationDate, to: Date()).day ?? 0
+        let daysSinceStart = WorkoutCycleCalculator.daysSinceStart(creationDate: creationDate)
         let currentCycle = daysSinceStart / max(cycleDays, 1)
         let daysToAdd = currentCycle * cycleDays + (dayNumber - 1)
-        return calendar.date(byAdding: .day, value: daysToAdd, to: creationDate) ?? Date()
+        let start = calendar.startOfDay(for: creationDate)
+        return calendar.date(byAdding: .day, value: daysToAdd, to: start) ?? Date()
     }
 }
 

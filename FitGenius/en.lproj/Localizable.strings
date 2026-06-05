@@ -527,6 +527,7 @@
 "跑步机" = "Treadmill";
 "add_meal" = "Add Meal";
 "edit_meal" = "Edit Meal";
+"delete_meal_entry" = "Delete Meal";
 "content" = "Content";
 "nutrition" = "Nutrition";
 "description" = "Description";

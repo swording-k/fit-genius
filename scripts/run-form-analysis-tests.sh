@@ -123,6 +123,12 @@ xcrun swiftc \
 /tmp/app-language-policy-tests
 
 xcrun swiftc \
+  FitGenius/Models/Plan/WorkoutCycleCalculator.swift \
+  scripts/workout-cycle-calculator-tests.swift \
+  -o /tmp/workout-cycle-calculator-tests
+/tmp/workout-cycle-calculator-tests
+
+xcrun swiftc \
   FitGenius/Models/Plan/WorkoutCompletionPolicy.swift \
   scripts/workout-completion-policy-tests.swift \
   -o /tmp/workout-completion-policy-tests

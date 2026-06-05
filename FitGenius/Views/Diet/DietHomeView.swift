@@ -48,8 +48,15 @@ struct DietHomeView: View {
                         VStack(alignment: .leading, spacing: 6) {
                             HStack {
                                 Text(entry.mealType.localizedName)
+                                    .font(.headline)
                                 Spacer()
                                 Text(String(format: "%.0f kcal", entry.calories))
+                                    .font(.headline.monospacedDigit())
+                            }
+                            HStack(spacing: 8) {
+                                NutrientChip(title: "protein", value: entry.protein, color: .blue)
+                                NutrientChip(title: "carbs", value: entry.carbs, color: .green)
+                                NutrientChip(title: "fat", value: entry.fat, color: .pink)
                             }
                             if !entry.text.isEmpty {
                                 Text(entry.text)
@@ -71,6 +78,23 @@ struct DietHomeView: View {
                                     }
                                 }
                             }
+                            HStack {
+                                Button {
+                                    viewModel.startEdit(entry: entry)
+                                } label: {
+                                    Label("edit", systemImage: "pencil")
+                                }
+                                .buttonStyle(.bordered)
+
+                                Button(role: .destructive) {
+                                    viewModel.deleteEntry(entry)
+                                } label: {
+                                    Label("delete_meal_entry", systemImage: "trash")
+                                }
+                                .buttonStyle(.bordered)
+                            }
+                            .font(.caption)
+                            .padding(.top, 2)
                         }
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button {
@@ -282,5 +306,27 @@ struct DietHomeView: View {
         .sheet(isPresented: $showLoginSheet) {
             LoginView()
         }
+    }
+}
+
+private struct NutrientChip: View {
+    let title: LocalizedStringKey
+    let value: Double
+    let color: Color
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Circle()
+                .fill(color)
+                .frame(width: 6, height: 6)
+            Text(title)
+            Text(String(format: "%.0f g", value))
+                .monospacedDigit()
+        }
+        .font(.caption2)
+        .foregroundStyle(.secondary)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(color.opacity(0.10), in: Capsule())
     }
 }

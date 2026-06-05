@@ -527,6 +527,7 @@
 "跑步机" = "跑步机";
 "add_meal" = "添加餐次";
 "edit_meal" = "编辑餐次";
+"delete_meal_entry" = "删除本餐";
 "content" = "内容";
 "nutrition" = "营养";
 "description" = "描述";

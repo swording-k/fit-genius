@@ -44,7 +44,7 @@ class DietViewModel: ObservableObject {
 
     func addMealEntry() {
         guard let day = day else { return }
-        let entry = MealEntry(date: Date(),
+        let entry = MealEntry(date: selectedDate,
                               mealType: selectedMealType,
                               text: inputText,
                               images: selectedImagesData,
@@ -78,6 +78,9 @@ class DietViewModel: ObservableObject {
         entry.protein = Double(editProtein) ?? entry.protein
         entry.carbs = Double(editCarbs) ?? entry.carbs
         entry.fat = Double(editFat) ?? entry.fat
+        refreshSummaryFromEntries()
+        try? modelContext.save()
+        NotificationCenter.default.post(name: .dietSummaryUpdated, object: nil)
         isPresentingEditSheet = false
         editingEntry = nil
     }
@@ -87,6 +90,9 @@ class DietViewModel: ObservableObject {
         if let idx = (day.entries ?? []).firstIndex(where: { $0 === entry }) {
             day.entries?.remove(at: idx)
             modelContext.delete(entry)
+            refreshSummaryFromEntries()
+            try? modelContext.save()
+            NotificationCenter.default.post(name: .dietSummaryUpdated, object: nil)
         }
     }
 
@@ -155,5 +161,35 @@ class DietViewModel: ObservableObject {
             showSubmitAlert = true
             NotificationCenter.default.post(name: .dietSummaryUpdated, object: nil)
         }
+    }
+
+    private func refreshSummaryFromEntries() {
+        guard let day else { return }
+        let entries = day.entries ?? []
+        let calories = entries.reduce(0) { $0 + $1.calories }
+        let protein = entries.reduce(0) { $0 + $1.protein }
+        let carbs = entries.reduce(0) { $0 + $1.carbs }
+        let fat = entries.reduce(0) { $0 + $1.fat }
+
+        guard calories > 0 || protein > 0 || carbs > 0 || fat > 0 else {
+            day.summary = nil
+            day.submitted = false
+            return
+        }
+
+        let summary = day.summary ?? NutritionSummary(
+            date: day.date,
+            totalCalories: calories,
+            protein: protein,
+            carbs: carbs,
+            fat: fat
+        )
+        summary.date = day.date
+        summary.totalCalories = calories
+        summary.protein = protein
+        summary.carbs = carbs
+        summary.fat = fat
+        summary.day = day
+        day.summary = summary
     }
 }

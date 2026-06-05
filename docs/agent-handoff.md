@@ -1,6 +1,6 @@
 # FitGenius Agent Handoff
 
-Last updated: 2026-06-05 11:20 Asia/Shanghai
+Last updated: 2026-06-05 11:50 Asia/Shanghai
 
 ## Read First
 
@@ -19,6 +19,17 @@ detection report into structured coaching feedback.
 
 Latest milestone:
 
+- Diet meal cards now show per-entry calories, protein, carbs, and fat instead
+  of hiding macros until the daily summary. Each scanned/added meal also has
+  visible Edit and Delete controls in addition to swipe actions, so mistaken
+  food photos can be removed without discovering hidden gestures.
+- Editing or deleting a meal entry now recalculates the day summary, clears the
+  summary when no nutrition remains, saves immediately, and notifies the Diet
+  Widget refresh path.
+- Workout cycle/date selection now advances on calendar-day boundaries rather
+  than requiring a full 24 hours after plan creation. This prevents a plan made
+  the previous evening from still showing the previous workout the next
+  morning in both the app and widget.
 - Added `FormCoachFeedbackBuilder`, a deterministic teaching layer for
   AI Assistant video analysis. It turns the local Vision + rule result into
   coach-style feedback: why the key frame was selected, what looked good,
@@ -191,6 +202,13 @@ new reconnect prompt once to receive a new FitGenius cloud session.
 
 ## Latest Validation
 
+- `scripts/predeploy-check.sh` passed after the Diet per-meal macro/delete
+  changes and calendar-day workout-cycle fix. The suite includes the new
+  `Workout cycle calculator tests passed` regression.
+- XcodeBuildMCP build/run succeeded with zero warnings and zero errors after
+  the Diet UI and workout-cycle changes. Simulator snapshot verified the
+  training date is now `6/5`; the local demo plan still labels that fixture as
+  chest, so content matching must be checked against a real user plan.
 - `scripts/run-form-analysis-tests.sh` passed after the coach-feedback builder
   changes, including the new teaching-feedback regression.
 - `scripts/predeploy-check.sh` passed after the form-frame filter and Widget
