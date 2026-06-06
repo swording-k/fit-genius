@@ -73,6 +73,53 @@ struct FormCoachFeedbackBuilderTests {
             "stable bench press should not invent problems"
         )
 
+        let json = """
+        {
+          "coach_note": "Keep the setup stable before pressing.",
+          "selected_frame_indexes": [0, 2],
+          "annotations": [
+            {
+              "image_index": 0,
+              "label": "Stack wrist over elbow",
+              "type": "highlight",
+              "joints": ["leftWrist", "leftElbow"],
+              "severity": 2
+            }
+          ],
+          "cues": [
+            {
+              "title": "Set the press path",
+              "evidence": "The wrist path moves around more than expected.",
+              "why_it_matters": "A drifting wrist makes force transfer worse.",
+              "how_to_fix": "Keep knuckles up and forearms close to vertical.",
+              "drill": "Use paused reps for the next two warm-up sets."
+            }
+          ]
+        }
+        """
+        let decoded = try! JSONDecoder().decode(
+            FormCoachEnrichmentResult.self,
+            from: Data(json.utf8)
+        )
+        require(decoded.coachNote == "Keep the setup stable before pressing.", "coach_note should decode")
+        require(decoded.selectedFrameIndexes == [0, 2], "selected_frame_indexes should decode")
+        require(decoded.annotations.first?.imageIndex == 0, "image_index should decode")
+        require(decoded.annotations.first?.resolvedJoints == [.leftWrist, .leftElbow], "annotation joints should resolve")
+        require(decoded.cues.first?.whyItMatters.contains("drifting wrist") == true, "why_it_matters should decode into FormCoachCue")
+        require(decoded.cues.first?.howToFix.contains("knuckles") == true, "how_to_fix should decode into FormCoachCue")
+
+        let enrichedFeedback = FormCoachFeedbackBuilder().build(
+            summary: stableSummary,
+            feedbackTimestamp: 0,
+            classificationConfidence: 0.95,
+            usedAutomaticDetection: false,
+            enrichmentCues: decoded.cues
+        )
+        require(
+            enrichedFeedback.priorityCues.first?.title == "Set the press path",
+            "AI enrichment cues should override local stable no-issue cues when provided"
+        )
+
         print("form-coach-feedback-builder-tests: PASS")
     }
 }

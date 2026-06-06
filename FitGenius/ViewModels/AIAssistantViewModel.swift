@@ -313,7 +313,7 @@ class AIAssistantViewModel: ObservableObject {
             let response = ChatMessage(
                 content: content,
                 isUser: false,
-                mediaData: artifact.feedbackImageData,
+                mediaData: artifact.enrichment?.annotatedImageData.first ?? artifact.feedbackImageData,
                 mediaType: "image",
                 topic: "fitness"
             )
@@ -372,14 +372,26 @@ class AIAssistantViewModel: ObservableObject {
             summary: artifact.summary,
             feedbackTimestamp: artifact.feedbackTimestamp,
             classificationConfidence: artifact.classification.confidence,
-            usedAutomaticDetection: artifact.usedAutomaticDetection
+            usedAutomaticDetection: artifact.usedAutomaticDetection,
+            enrichmentCues: artifact.enrichment?.cues ?? []
         )
+        let enrichmentNote: String
+        if let coachNote = artifact.enrichment?.coachNote, !coachNote.isEmpty {
+            enrichmentNote = String(
+                format: NSLocalizedString("assistant_form_ai_coach_note_format", comment: ""),
+                coachNote
+            )
+        } else if artifact.enrichmentAttempted {
+            enrichmentNote = NSLocalizedString("assistant_form_ai_coach_fallback", comment: "")
+        } else {
+            enrichmentNote = ""
+        }
         let detectionReason = NSLocalizedString(artifact.classification.reasonKey, comment: "")
         let metricsSection = String(
             format: NSLocalizedString("assistant_form_analysis_metrics_format", comment: ""),
             metrics.isEmpty ? NSLocalizedString("form_analysis_stable", comment: "") : metrics
         )
-        return [detectionReason + confidenceNote, coaching.assistantText, metricsSection]
+        return [detectionReason + confidenceNote, enrichmentNote, coaching.assistantText, metricsSection]
             .filter { !$0.isEmpty }
             .joined(separator: "\n\n")
     }

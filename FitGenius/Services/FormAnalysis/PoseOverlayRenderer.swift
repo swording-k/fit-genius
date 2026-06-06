@@ -16,6 +16,21 @@ enum PoseOverlayRendererError: LocalizedError {
 }
 
 struct PoseOverlayRenderer {
+    private static let skeletonSegments = [
+        PoseSegment(start: .leftShoulder, end: .rightShoulder),
+        PoseSegment(start: .leftShoulder, end: .leftElbow),
+        PoseSegment(start: .leftElbow, end: .leftWrist),
+        PoseSegment(start: .rightShoulder, end: .rightElbow),
+        PoseSegment(start: .rightElbow, end: .rightWrist),
+        PoseSegment(start: .leftShoulder, end: .leftHip),
+        PoseSegment(start: .rightShoulder, end: .rightHip),
+        PoseSegment(start: .leftHip, end: .rightHip),
+        PoseSegment(start: .leftHip, end: .leftKnee),
+        PoseSegment(start: .leftKnee, end: .leftAnkle),
+        PoseSegment(start: .rightHip, end: .rightKnee),
+        PoseSegment(start: .rightKnee, end: .rightAnkle)
+    ]
+
     func render(
         videoURL: URL,
         plan: PoseFeedbackPlan,
@@ -205,6 +220,146 @@ struct PoseOverlayRenderer {
         CGPoint(
             x: joint.x * imageSize.width,
             y: (1 - joint.y) * imageSize.height
+        )
+    }
+
+    func renderSkeletonFrame(
+        poseFrame: PoseFrame,
+        index: Int,
+        total: Int,
+        annotations: [FormCoachAnnotation] = []
+    ) async throws -> Data {
+        let size = CGSize(width: 900, height: 1200)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        let renderer = UIGraphicsImageRenderer(size: size, format: format)
+        let highlightedJoints = Set(annotations.flatMap(\.resolvedJoints))
+        let image = renderer.image { context in
+            UIColor.systemBackground.setFill()
+            context.fill(CGRect(origin: .zero, size: size))
+
+            drawSkeletonHeader(
+                index: index,
+                total: total,
+                timestamp: poseFrame.timestamp,
+                imageSize: size
+            )
+
+            let bodyRect = CGRect(
+                x: size.width * 0.08,
+                y: size.height * 0.14,
+                width: size.width * 0.84,
+                height: size.height * 0.70
+            )
+            let cg = context.cgContext
+            cg.setLineCap(.round)
+            cg.setLineJoin(.round)
+
+            for segment in Self.skeletonSegments {
+                guard let start = poseFrame.point(segment.start),
+                      let end = poseFrame.point(segment.end) else { continue }
+                let isHighlighted = highlightedJoints.contains(segment.start)
+                    || highlightedJoints.contains(segment.end)
+                cg.setStrokeColor((isHighlighted ? UIColor.systemRed : UIColor.systemGreen).cgColor)
+                cg.setLineWidth(isHighlighted ? 9 : 6)
+                cg.move(to: point(start, imageSize: bodyRect.size, origin: bodyRect.origin))
+                cg.addLine(to: point(end, imageSize: bodyRect.size, origin: bodyRect.origin))
+                cg.strokePath()
+            }
+
+            for (joint, jointPoint) in poseFrame.joints where jointPoint.confidence >= 0.25 {
+                let center = point(jointPoint, imageSize: bodyRect.size, origin: bodyRect.origin)
+                let isHighlighted = highlightedJoints.contains(joint)
+                let radius: CGFloat = isHighlighted ? 15 : 9
+                let rect = CGRect(
+                    x: center.x - radius,
+                    y: center.y - radius,
+                    width: radius * 2,
+                    height: radius * 2
+                )
+                (isHighlighted ? UIColor.systemRed : UIColor.systemGreen).setFill()
+                UIBezierPath(ovalIn: rect).fill()
+                UIColor.white.setStroke()
+                UIBezierPath(ovalIn: rect).stroke()
+            }
+
+            drawSkeletonAnnotations(
+                annotations: annotations,
+                poseFrame: poseFrame,
+                bodyRect: bodyRect,
+                context: cg
+            )
+        }
+
+        guard let data = image.jpegData(compressionQuality: 0.88) else {
+            throw PoseOverlayRendererError.imageEncodingFailed
+        }
+        return data
+    }
+
+    private func drawSkeletonHeader(index: Int, total: Int, timestamp: Double, imageSize: CGSize) {
+        let rect = CGRect(x: 0, y: 0, width: imageSize.width, height: imageSize.height * 0.11)
+        UIColor.black.withAlphaComponent(0.82).setFill()
+        UIBezierPath(rect: rect).fill()
+        let title = String(
+            format: NSLocalizedString("form_enrichment_frame_title_format", comment: ""),
+            index + 1,
+            total
+        )
+        let subtitle = String(format: NSLocalizedString("form_overlay_key_frame_format", comment: ""), timestamp)
+        drawText(
+            title,
+            in: CGRect(x: 28, y: 18, width: imageSize.width - 56, height: 44),
+            font: .boldSystemFont(ofSize: 34),
+            color: .white
+        )
+        drawText(
+            subtitle,
+            in: CGRect(x: 28, y: 64, width: imageSize.width - 56, height: 34),
+            font: .systemFont(ofSize: 24, weight: .medium),
+            color: .white.withAlphaComponent(0.78)
+        )
+    }
+
+    private func drawSkeletonAnnotations(
+        annotations: [FormCoachAnnotation],
+        poseFrame: PoseFrame,
+        bodyRect: CGRect,
+        context: CGContext
+    ) {
+        for (offset, annotation) in annotations.prefix(3).enumerated() {
+            let joints = annotation.resolvedJoints
+            guard let targetJoint = joints.compactMap({ poseFrame.point($0) }).first else { continue }
+            let target = point(targetJoint, imageSize: bodyRect.size, origin: bodyRect.origin)
+            let rectWidth = bodyRect.width * 0.58
+            let rectHeight: CGFloat = 74
+            let x = target.x < bodyRect.midX
+                ? min(target.x + 34, bodyRect.maxX - rectWidth)
+                : max(bodyRect.minX, target.x - rectWidth - 34)
+            let y = min(max(bodyRect.minY + CGFloat(offset) * 86, target.y - rectHeight / 2), bodyRect.maxY - rectHeight)
+            let rect = CGRect(x: x, y: y, width: rectWidth, height: rectHeight)
+
+            context.setStrokeColor(UIColor.systemRed.cgColor)
+            context.setLineWidth(4)
+            context.move(to: target)
+            context.addLine(to: CGPoint(x: rect.midX, y: rect.midY))
+            context.strokePath()
+
+            UIColor.systemRed.withAlphaComponent(0.92).setFill()
+            UIBezierPath(roundedRect: rect, cornerRadius: 12).fill()
+            drawText(
+                annotation.label,
+                in: rect.insetBy(dx: 16, dy: 12),
+                font: .boldSystemFont(ofSize: 23),
+                color: .white
+            )
+        }
+    }
+
+    private func point(_ joint: JointPoint, imageSize: CGSize, origin: CGPoint) -> CGPoint {
+        CGPoint(
+            x: origin.x + joint.x * imageSize.width,
+            y: origin.y + (1 - joint.y) * imageSize.height
         )
     }
 }

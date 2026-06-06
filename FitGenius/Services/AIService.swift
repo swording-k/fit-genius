@@ -125,7 +125,8 @@ enum AIServiceError: Error, LocalizedError {
 class AIService {
     // Phase 2: 所有 AI 请求都强制走 FitGenius 后端代理。Aliyun API key
     // 只在 Vercel env 中存在,app bundle 不再持有任何 fallback key。
-    private let model = "qwen3-omni-flash"
+    private let textModel = "qwen3-omni-flash"
+    private let visionModel = "qwen-vl-max"
     private let settings: SyncSettings = .live
     private let languagePolicy = AppLanguagePolicy.current
 
@@ -224,7 +225,7 @@ class AIService {
         let userMessage = profilePrompt(profile: profile, userRequest: nil)
         
         let requestBody = ChatCompletionRequest(
-            model: model,
+            model: textModel,
             messages: [
                 ChatCompletionRequest.Message(role: "system", content: systemMessage),
                 ChatCompletionRequest.Message(role: "user", content: userMessage)
@@ -253,7 +254,7 @@ class AIService {
         let userMessage = profilePrompt(profile: profile, userRequest: userRequest)
         
 		let requestBody = ChatCompletionRequest(
-			model: model,
+			model: textModel,
 			messages: [
 				ChatCompletionRequest.Message(role: "system", content: systemMessage),
 				ChatCompletionRequest.Message(role: "user", content: userMessage)
@@ -295,7 +296,7 @@ class AIService {
         """
         
 		let requestBody = ChatCompletionRequest(
-			model: model,
+			model: textModel,
 			messages: [
 				ChatCompletionRequest.Message(role: "system", content: systemMessage),
 				ChatCompletionRequest.Message(role: "user", content: userMessage)
@@ -611,7 +612,7 @@ class AIService {
 	func dietChat(userMessage: String) async throws -> String {
 		let systemMessage = languagePolicy.dietCoachSystemPrompt
 		let requestBody = ChatCompletionRequest(
-			model: model,
+			model: textModel,
 			messages: [
 				ChatCompletionRequest.Message(role: "system", content: systemMessage),
 			ChatCompletionRequest.Message(role: "user", content: userMessage)
@@ -641,7 +642,7 @@ class AIService {
 			userContents.append(content)
 		}
 		let requestBody = VisionChatCompletionRequest(
-			model: model,
+			model: visionModel,
 			messages: [
 				VisionChatCompletionRequest.Message(
 					role: "system",
@@ -694,7 +695,7 @@ class AIService {
 			}
 		}
 		let requestBody = ChatCompletionRequest(
-			model: model,
+			model: textModel,
 			messages: [
 				ChatCompletionRequest.Message(role: "system", content: systemMessage),
 			ChatCompletionRequest.Message(role: "user", content: description)
@@ -731,7 +732,7 @@ class AIService {
 			}
 		}
 		let requestBody = VisionChatCompletionRequest(
-			model: model,
+			model: visionModel,
 			messages: [
 				VisionChatCompletionRequest.Message(
 					role: "system",
@@ -750,7 +751,98 @@ class AIService {
         return try JSONDecoder().decode(DietAnalyzeResponse.self, from: jsonData)
     }
 
+    func enrichFormFeedback(
+        summary: FormAnalysisSummary,
+        skeletonImages: [Data],
+        feedbackTimestamp: Double
+    ) async throws -> FormCoachEnrichmentResult {
+        guard !skeletonImages.isEmpty else {
+            throw AIServiceError.invalidResponse("No skeleton frames")
+        }
+
+        var userContents: [VisionChatCompletionRequest.Content] = [
+            VisionChatCompletionRequest.Content(
+                type: "text",
+                text: formCoachPromptSummary(summary: summary, feedbackTimestamp: feedbackTimestamp),
+                image_url: nil,
+                video_url: nil
+            )
+        ]
+
+        for imageData in skeletonImages {
+            let imageURL = VisionChatCompletionRequest.ImageURL(
+                url: "data:image/jpeg;base64,\(imageData.base64EncodedString())"
+            )
+            userContents.append(VisionChatCompletionRequest.Content(
+                type: "image_url",
+                text: nil,
+                image_url: imageURL,
+                video_url: nil
+            ))
+        }
+
+        let requestBody = VisionChatCompletionRequest(
+            model: visionModel,
+            messages: [
+                VisionChatCompletionRequest.Message(
+                    role: "system",
+                    content: [VisionChatCompletionRequest.Content(
+                        type: "text",
+                        text: languagePolicy.formCoachEnrichmentSystemPrompt,
+                        image_url: nil,
+                        video_url: nil
+                    )]
+                ),
+                VisionChatCompletionRequest.Message(role: "user", content: userContents)
+            ],
+            stream: true
+        )
+        let content = try await sendStreamingRequest(body: requestBody)
+        let cleaned = cleanMarkdownCodeBlock(content)
+        guard let jsonData = cleaned.data(using: .utf8) else {
+            throw AIServiceError.decodingError(NSError(domain: "AIService", code: -1))
+        }
+        return try JSONDecoder().decode(FormCoachEnrichmentResult.self, from: jsonData)
+    }
+
+    private func formCoachPromptSummary(
+        summary: FormAnalysisSummary,
+        feedbackTimestamp: Double
+    ) -> String {
+        let metrics = summary.metrics.map { metric in
+            "- \(metric.key): \(metric.label)=\(String(format: "%.2f", metric.value)) \(metric.unit)"
+        }.joined(separator: "\n")
+        let issues = summary.issues.isEmpty
+            ? (languagePolicy.prefersSimplifiedChinese ? "未检测到主要问题" : "No major issue detected")
+            : summary.issues.map { "- [\($0.severity)] \($0.code): \($0.title) - \($0.detail)" }.joined(separator: "\n")
+        if languagePolicy.prefersSimplifiedChinese {
+            return """
+            动作：\(summary.exerciseType.displayName)
+            本地规则评分：\(summary.score)
+            关键帧时间：\(String(format: "%.1f", feedbackTimestamp)) 秒
+            本地指标：
+            \(metrics)
+            本地检测问题：
+            \(issues)
+            本地建议：\(summary.recommendation)
+            骨架图片顺序：image_index 从 0 开始，表示同一段动作的不同关键时刻。请不要否定本地规则，只基于这些骨架图补充教学解释。
+            """
+        }
+        return """
+        Exercise: \(summary.exerciseType.displayName)
+        On-device rule score: \(summary.score)
+        Key-frame time: \(String(format: "%.1f", feedbackTimestamp)) s
+        On-device metrics:
+        \(metrics)
+        On-device detected issues:
+        \(issues)
+        On-device recommendation: \(summary.recommendation)
+        Skeleton image order: image_index starts at 0 and represents key moments in the same clip. Do not contradict the on-device rule result; enrich it with coaching explanation only.
+        """
+    }
+
 	func analyzeFitnessMedia(userMessage: String, profile: UserProfile, plan: WorkoutPlan?, images: [Data], videos: [Data]) async throws -> String {
+        let mediaModel = videos.isEmpty ? visionModel : textModel
 		var systemContents: [VisionChatCompletionRequest.Content] = []
         let systemText = languagePolicy.fitnessMediaSystemPrompt
         let systemContent = VisionChatCompletionRequest.Content(type: "text", text: systemText, image_url: nil, video_url: nil)
@@ -802,7 +894,7 @@ class AIService {
             userContents.append(content)
         }
 		let requestBody = VisionChatCompletionRequest(
-			model: model,
+			model: mediaModel,
 			messages: [
 				VisionChatCompletionRequest.Message(role: "system", content: systemContents),
 				VisionChatCompletionRequest.Message(role: "user", content: userContents)

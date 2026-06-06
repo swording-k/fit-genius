@@ -1,11 +1,19 @@
 import Foundation
 
-struct FormCoachCue: Hashable {
+struct FormCoachCue: Codable, Hashable {
     let title: String
     let evidence: String
     let whyItMatters: String
     let howToFix: String
     let drill: String
+
+    private enum CodingKeys: String, CodingKey {
+        case title
+        case evidence
+        case whyItMatters = "why_it_matters"
+        case howToFix = "how_to_fix"
+        case drill
+    }
 }
 
 struct FormCoachFeedback: Hashable {
@@ -74,10 +82,12 @@ struct FormCoachFeedbackBuilder {
         summary: FormAnalysisSummary,
         feedbackTimestamp: Double,
         classificationConfidence: Double,
-        usedAutomaticDetection: Bool
+        usedAutomaticDetection: Bool,
+        enrichmentCues: [FormCoachCue] = []
     ) -> FormCoachFeedback {
         let metrics = Dictionary(uniqueKeysWithValues: summary.metrics.map { ($0.key, $0) })
-        let priorityCues = summary.issues.map { cue(for: $0, exercise: summary.exerciseType, metrics: metrics) }
+        let localCues = summary.issues.map { cue(for: $0, exercise: summary.exerciseType, metrics: metrics) }
+        let priorityCues = enrichmentCues.isEmpty ? localCues : enrichmentCues
         let positives = positiveObservations(for: summary.exerciseType, hasIssues: !summary.issues.isEmpty)
         let headline = headline(
             summary: summary,

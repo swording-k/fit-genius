@@ -256,6 +256,8 @@
 "assistant_form_analysis_metrics_format" = "Key metrics\n%@";
 "assistant_form_detection_low_confidence" = "Automatic exercise detection confidence is low. Manually select the exercise and analyze again.";
 "assistant_form_analysis_scope_note" = "This analysis uses visible body joints from the video for training reference only and is not medical advice.";
+"assistant_form_ai_coach_note_format" = "AI coach note\n%@";
+"assistant_form_ai_coach_fallback" = "AI coach enrichment is temporarily unavailable, so the app is showing the on-device rule-based coaching feedback first.";
 "form_coach_auto_source_format" = "Auto-detected %@, confidence %d%%.";
 "form_coach_manual_source_format" = "Analyzing manually selected %@.";
 "form_coach_points" = "points";
@@ -342,6 +344,7 @@
 "form_coach_filming_bench" = "Record from a side-front angle above bench height so shoulders, elbows, wrists, and bar path stay visible. Trim social-media endings before uploading.";
 "form_coach_filming_overhead" = "Record from front-side with the whole body visible, especially wrists overhead and ribs/hips during lockout.";
 "form_overlay_key_frame_format" = "Key frame %.1f s";
+"form_enrichment_frame_title_format" = "Skeleton key frame %d/%d";
 "form_overlay_result_stable" = "Stable in this analysis";
 "form_overlay_result_attention" = "Focus areas";
 "form_overlay_no_major_issue" = "No major form issue detected";

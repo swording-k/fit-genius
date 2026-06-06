@@ -256,6 +256,8 @@
 "assistant_form_analysis_metrics_format" = "关键指标\n%@";
 "assistant_form_detection_low_confidence" = "当前动作自动识别置信度较低，建议手动选择动作后重新分析。";
 "assistant_form_analysis_scope_note" = "分析基于视频中可见的人体关键点，仅提供训练参考，不构成医疗诊断。";
+"assistant_form_ai_coach_note_format" = "AI 教练补充\n%@";
+"assistant_form_ai_coach_fallback" = "AI 教练补充暂时不可用，下面先展示本机规则生成的动作教学反馈。";
 "form_coach_auto_source_format" = "自动识别为 %@，置信度 %d%%。";
 "form_coach_manual_source_format" = "正在分析你手动指定的 %@。";
 "form_coach_points" = "分";
@@ -342,6 +344,7 @@
 "form_coach_filming_bench" = "从卧推凳略高的侧前方拍摄，让肩、肘、腕和杠铃路径都清楚；上传前尽量裁掉平台结尾动画。";
 "form_coach_filming_overhead" = "从侧前方拍全身，尤其要看到头顶手腕位置，以及锁定时肋骨和髋部是否稳定。";
 "form_overlay_key_frame_format" = "关键帧 %.1f 秒";
+"form_enrichment_frame_title_format" = "骨架关键帧 %d/%d";
 "form_overlay_result_stable" = "本次检测稳定";
 "form_overlay_result_attention" = "重点关注";
 "form_overlay_no_major_issue" = "未检测到主要动作问题";

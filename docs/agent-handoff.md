@@ -1,6 +1,6 @@
 # FitGenius Agent Handoff
 
-Last updated: 2026-06-06 11:25 Asia/Shanghai
+Last updated: 2026-06-07 00:18 Asia/Shanghai
 
 ## Read First
 
@@ -19,6 +19,44 @@ detection report into structured coaching feedback.
 
 Latest milestone:
 
+- Hybrid AI upgrade is in progress for the two user-visible weak spots:
+  Diet image recognition and AI Assistant form coaching. `AIService` now
+  separates text requests (`qwen3-omni-flash`) from image/skeleton requests
+  (`qwen-vl-max`). Plain training-plan generation/regeneration, pure text
+  Diet chat, and pure text nutrition JSON analysis remain on the original text
+  model; Diet image chat, Diet image JSON analysis, fitness image Q&A, and
+  skeleton-based form-coach enrichment use the visual model. Generic fitness
+  video fallback remains on the original model to avoid breaking video support,
+  while AI Assistant training videos still use local Vision/rules.
+- Diet image prompts were upgraded for mixed meals and Chinese meals: estimate
+  staple carbs, protein foods, vegetables, oils/sauces, include portion
+  reasoning in notes, self-check calories against 4/4/9 macros, and avoid
+  returning 0 kcal for low-quality food photos unless the image is clearly not
+  food.
+- AI Assistant form analysis now attempts a hybrid enrichment pass after the
+  local Vision/rule pipeline. The app renders several skeleton-only keyframes,
+  sends only those skeleton images plus deterministic metrics/issues to
+  `qwen-vl-max`, and asks for structured coach notes, selected keyframes,
+  joint annotations, and 2-3 learnable cues. Raw training videos are not sent
+  to the LLM in this path.
+- The enrichment path is best-effort. If the visual model, JSON decoding, or
+  annotation rendering fails, the user still receives the deterministic local
+  coaching template and annotated video frame. This preserves offline/local
+  utility and prevents cloud failures from destroying the core form-analysis
+  result.
+- `PoseOverlayRenderer` can now render skeleton keyframes with AI annotation
+  callouts, reducing the previous failure mode where social-media outro frames
+  could become the main feedback image. Keyframes are selected from usable pose
+  frames by time bucket and visible-joint completeness, not from raw last
+  video frames.
+- Vercel `/api/ai/chat` now declares `maxDuration: 60` because visual-model
+  image/skeleton calls are slower than ordinary text streaming.
+- Added bilingual strings for AI-coach enrichment notes and skeleton keyframe
+  headers.
+- Added a regression inside `form-coach-feedback-builder-tests` that decodes
+  the cloud enrichment JSON shape (`coach_note`, `selected_frame_indexes`,
+  `image_index`, `why_it_matters`, `how_to_fix`) and verifies AI cues can feed
+  the local feedback builder without losing evidence/fix/drill structure.
 - Post-release AI chat and media-upload hardening: the shared assistant input
   control now resets its `PhotosPicker` selection after each pick, shows a
   media-preparing spinner, disables send while media is still loading, and
@@ -244,6 +282,28 @@ new reconnect prompt once to receive a new FitGenius cloud session.
 
 ## Latest Validation
 
+- 2026-06-07 hybrid AI upgrade validation:
+  - Official Aliyun/DashScope OpenAI-compatible VL documentation was checked;
+    `qwen-vl-max` is listed as a valid vision model name for compatible chat
+    completions.
+  - `npm run test:backend` passed: 25/25 backend tests.
+  - `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild
+    -project FitGenius.xcodeproj -scheme FitGenius -destination
+    'generic/platform=iOS Simulator' -derivedDataPath
+    /tmp/FitGeniusDerivedData CODE_SIGNING_ALLOWED=NO build` succeeded with
+    the iPhone app, Widget extension, and Watch app embedded.
+  - XcodeBuildMCP build/run on iPhone 17 Pro simulator succeeded with zero
+    warnings and zero errors, launching bundle `com.swordingk.fitgenius`.
+  - XcodeBuildMCP runtime snapshots verified startup in Diet mode, Diet AI
+    Assistant controls, keyboard-visible send button after typing, switch to
+    Training mode, and Fitness AI Assistant controls.
+  - `scripts/predeploy-check.sh` passed with the Xcode toolchain workaround:
+    backend 25/25, iOS script tests, localization check, deployable-file secret
+    scan, and deployment env reminder. Missing env values are expected in local
+    shell unless running with `--require-env`.
+  - After adding the hybrid-enrichment JSON regression, both
+    `scripts/run-form-analysis-tests.sh` and `scripts/predeploy-check.sh`
+    passed again.
 - `scripts/predeploy-check.sh` passed after the post-release AI media, Diet
   auto-analysis, and form-quality-gate hardening. Because the local `swiftc`
   shim under `.mavis` fails in the Chinese project path, this was run with the
@@ -399,13 +459,20 @@ cannot be fully accepted in Simulator.
 
 ## Next Recommended Work
 
-1. Run authenticated cloud-snapshot GET/PUT acceptance from the app.
-2. Run physical-device acceptance for normalized fitness/diet images and real
-   Vision joints using several camera angles.
-3. Tune thresholds using a labeled real-video set before claiming broader
-   exercise support.
-4. Complete the remaining bilingual UX audit and prepare a TestFlight release
-   candidate.
+1. Reconnect Apple login on a physical device and test Diet image recognition
+   with 5-10 real meals: mixed Chinese meal, rice/noodles, meat + vegetables,
+   drink/snack, and a deliberately poor photo. Confirm per-meal calories and
+   macros are written back and that notes explain the estimate.
+2. Test AI Assistant form coaching on physical device with at least 3 clips per
+   supported lift: clean rep, obvious mistake, and poor filming/angle. Confirm
+   the selected skeleton frame belongs to the lift, not platform intro/outro
+   frames, and that AI cues do not contradict local score/issues.
+3. Build a small labeled validation set before expanding beyond squat,
+   deadlift, bench press, and standing overhead press. Threshold tuning needs
+   real examples, not synthetic fixtures.
+4. Run authenticated cloud-snapshot GET/PUT acceptance from the app.
+5. Complete the remaining bilingual UX audit and prepare a TestFlight release
+   candidate only after real-device Diet image and form-coach acceptance pass.
 
 ## Risks
 

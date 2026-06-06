@@ -3,6 +3,10 @@ import { extractBearerToken, verifySessionToken } from "../../backend/sessionTok
 const ALIYUN_ENDPOINT = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
 const DEFAULT_MODEL = "qwen3-omni-flash";
 
+export const config = {
+  maxDuration: 60
+};
+
 /**
  * Creates a Vercel-style handler that proxies chat completions to the
  * Aliyun OpenAI-compatible API using a server-side ALIYUN_API_KEY.
