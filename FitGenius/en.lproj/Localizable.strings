@@ -188,6 +188,7 @@
 "form_error_video_too_short" = "The video is too short. Choose a video at least 3 seconds long.";
 "form_error_video_too_long" = "The video is too long. Choose a video under 30 seconds.";
 "form_error_no_pose_detected" = "No clear lifting frames were detected. Keep your body large in frame and trim intro or ending screens before uploading.";
+"form_error_low_quality_video" = "This video is not reliable enough to score. Record 10-30 seconds with the lifter large in frame, the full movement visible, and no intro, ending screen, or heavy camera shake.";
 "form_error_unreadable_video" = "This video could not be read. Record again or choose another video.";
 "form_error_pose_detection_unavailable" = "Pose detection is currently unavailable. Try again later or use a physical device.";
 "logout" = "Log Out";

@@ -70,7 +70,7 @@ struct AIAssistantView: View {
                     
                     if profile != nil {
                         VStack(spacing: 4) {
-                            if viewModel.pendingMediaData != nil {
+                            if viewModel.pendingMediaData != nil || viewModel.isPreparingMedia {
                                 HStack(spacing: 8) {
                                     ZStack {
                                         if let thumb = viewModel.pendingThumbnail {
@@ -85,6 +85,10 @@ struct AIAssistantView: View {
                                                 .fill(Color.gray.opacity(0.2))
                                                 .frame(width: 64, height: 64)
                                                 .cornerRadius(8)
+                                        }
+                                        if viewModel.isPreparingMedia {
+                                            ProgressView()
+                                                .controlSize(.small)
                                         }
                                         if viewModel.pendingMediaType == "video" {
                                             Image(systemName: "play.circle.fill")
@@ -107,6 +111,7 @@ struct AIAssistantView: View {
                                 inputText: $viewModel.inputText,
                                 isFocused: $isInputFocused,
                                 isLoading: viewModel.isLoading,
+                                isPreparingMedia: viewModel.isPreparingMedia,
                                 canSendEmpty: viewModel.pendingMediaData != nil,
                                 onSend: sendSuggestionOnly,
                                 onCameraCapture: nil,
@@ -169,7 +174,7 @@ struct AIAssistantView: View {
                 Divider()
 
                 VStack(spacing: 4) {
-                    if viewModel.pendingMediaData != nil {
+                    if viewModel.pendingMediaData != nil || viewModel.isPreparingMedia {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack(spacing: 8) {
                             ZStack {
@@ -183,8 +188,12 @@ struct AIAssistantView: View {
                                 } else {
                                     Rectangle()
                                         .fill(Color.gray.opacity(0.2))
-                                        .frame(width: 64, height: 64)
-                                        .cornerRadius(8)
+                                    .frame(width: 64, height: 64)
+                                    .cornerRadius(8)
+                                }
+                                if viewModel.isPreparingMedia {
+                                    ProgressView()
+                                        .controlSize(.small)
                                 }
                                 if viewModel.pendingMediaType == "video" {
                                     Image(systemName: "play.circle.fill")
@@ -223,6 +232,7 @@ struct AIAssistantView: View {
                         inputText: $viewModel.inputText,
                         isFocused: $isInputFocused,
                         isLoading: viewModel.isLoading,
+                        isPreparingMedia: viewModel.isPreparingMedia,
                         canSendEmpty: viewModel.pendingMediaData != nil,
                         onSend: sendMessage,
                         onCameraCapture: nil,
@@ -230,14 +240,6 @@ struct AIAssistantView: View {
                             viewModel.handleMediaSelection(item: item)
                         }
                     )
-                }
-                .toolbar {
-                    ToolbarItemGroup(placement: .keyboard) {
-                        Spacer()
-                        Button("done") {
-                            isInputFocused = false
-                        }
-                    }
                 }
             }
         }
@@ -253,6 +255,17 @@ struct AIAssistantView: View {
         }
         .sheet(isPresented: $showLoginSheet) {
             LoginView()
+        }
+        .alert(
+            "media_image_error_title",
+            isPresented: Binding(
+                get: { viewModel.mediaErrorMessage != nil },
+                set: { if !$0 { viewModel.mediaErrorMessage = nil } }
+            )
+        ) {
+            Button("form_analysis_close") { viewModel.mediaErrorMessage = nil }
+        } message: {
+            Text(viewModel.mediaErrorMessage ?? "")
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -316,7 +329,20 @@ struct AIAssistantView: View {
         }
         isInputFocused = false  // 发送后收起键盘
         Task {
-            await viewModel.sendMessage(profile: profile, plan: plan)
+            if let mediaData = viewModel.pendingMediaData, let type = viewModel.pendingMediaType {
+                await viewModel.sendMediaMessage(
+                    profile: profile,
+                    plan: plan,
+                    mediaData: mediaData,
+                    isVideo: type == "video",
+                    userText: viewModel.inputText,
+                    userId: auth.currentSessionUserId,
+                    bearerToken: auth.currentBearerToken
+                )
+                viewModel.clearPendingMedia()
+            } else {
+                await viewModel.sendMessage(profile: profile, plan: plan)
+            }
         }
     }
 

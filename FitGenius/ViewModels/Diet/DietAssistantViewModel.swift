@@ -2,6 +2,8 @@ import Foundation
 import SwiftData
 import Combine
 import UIKit
+import PhotosUI
+import SwiftUI
 
 @MainActor
 class DietAssistantViewModel: ObservableObject {
@@ -16,6 +18,7 @@ class DietAssistantViewModel: ObservableObject {
     @Published var pendingMediaData: Data?
     @Published var pendingMediaType: String? // "image"
     @Published var pendingThumbnail: UIImage?
+    @Published var isPreparingMedia: Bool = false
 
     private let modelContext: ModelContext
     private let service = AIService()
@@ -94,6 +97,23 @@ class DietAssistantViewModel: ObservableObject {
 		isLoading = false
 	}
 	
+    func handleMediaSelection(item: PhotosPickerItem) {
+        Task {
+            isPreparingMedia = true
+            mediaErrorMessage = nil
+            defer { isPreparingMedia = false }
+
+            do {
+                guard let data = try await item.loadTransferable(type: Data.self) else {
+                    throw MediaImagePreprocessorError.unreadableImage
+                }
+                handleMediaSelection(data: data)
+            } catch {
+                mediaErrorMessage = error.localizedDescription
+            }
+        }
+    }
+
     func handleMediaSelection(data: Data) {
         do {
             let normalized = try MediaImagePreprocessor.normalizedJPEG(from: data)
@@ -110,6 +130,7 @@ class DietAssistantViewModel: ObservableObject {
         pendingMediaData = nil
         pendingMediaType = nil
         pendingThumbnail = nil
+        mediaErrorMessage = nil
     }
     
     func clearHistory() {

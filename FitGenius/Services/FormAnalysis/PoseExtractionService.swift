@@ -9,6 +9,7 @@ enum PoseExtractionError: LocalizedError {
     case unreadableVideo
     case poseDetectionUnavailable
     case unsupportedExercise
+    case lowQualityVideo
 
     var errorDescription: String? {
         switch self {
@@ -24,6 +25,8 @@ enum PoseExtractionError: LocalizedError {
             return NSLocalizedString("form_error_pose_detection_unavailable", comment: "")
         case .unsupportedExercise:
             return NSLocalizedString("form_error_unsupported_exercise", comment: "")
+        case .lowQualityVideo:
+            return NSLocalizedString("form_error_low_quality_video", comment: "")
         }
     }
 }

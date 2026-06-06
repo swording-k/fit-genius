@@ -1,6 +1,6 @@
 # FitGenius Agent Handoff
 
-Last updated: 2026-06-05 22:59 Asia/Shanghai
+Last updated: 2026-06-06 11:25 Asia/Shanghai
 
 ## Read First
 
@@ -19,6 +19,29 @@ detection report into structured coaching feedback.
 
 Latest milestone:
 
+- Post-release AI chat and media-upload hardening: the shared assistant input
+  control now resets its `PhotosPicker` selection after each pick, shows a
+  media-preparing spinner, disables send while media is still loading, and
+  allows sending attachment-only messages. The keyboard accessory Done button
+  was removed from the AI chat screens because it crowded the send control.
+- Fitness and Diet AI assistants now expose explicit media-loading state and
+  media error alerts instead of silently doing nothing when a selected
+  photo/video fails to load or normalize.
+- Fitness video/image sending now passes the current backend user/session into
+  the media path, preserving form-analysis sync after local video analysis.
+- Diet meal logging now auto-analyzes a newly saved meal entry when it has text
+  or images, writes calories/protein/carbs/fat back to that meal, refreshes the
+  daily summary, and shows the existing reconnect prompt if the cloud session
+  is missing. The old "submit today's diet analysis" button remains as a
+  fallback for full-day reanalysis.
+- Form analysis now has a `FormAnalysisQualityGate` before scoring real
+  extracted videos. Low-quality clips with too few usable frames, tiny bodies,
+  weak confidence, or almost no joint motion are rejected with a filming
+  instruction instead of receiving a misleading score.
+- Added `form-analysis-quality-gate-tests` to protect this behavior: clean
+  lifting motion passes, tiny creator/avatar-like frames and static clips fail.
+  This is a trust hardening step, not a complete accuracy solution; the next
+  product step is a real-video validation set and per-exercise rule calibration.
 - AI language output is now driven by `AppLanguagePolicy.current`, which reads
   the app/system preferred language through `Locale.preferredLanguages`. The
   product no longer relies on Qwen/user input to guess the language.
@@ -221,6 +244,16 @@ new reconnect prompt once to receive a new FitGenius cloud session.
 
 ## Latest Validation
 
+- `scripts/predeploy-check.sh` passed after the post-release AI media, Diet
+  auto-analysis, and form-quality-gate hardening. Because the local `swiftc`
+  shim under `.mavis` fails in the Chinese project path, this was run with the
+  Xcode toolchain first in `PATH`, `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer`,
+  `SDKROOT` set to the macOS SDK, and UTF-8 locale.
+- XcodeBuildMCP iPhone simulator build/run succeeded with zero warnings and
+  zero errors after the assistant media, Diet auto-analysis, and form-quality
+  changes.
+- `scripts/run-form-analysis-tests.sh` passed with the new
+  `form-analysis-quality-gate-tests` regression.
 - `swiftc FitGenius/Services/AppLanguagePolicy.swift scripts/app-language-policy-tests.swift`
   passed after the AI language-policy hardening. The tests now cover both
   Simplified Chinese and English branches and ensure English mode uses English

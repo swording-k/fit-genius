@@ -13,6 +13,7 @@ class AIAssistantViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var loadingText: String = "assistant_thinking".localized
     @Published var errorMessage: String?
+    @Published var mediaErrorMessage: String?
     @Published var showPlanRegenerationAlert: Bool = false
     @Published var showClearHistoryAlert: Bool = false
     @Published var pendingUserMessage: String = ""
@@ -23,6 +24,7 @@ class AIAssistantViewModel: ObservableObject {
     @Published var pendingMediaType: String? // "image" or "video"
     @Published var pendingThumbnail: UIImage?
     @Published var pendingFormExerciseType: FormExerciseType?
+    @Published var isPreparingMedia: Bool = false
     
     private let aiService = AIService()
     private let modelContext: ModelContext
@@ -91,42 +93,38 @@ class AIAssistantViewModel: ObservableObject {
     // MARK: - 媒体处理
     func handleMediaSelection(item: PhotosPickerItem) {
         Task {
-            // 1. 判断类型
-            if item.supportedContentTypes.contains(where: { $0.conforms(to: .movie) }) {
-                // 视频
-                if let data = try? await item.loadTransferable(type: Data.self) {
-                    await MainActor.run {
-                        self.pendingMediaData = data
-                        self.pendingMediaType = "video"
-                        self.pendingThumbnail = nil // 先置空，异步生成
-                    }
-                    
-                    // 生成缩略图
+            isPreparingMedia = true
+            mediaErrorMessage = nil
+            defer { isPreparingMedia = false }
+
+            do {
+                guard let data = try await item.loadTransferable(type: Data.self) else {
+                    throw MediaImagePreprocessorError.unreadableImage
+                }
+
+                if item.supportedContentTypes.contains(where: { $0.conforms(to: .movie) }) {
+                    pendingMediaData = data
+                    pendingMediaType = "video"
+                    pendingThumbnail = nil
+
                     let tempFile = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".mp4")
                     try? data.write(to: tempFile)
+                    defer { try? FileManager.default.removeItem(at: tempFile) }
+
                     let asset = AVAsset(url: tempFile)
                     let generator = AVAssetImageGenerator(asset: asset)
                     generator.appliesPreferredTrackTransform = true
                     if let imageRef = try? await generator.image(at: .zero).image {
-                        await MainActor.run {
-                            self.pendingThumbnail = UIImage(cgImage: imageRef)
-                        }
+                        pendingThumbnail = UIImage(cgImage: imageRef)
                     }
-                    try? FileManager.default.removeItem(at: tempFile)
-                }
-            } else {
-                // 图片
-                do {
-                    guard let data = try await item.loadTransferable(type: Data.self) else {
-                        throw MediaImagePreprocessorError.unreadableImage
-                    }
+                } else {
                     let normalized = try MediaImagePreprocessor.normalizedJPEG(from: data)
-                    self.pendingMediaData = normalized
-                    self.pendingMediaType = "image"
-                    self.pendingThumbnail = UIImage(data: normalized)
-                } catch {
-                    self.errorMessage = error.localizedDescription
+                    pendingMediaData = normalized
+                    pendingMediaType = "image"
+                    pendingThumbnail = UIImage(data: normalized)
                 }
+            } catch {
+                mediaErrorMessage = error.localizedDescription
             }
         }
     }
@@ -135,6 +133,8 @@ class AIAssistantViewModel: ObservableObject {
         pendingMediaData = nil
         pendingMediaType = nil
         pendingThumbnail = nil
+        pendingFormExerciseType = nil
+        mediaErrorMessage = nil
     }
 
     #if DEBUG

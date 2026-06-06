@@ -24,15 +24,23 @@ struct LocalFormAnalysisPipeline {
         defer { try? FileManager.default.removeItem(at: tempURL) }
 
         let sequence: PoseSequence
+        let shouldApplyQualityGate: Bool
         #if DEBUG && targetEnvironment(simulator)
         if DebugFormAnalysisVideoProvider.launchVideoURL != nil {
             sequence = .exerciseFixture(preferredExercise ?? .benchPress, quality: .risky)
+            shouldApplyQualityGate = false
         } else {
             sequence = try await extractor.extractPoseSequence(from: tempURL)
+            shouldApplyQualityGate = true
         }
         #else
         sequence = try await extractor.extractPoseSequence(from: tempURL)
+        shouldApplyQualityGate = true
         #endif
+        let qualityReport = FormAnalysisQualityGate.report(for: sequence)
+        if shouldApplyQualityGate, !qualityReport.isUsable {
+            throw PoseExtractionError.lowQualityVideo
+        }
         let classification = classifier.classify(sequence)
         if preferredExercise == nil, !classification.isReliable {
             throw PoseExtractionError.unsupportedExercise

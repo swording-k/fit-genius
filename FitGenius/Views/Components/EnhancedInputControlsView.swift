@@ -35,6 +35,7 @@ struct EnhancedInputControlsView: View {
     @Binding var inputText: String
     @FocusState.Binding var isFocused: Bool
     let isLoading: Bool
+    var isPreparingMedia: Bool = false
     var canSendEmpty: Bool = false
     
     // 回调
@@ -60,7 +61,7 @@ struct EnhancedInputControlsView: View {
                         .foregroundColor(.primary)
                 }
                 .buttonStyle(.plain)
-                .disabled(isLoading)
+                .disabled(isLoading || isPreparingMedia)
             }
             
             // 文本输入框
@@ -70,7 +71,7 @@ struct EnhancedInputControlsView: View {
                 .focused($isFocused)
                 .submitLabel(.send)
                 .onSubmit {
-                    if !inputText.isEmpty {
+                    if !inputText.isEmpty || canSendEmpty {
                         onSend()
                     }
                 }
@@ -88,21 +89,31 @@ struct EnhancedInputControlsView: View {
                         .foregroundColor(speechRecognizer.isRecording ? .red : .primary)
                 }
                 .buttonStyle(.plain)
-                .disabled(isLoading)
+                .disabled(isLoading || isPreparingMedia)
             }
             
             // 相册按钮
             if configuration.showPhotoLibrary {
                 PhotosPicker(selection: $selectedPhotoItem, matching: configuration.photoLibraryFilter) {
-                    Image(systemName: "photo.fill")
-                        .font(.title3)
-                        .foregroundColor(.primary)
+                    ZStack {
+                        Image(systemName: "photo.fill")
+                            .font(.title3)
+                            .foregroundColor(.primary)
+                            .opacity(isPreparingMedia ? 0.25 : 1)
+                        if isPreparingMedia {
+                            ProgressView()
+                                .controlSize(.small)
+                        }
+                    }
                 }
                 .buttonStyle(.plain)
-                .disabled(isLoading)
+                .disabled(isLoading || isPreparingMedia)
                 .onChange(of: selectedPhotoItem) { _, newItem in
                     if let newItem = newItem {
                         onPhotoSelected?(newItem)
+                        Task { @MainActor in
+                            selectedPhotoItem = nil
+                        }
                     }
                 }
             }
@@ -111,9 +122,9 @@ struct EnhancedInputControlsView: View {
             Button(action: onSend) {
                 Image(systemName: "arrow.up.circle.fill")
                     .font(.title2)
-                    .foregroundColor(inputText.isEmpty ? .gray : .blue)
+                    .foregroundColor((inputText.isEmpty && !canSendEmpty) ? .gray : .blue)
             }
-            .disabled((inputText.isEmpty && !canSendEmpty) || isLoading)
+            .disabled((inputText.isEmpty && !canSendEmpty) || isLoading || isPreparingMedia)
             .buttonStyle(.plain)
         }
         .padding()

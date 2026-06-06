@@ -188,6 +188,7 @@
 "form_error_video_too_short" = "视频太短，请选择至少 3 秒的视频。";
 "form_error_video_too_long" = "视频太长，请选择 30 秒以内的视频。";
 "form_error_no_pose_detected" = "没有检测到清晰的动作过程。请让身体在画面中占比更大，并尽量裁掉片头、片尾或平台结尾动画。";
+"form_error_low_quality_video" = "这个视频暂时不适合可靠评分。请拍摄 10-30 秒，让训练者在画面中占比更大、完整动作清晰可见，并避免片头片尾、结尾动画或明显抖动。";
 "form_error_unreadable_video" = "无法读取该视频，请重新拍摄或选择其他视频。";
 "form_error_pose_detection_unavailable" = "当前设备暂时无法进行姿态识别，请稍后重试或使用真机。";
 "logout" = "退出登录";

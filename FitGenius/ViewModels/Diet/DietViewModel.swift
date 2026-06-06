@@ -19,6 +19,7 @@ class DietViewModel: ObservableObject {
     @Published var editCarbs: String = ""
     @Published var editFat: String = ""
     @Published var isSubmitting: Bool = false
+    @Published var isPreparingImages: Bool = false
     @Published var showSubmitAlert: Bool = false
     @Published var submitAlertMessage: String = ""
     @Published var requiresBackendReconnect: Bool = false
@@ -42,7 +43,7 @@ class DietViewModel: ObservableObject {
         }
     }
 
-    func addMealEntry() {
+    func addMealEntry() async {
         guard let day = day else { return }
         let entry = MealEntry(date: selectedDate,
                               mealType: selectedMealType,
@@ -56,9 +57,46 @@ class DietViewModel: ObservableObject {
         entry.day = day
         if day.entries == nil { day.entries = [] }
         day.entries?.append(entry)
+        modelContext.insert(entry)
         inputText = ""
         selectedImagesData = []
         isPresentingAddSheet = false
+        try? modelContext.save()
+
+        await analyzeSingleEntryIfPossible(entry)
+    }
+
+    private func analyzeSingleEntryIfPossible(_ entry: MealEntry) async {
+        guard !entry.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !entry.images.isEmpty else { return }
+
+        isSubmitting = true
+        requiresBackendReconnect = false
+        defer { isSubmitting = false }
+
+        do {
+            let result = entry.images.isEmpty
+                ? try await service.analyzeMeals(entries: [entry])
+                : try await service.analyzeMealsWithImages(entries: [entry])
+
+            guard let item = result.entries.first else { return }
+            entry.calories = item.calories
+            entry.protein = item.protein
+            entry.carbs = item.carbs
+            entry.fat = item.fat
+            refreshSummaryFromEntries()
+            try? modelContext.save()
+            NotificationCenter.default.post(name: .dietSummaryUpdated, object: nil)
+        } catch {
+            if case AIServiceError.missingSessionToken = error {
+                requiresBackendReconnect = true
+                submitAlertMessage = "diet_ai_reconnect_required".localized
+                showSubmitAlert = true
+                return
+            }
+
+            submitAlertMessage = "diet_ai_fallback_summary".localized(with: error.localizedDescription)
+            showSubmitAlert = true
+        }
     }
 
     func startEdit(entry: MealEntry) {

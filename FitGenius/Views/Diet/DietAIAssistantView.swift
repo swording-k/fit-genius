@@ -70,7 +70,7 @@ struct DietAIAssistantView: View {
             Divider()
             
             // 媒体预览区 (类似 AIAssistantView)
-            if viewModel.pendingMediaData != nil {
+            if viewModel.pendingMediaData != nil || viewModel.isPreparingMedia {
                 HStack(spacing: 8) {
                     ZStack {
                         if let thumb = viewModel.pendingThumbnail {
@@ -85,6 +85,10 @@ struct DietAIAssistantView: View {
                                 .fill(Color.gray.opacity(0.2))
                                 .frame(width: 64, height: 64)
                                 .cornerRadius(8)
+                        }
+                        if viewModel.isPreparingMedia {
+                            ProgressView()
+                                .controlSize(.small)
                         }
                     }
                     Button {
@@ -105,30 +109,24 @@ struct DietAIAssistantView: View {
 				inputText: $viewModel.inputText,
 				isFocused: $isInputFocused,
 				isLoading: viewModel.isLoading,
+                isPreparingMedia: viewModel.isPreparingMedia,
                 canSendEmpty: viewModel.pendingMediaData != nil,
 				onSend: {
                     guard auth.hasBackendSession else {
                         showLoginSheet = true
                         return
                     }
+                    isInputFocused = false
 					Task { await viewModel.sendMessage() }
 				},
 				onCameraCapture: {
                     showCamera = true
-                },
+				},
 				onPhotoSelected: { item in
-					Task {
-						if let data = try? await item.loadTransferable(type: Data.self) {
-                            viewModel.handleMediaSelection(data: data)
-						}
-					}
+                    viewModel.handleMediaSelection(item: item)
 				}
 			)
             .toolbar {
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button("done") { isInputFocused = false }
-                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showClearAlert = true

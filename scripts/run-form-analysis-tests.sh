@@ -57,6 +57,13 @@ xcrun swiftc \
 /tmp/form-analysis-performance-policy-tests
 
 xcrun swiftc \
+  FitGenius/Models/Form/PoseModels.swift \
+  FitGenius/Services/FormAnalysis/FormAnalysisQualityGate.swift \
+  scripts/form-analysis-quality-gate-tests.swift \
+  -o /tmp/form-analysis-quality-gate-tests
+/tmp/form-analysis-quality-gate-tests
+
+xcrun swiftc \
   FitGenius/Models/Diet/DietStatsModels.swift \
   scripts/diet-stats-calculator-tests.swift \
   -o /tmp/diet-stats-calculator-tests

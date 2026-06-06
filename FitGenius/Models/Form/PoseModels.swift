@@ -93,7 +93,7 @@ struct PoseFrame: Codable, Hashable {
         self.joints = joints
     }
 
-    func point(_ joint: JointName, minConfidence: Double = 0.25) -> JointPoint? {
+    nonisolated func point(_ joint: JointName, minConfidence: Double = 0.25) -> JointPoint? {
         guard let point = joints[joint], point.confidence >= minConfidence else { return nil }
         return point
     }
@@ -106,7 +106,7 @@ struct PoseSequence: Codable, Hashable {
         self.frames = frames
     }
 
-    var duration: Double {
+    nonisolated var duration: Double {
         guard let first = frames.first?.timestamp, let last = frames.last?.timestamp else { return 0 }
         return max(0, last - first)
     }

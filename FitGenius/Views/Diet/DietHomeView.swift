@@ -187,6 +187,7 @@ struct DietHomeView: View {
                                 .contentShape(Rectangle())
                             }
                             .buttonStyle(.borderless)
+                            .disabled(viewModel.isPreparingImages)
                         }
 
                         HStack {
@@ -204,6 +205,12 @@ struct DietHomeView: View {
                         }
                     } header: {
                         Text("images")
+                    }
+                    if viewModel.isPreparingImages {
+                        HStack {
+                            ProgressView()
+                            Text("submitting")
+                        }
                     }
                     if !viewModel.selectedImagesData.isEmpty {
                         ScrollView(.horizontal, showsIndicators: false) {
@@ -228,8 +235,10 @@ struct DietHomeView: View {
                         Button("cancel") { viewModel.isPresentingAddSheet = false }
                     }
                     ToolbarItem(placement: .confirmationAction) {
-                        Button("save") { viewModel.addMealEntry() }
-                            .disabled(viewModel.selectedImagesData.isEmpty && viewModel.inputText.isEmpty)
+                        Button("save") {
+                            Task { await viewModel.addMealEntry() }
+                        }
+                        .disabled(viewModel.isPreparingImages || (viewModel.selectedImagesData.isEmpty && viewModel.inputText.isEmpty))
                     }
                 }
                 .onAppear {
@@ -237,7 +246,13 @@ struct DietHomeView: View {
                     viewModel.selectedImagesData = []
                 }
                 .onChange(of: photoItems) { _, items in
+                    guard !items.isEmpty else { return }
                     Task {
+                        viewModel.isPreparingImages = true
+                        defer {
+                            viewModel.isPreparingImages = false
+                            photoItems = []
+                        }
                         var datas: [Data] = []
                         for item in items {
                             if let data = try? await item.loadTransferable(type: Data.self) {
