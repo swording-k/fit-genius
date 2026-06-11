@@ -15,12 +15,12 @@
 **一款基于 AI 的智能健身计划 + 饮食管理应用**
 
 [![Swift](https://img.shields.io/badge/Swift-5.9-orange.svg)](https://swift.org)
-[![Platform](https://img.shields.io/badge/Platform-iOS%2018.0+-blue.svg)](https://developer.apple.com/ios/)
+[![Platform](https://img.shields.io/badge/Platform-iOS%2017.6+-blue.svg)](https://developer.apple.com/ios/)
 [![SwiftUI](https://img.shields.io/badge/SwiftUI-5.0-green.svg)](https://developer.apple.com/xcode/swiftui/)
 [![SwiftData](https://img.shields.io/badge/SwiftData-Latest-purple.svg)](https://developer.apple.com/xcode/swiftdata/)
 [![Version](https://img.shields.io/badge/Version-1.1.0-blue.svg)](https://github.com/swording-k/fit-genius)
 
-[![App Store](https://img.shields.io/badge/App_Store-即将上线-green.svg)]()
+[![App Store](https://img.shields.io/badge/App_Store-已上架-green.svg)]()
 
 </div>
 
@@ -46,6 +46,8 @@ FitGenius 是一款原生 iOS 健身应用，支持**训练计划管理**和**�
 #### 🏋️ 训练模块
 - 🤖 **AI 智能生成**：根据用户身体数据和健身目标，自动生成个性化训练计划
 - 🔄 **灵活循环系统**：支持任意天数的训练循环（3天、4天、5天、7天等）
+- 🎥 **动作分析教练**：支持在 AI 助手上传训练视频，使用 Apple Vision 本地识别深蹲、硬拉、卧推、站姿推举
+- 🧠 **可解释反馈**：在真实视频截帧上绘制绿色骨架和红色重点位置，并输出评分、证据、修正方法和练习建议
 - 📊 **数据统计分析**：训练容量趋势、重量增长曲线、坚持天数统计
 - 💬 **AI 助手对话**：通过自然语言与 AI 交流，随时调整训练计划
 - ✏️ **手动编辑**：支持手动修改训练动作、组数、次数和重量
@@ -106,11 +108,13 @@ AI 根据这些信息生成定制化训练计划。
 - 理解用户意图（修改计划、调整重量等）
 - 返回结构化建议
 - 支持动作分析（上传照片/视频）
+- 训练视频走本地 Apple Vision + 规则引擎：自动识别深蹲、硬拉、卧推、站姿推举，输出真实视频截帧画线反馈
+- 大模型只用于解释本地指标和生成教练式文字建议，不替代本地评分，也不上传原始训练视频
 
 **饮食 AI 助手**：
 - 饮食记录和营养分析
 - 个性化饮食建议
-- 食物照片识别
+- 食物照片识别与每餐热量/蛋白质/碳水/脂肪回写
 
 ### 4. 统计分析
 
@@ -158,6 +162,14 @@ AI 根据这些信息生成定制化训练计划。
 | Apple Vision | 本地姿态检测（深蹲 / 硬拉 / 卧推 / 站姿推举动作分析）|
 | Sign in with Apple | 用户认证 |
 | URLSession + SSE | AI 流式响应 |
+
+### AI 与动作分析架构
+
+- **训练动作评分**：iPhone 本地抽帧，Apple Vision 提取人体关键点，转换为平台无关的 `PoseFrame / JointPoint`，再由本地规则引擎评分。
+- **用户可见反馈图**：始终使用真实视频截帧作为背景，在截帧上绘制绿色骨架和红色问题位置；骨架白底图只作为内部 AI 教练理解动作的辅助输入，不作为主反馈图展示。
+- **AI 教练补充**：大模型根据本地指标、问题列表和骨架关键帧生成解释、修正口令和练习建议；它不能覆盖本地评分或编造未检测到的问题。
+- **饮食图片识别**：饮食图片使用快速稳定的多模态模型路径，结果写回每餐热量、蛋白质、碳水和脂肪；复杂混合餐会要求模型拆分主食、蛋白、蔬菜和油脂/酱汁进行估算。
+- **隐私边界**：原始训练视频不上传到多模态 AI 接口；AI provider key 只在 Vercel 环境变量中。
 
 ### 后端（同仓库 monorepo）
 | 技术 | 说明 |
