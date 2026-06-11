@@ -125,8 +125,10 @@ enum AIServiceError: Error, LocalizedError {
 class AIService {
     // Phase 2: 所有 AI 请求都强制走 FitGenius 后端代理。Aliyun API key
     // 只在 Vercel env 中存在,app bundle 不再持有任何 fallback key。
-    private let textModel = "qwen3-omni-flash"
-    private let visionModel = "qwen-vl-max"
+    private let textModel = AIModelRouting.textModel
+    private let dietImageModel = AIModelRouting.dietImageModel
+    private let fitnessImageModel = AIModelRouting.fitnessImageModel
+    private let formSkeletonVisionModel = AIModelRouting.formSkeletonVisionModel
     private let settings: SyncSettings = .live
     private let languagePolicy = AppLanguagePolicy.current
 
@@ -642,7 +644,7 @@ class AIService {
 			userContents.append(content)
 		}
 		let requestBody = VisionChatCompletionRequest(
-			model: visionModel,
+			model: dietImageModel,
 			messages: [
 				VisionChatCompletionRequest.Message(
 					role: "system",
@@ -732,7 +734,7 @@ class AIService {
 			}
 		}
 		let requestBody = VisionChatCompletionRequest(
-			model: visionModel,
+			model: dietImageModel,
 			messages: [
 				VisionChatCompletionRequest.Message(
 					role: "system",
@@ -782,7 +784,7 @@ class AIService {
         }
 
         let requestBody = VisionChatCompletionRequest(
-            model: visionModel,
+            model: formSkeletonVisionModel,
             messages: [
                 VisionChatCompletionRequest.Message(
                     role: "system",
@@ -842,7 +844,7 @@ class AIService {
     }
 
 	func analyzeFitnessMedia(userMessage: String, profile: UserProfile, plan: WorkoutPlan?, images: [Data], videos: [Data]) async throws -> String {
-        let mediaModel = videos.isEmpty ? visionModel : textModel
+        let mediaModel = videos.isEmpty ? fitnessImageModel : textModel
 		var systemContents: [VisionChatCompletionRequest.Content] = []
         let systemText = languagePolicy.fitnessMediaSystemPrompt
         let systemContent = VisionChatCompletionRequest.Content(type: "text", text: systemText, image_url: nil, video_url: nil)

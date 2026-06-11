@@ -313,7 +313,10 @@ class AIAssistantViewModel: ObservableObject {
             let response = ChatMessage(
                 content: content,
                 isUser: false,
-                mediaData: artifact.enrichment?.annotatedImageData.first ?? artifact.feedbackImageData,
+                mediaData: FormAnalysisChatPresentation.primaryFeedbackImageData(
+                    localFrameImageData: artifact.feedbackImageData,
+                    enrichmentAnnotatedImageData: artifact.enrichment?.annotatedImageData ?? []
+                ),
                 mediaType: "image",
                 topic: "fitness"
             )

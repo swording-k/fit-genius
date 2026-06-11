@@ -35,6 +35,14 @@ xcrun swiftc \
 /tmp/pose-frame-quality-policy-tests
 
 xcrun swiftc \
+  -parse-as-library \
+  FitGenius/Services/AIModelRouting.swift \
+  FitGenius/Services/FormAnalysis/FormAnalysisChatPresentation.swift \
+  scripts/hybrid-ai-routing-tests.swift \
+  -o /tmp/hybrid-ai-routing-tests
+/tmp/hybrid-ai-routing-tests
+
+xcrun swiftc \
   FitGenius/Models/Form/PoseModels.swift \
   FitGenius/Models/Form/FormCoachEnrichmentModels.swift \
   FitGenius/Services/FormAnalysis/FormRuleEngine.swift \

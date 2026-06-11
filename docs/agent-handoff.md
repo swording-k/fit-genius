@@ -1,6 +1,6 @@
 # FitGenius Agent Handoff
 
-Last updated: 2026-06-07 00:18 Asia/Shanghai
+Last updated: 2026-06-11 12:28 Asia/Shanghai
 
 ## Read First
 
@@ -20,14 +20,13 @@ detection report into structured coaching feedback.
 Latest milestone:
 
 - Hybrid AI upgrade is in progress for the two user-visible weak spots:
-  Diet image recognition and AI Assistant form coaching. `AIService` now
-  separates text requests (`qwen3-omni-flash`) from image/skeleton requests
-  (`qwen-vl-max`). Plain training-plan generation/regeneration, pure text
-  Diet chat, and pure text nutrition JSON analysis remain on the original text
-  model; Diet image chat, Diet image JSON analysis, fitness image Q&A, and
-  skeleton-based form-coach enrichment use the visual model. Generic fitness
-  video fallback remains on the original model to avoid breaking video support,
-  while AI Assistant training videos still use local Vision/rules.
+  Diet image recognition and AI Assistant form coaching. `AIService` now uses
+  explicit `AIModelRouting`: training-plan generation/regeneration, pure text
+  Diet chat, pure text nutrition JSON analysis, and Diet image chat / Diet
+  image JSON analysis use the fast stable `qwen3-omni-flash` path. Fitness
+  image Q&A and skeleton-based form-coach enrichment use `qwen-vl-max`. Generic
+  fitness video fallback remains on the original model to avoid breaking video
+  support, while AI Assistant training videos still use local Vision/rules.
 - Diet image prompts were upgraded for mixed meals and Chinese meals: estimate
   staple carbs, protein foods, vegetables, oils/sauces, include portion
   reasoning in notes, self-check calories against 4/4/9 macros, and avoid
@@ -39,16 +38,19 @@ Latest milestone:
   `qwen-vl-max`, and asks for structured coach notes, selected keyframes,
   joint annotations, and 2-3 learnable cues. Raw training videos are not sent
   to the LLM in this path.
+- Important UX invariant: skeleton-only keyframes are an internal LLM input,
+  not the user's primary feedback image. AI Assistant must present the real
+  video-frame feedback image (`feedbackImageData`) with green/red overlay,
+  while using enrichment only for coach text/cues.
 - The enrichment path is best-effort. If the visual model, JSON decoding, or
   annotation rendering fails, the user still receives the deterministic local
   coaching template and annotated video frame. This preserves offline/local
   utility and prevents cloud failures from destroying the core form-analysis
   result.
-- `PoseOverlayRenderer` can now render skeleton keyframes with AI annotation
-  callouts, reducing the previous failure mode where social-media outro frames
-  could become the main feedback image. Keyframes are selected from usable pose
-  frames by time bucket and visible-joint completeness, not from raw last
-  video frames.
+- `PoseOverlayRenderer` can render skeleton keyframes for internal AI context,
+  but these images must not replace the user-facing real-frame overlay.
+  Keyframes are selected from usable pose frames by time bucket and
+  visible-joint completeness, not from raw last video frames.
 - Vercel `/api/ai/chat` now declares `maxDuration: 60` because visual-model
   image/skeleton calls are slower than ordinary text streaming.
 - Added bilingual strings for AI-coach enrichment notes and skeleton keyframe
@@ -282,6 +284,19 @@ new reconnect prompt once to receive a new FitGenius cloud session.
 
 ## Latest Validation
 
+- 2026-06-11 regression fix validation:
+  - Added `AIModelRouting` and `FormAnalysisChatPresentation` to make the two
+    corrected behaviors explicit: Diet image analysis stays on
+    `qwen3-omni-flash`, and AI Assistant presents the real video-frame feedback
+    image instead of skeleton-only enrichment art.
+  - Added `hybrid-ai-routing-tests`; it passed and is wired into
+    `scripts/run-form-analysis-tests.sh`.
+  - `scripts/run-form-analysis-tests.sh` passed.
+  - `scripts/predeploy-check.sh` passed: backend 25/25, iOS script tests,
+    localization check, deployable-file secret scan, and local env reminder.
+  - XcodeBuildMCP build/run on iPhone 17 Pro simulator succeeded with zero
+    errors after the regression fix. One existing HealthKit deprecation warning
+    remains unrelated to this change.
 - 2026-06-07 hybrid AI upgrade validation:
   - Official Aliyun/DashScope OpenAI-compatible VL documentation was checked;
     `qwen-vl-max` is listed as a valid vision model name for compatible chat
