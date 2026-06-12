@@ -171,6 +171,16 @@ Cross-platform strategy:
 - Use MediaPipe or platform pose APIs to generate `PoseFrame`.
 - Keep exercise rules and coaching logic aligned across clients.
 
+Phase 4 kickoff note (2026-06-12):
+
+- The Android client starts as a native Kotlin + Jetpack Compose app under
+  `android/`, isolated from the current iOS project.
+- First Android build targets core product parity: training, diet, AI Assistant,
+  and form-coach structure. Android widgets, watch features, store release
+  automation, and HarmonyOS NEXT native work remain deferred.
+- The first acceptance target is a locally buildable debug APK, not broad
+  app-store distribution.
+
 ## Current Implementation Status (verified 2026-06-04)
 
 Implemented:

@@ -1,6 +1,6 @@
 # FitGenius Agent Handoff
 
-Last updated: 2026-06-11 12:28 Asia/Shanghai
+Last updated: 2026-06-12 21:15 Asia/Shanghai
 
 ## Read First
 
@@ -10,6 +10,40 @@ Last updated: 2026-06-11 12:28 Asia/Shanghai
 4. `docs/agent-handoff.md`
 
 ## Current Status
+
+Android client kickoff is now in progress. The Android work must stay isolated
+under `android/` so the existing iOS SwiftUI app, Watch app, Widget, and Xcode
+project remain stable. The first Android milestone is a native Kotlin + Jetpack
+Compose debug APK with the same core FitGenius product structure: Training,
+Diet, AI Assistant, and Form Coach. Android widgets, Wear OS/Huawei watch,
+HarmonyOS NEXT native work, and store release automation are intentionally
+deferred.
+
+Android milestone achieved on 2026-06-12:
+
+- Installed local Android build tooling on this Mac: Homebrew `openjdk@17`,
+  `android-commandlinetools`, Gradle, Android SDK Platform 35, Platform Tools,
+  and Build Tools 34/35.
+- Added an isolated Android Gradle project in `android/` with package
+  `com.swordingk.fitgenius`, Kotlin, Jetpack Compose, Material 3, bilingual
+  string resources, and Gradle Wrapper 8.10.2.
+- Added first product shell: Training, Diet, AI Coach, and Form Coach tabs.
+  It uses local sample data for now; backend auth/sync, real AI calls,
+  image/video picking, and MediaPipe pose extraction are next milestones.
+- Added JVM unit tests for workout progress and nutrition macro aggregation.
+- Verified with:
+  `JAVA_HOME=/opt/homebrew/opt/openjdk@17 ANDROID_HOME=/opt/homebrew/share/android-commandlinetools ./gradlew testDebugUnitTest assembleDebug --no-daemon`
+- Result: `BUILD SUCCESSFUL`; debug APK generated at
+  `android/app/build/outputs/apk/debug/app-debug.apk` (about 9.5 MB).
+
+Current local working-tree notes:
+
+- `FitGenius.xcodeproj/project.pbxproj` has a pre-existing iOS version-number
+  change (`MARKETING_VERSION` 1.1 -> 1.2, `CURRENT_PROJECT_VERSION` 1 -> 1.1).
+- `FitGenius.xcodeproj/xcuserdata/.../xcschememanagement.plist` has a
+  pre-existing Xcode scheme-order change for the Watch scheme.
+- `HYBRID_AI_UPGRADE_PLAN.md` is an untracked local planning file.
+- Do not revert or fold those into Android work unless the user explicitly asks.
 
 The cloud-sync and Apple Watch milestone is committed at `bafaf2e`, the
 form-coach product-quality milestone is committed at `ab59258`, and the
