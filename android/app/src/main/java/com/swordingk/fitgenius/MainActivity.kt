@@ -31,6 +31,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -41,6 +42,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.swordingk.fitgenius.model.Exercise
+import com.swordingk.fitgenius.model.AssistantMessage
+import com.swordingk.fitgenius.model.FitGeniusState
 import com.swordingk.fitgenius.model.MealEntry
 import com.swordingk.fitgenius.model.SampleData
 import com.swordingk.fitgenius.model.SupportedLift
@@ -76,6 +79,18 @@ fun FitGeniusApp() {
     ) {
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             var selectedTab by rememberSaveable { mutableStateOf(FitGeniusTab.Training) }
+            val initialWorkout = localizedWorkout()
+            val initialMeals = localizedMeals()
+            val snackTitle = stringResource(R.string.meal_snack)
+            var appState by remember {
+                mutableStateOf(
+                    FitGeniusState(
+                        workout = initialWorkout,
+                        meals = initialMeals,
+                        assistantMessages = emptyList()
+                    )
+                )
+            }
 
             Scaffold(
                 bottomBar = {
@@ -93,9 +108,37 @@ fun FitGeniusApp() {
             ) { padding ->
                 Box(modifier = Modifier.padding(padding)) {
                     when (selectedTab) {
-                        FitGeniusTab.Training -> TrainingScreen(localizedWorkout())
-                        FitGeniusTab.Diet -> DietScreen(localizedMeals())
-                        FitGeniusTab.Assistant -> AssistantScreen()
+                        FitGeniusTab.Training -> TrainingScreen(
+                            workout = appState.workout,
+                            onCompleteSet = { exerciseId ->
+                                appState = appState.completeSet(exerciseId)
+                            }
+                        )
+                        FitGeniusTab.Diet -> DietScreen(
+                            meals = appState.meals,
+                            onAddMeal = {
+                                val snackNumber = appState.meals.size + 1
+                                appState = appState.addMeal(
+                                    MealEntry(
+                                        id = "snack-$snackNumber",
+                                        title = snackTitle,
+                                        calories = 260,
+                                        proteinGrams = 18.0,
+                                        carbsGrams = 28.0,
+                                        fatGrams = 8.0
+                                    )
+                                )
+                            },
+                            onDeleteMeal = { mealId ->
+                                appState = appState.deleteMeal(mealId)
+                            }
+                        )
+                        FitGeniusTab.Assistant -> AssistantScreen(
+                            messages = appState.assistantMessages,
+                            onSend = { text, reply ->
+                                appState = appState.sendAssistantMessage(text, reply)
+                            }
+                        )
                         FitGeniusTab.Form -> FormCoachScreen()
                     }
                 }
@@ -147,7 +190,10 @@ private fun localizedMeals(): List<MealEntry> =
     )
 
 @Composable
-private fun TrainingScreen(workout: WorkoutDay) {
+private fun TrainingScreen(
+    workout: WorkoutDay,
+    onCompleteSet: (String) -> Unit
+) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -175,13 +221,20 @@ private fun TrainingScreen(workout: WorkoutDay) {
         }
 
         items(workout.exercises) { exercise ->
-            ExerciseCard(exercise)
+            ExerciseCard(
+                exercise = exercise,
+                onCompleteSet = { onCompleteSet(exercise.id) }
+            )
         }
     }
 }
 
 @Composable
-private fun DietScreen(meals: List<MealEntry>) {
+private fun DietScreen(
+    meals: List<MealEntry>,
+    onAddMeal: () -> Unit,
+    onDeleteMeal: (String) -> Unit
+) {
     val summary = meals.nutritionSummary()
 
     LazyColumn(
@@ -205,17 +258,28 @@ private fun DietScreen(meals: List<MealEntry>) {
                 MetricCard(stringResource(R.string.carbs), stringResource(R.string.grams_format, summary.carbsGrams.toInt()), MaterialTheme.colorScheme.primary, Modifier.weight(1f))
                 MetricCard(stringResource(R.string.fat), stringResource(R.string.grams_format, summary.fatGrams.toInt()), Color(0xFF64748B), Modifier.weight(1f))
             }
+            Spacer(Modifier.height(12.dp))
+            Button(onClick = onAddMeal) {
+                Text(stringResource(R.string.add_sample_meal))
+            }
         }
 
         items(meals) { meal ->
-            MealCard(meal)
+            MealCard(
+                meal = meal,
+                onDelete = { onDeleteMeal(meal.id) }
+            )
         }
     }
 }
 
 @Composable
-private fun AssistantScreen() {
+private fun AssistantScreen(
+    messages: List<AssistantMessage>,
+    onSend: (String, String) -> Unit
+) {
     var draft by rememberSaveable { mutableStateOf("") }
+    val localReply = stringResource(R.string.assistant_local_reply)
 
     Column(
         modifier = Modifier
@@ -238,7 +302,14 @@ private fun AssistantScreen() {
             }
         }
 
-        Spacer(Modifier.weight(1f))
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            items(messages) { message ->
+                AssistantMessageBubble(message)
+            }
+        }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             TextField(
@@ -249,7 +320,12 @@ private fun AssistantScreen() {
                 singleLine = true
             )
             Spacer(Modifier.width(10.dp))
-            Button(onClick = { draft = "" }) {
+            Button(
+                onClick = {
+                    onSend(draft, localReply)
+                    draft = ""
+                }
+            ) {
                 Text(stringResource(R.string.send))
             }
         }
@@ -319,7 +395,12 @@ private fun MetricCard(
 }
 
 @Composable
-private fun ExerciseCard(exercise: Exercise) {
+private fun ExerciseCard(
+    exercise: Exercise,
+    onCompleteSet: () -> Unit
+) {
+    val isCompleted = exercise.completedSets >= exercise.sets
+
     Card(
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
@@ -344,6 +425,18 @@ private fun ExerciseCard(exercise: Exercise) {
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = Color(0xFFE2E8F0)
             )
+            Button(
+                onClick = onCompleteSet,
+                enabled = !isCompleted
+            ) {
+                Text(
+                    if (isCompleted) {
+                        stringResource(R.string.completed)
+                    } else {
+                        stringResource(R.string.complete_set)
+                    }
+                )
+            }
         }
     }
 }
@@ -353,7 +446,10 @@ private fun Exercise.weightLabel(): String =
     weightKg?.let { stringResource(R.string.exercise_weight_format, it.toInt()) } ?: ""
 
 @Composable
-private fun MealCard(meal: MealEntry) {
+private fun MealCard(
+    meal: MealEntry,
+    onDelete: () -> Unit
+) {
     Card(
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
@@ -371,6 +467,30 @@ private fun MealCard(meal: MealEntry) {
                     meal.fatGrams.toInt()
                 ),
                 color = Color(0xFF475569)
+            )
+            Button(onClick = onDelete) {
+                Text(stringResource(R.string.delete))
+            }
+        }
+    }
+}
+
+@Composable
+private fun AssistantMessageBubble(message: AssistantMessage) {
+    val bubbleColor = if (message.isUser) MaterialTheme.colorScheme.primary else Color.White
+    val textColor = if (message.isUser) Color.White else Color(0xFF0F172A)
+    val alignment = if (message.isUser) Alignment.CenterEnd else Alignment.CenterStart
+
+    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = alignment) {
+        Card(
+            shape = RoundedCornerShape(8.dp),
+            colors = CardDefaults.cardColors(containerColor = bubbleColor),
+            modifier = Modifier.fillMaxWidth(0.86f)
+        ) {
+            Text(
+                text = message.text,
+                modifier = Modifier.padding(14.dp),
+                color = textColor
             )
         }
     }

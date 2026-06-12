@@ -36,6 +36,18 @@ Android milestone achieved on 2026-06-12:
 - Result: `BUILD SUCCESSFUL`; debug APK generated at
   `android/app/build/outputs/apk/debug/app-debug.apk` (about 9.5 MB).
 
+Android interaction milestone achieved on 2026-06-12:
+
+- Added `FitGeniusState` reducer logic for completing workout sets, adding and
+  deleting meals, and appending local assistant messages.
+- Added JVM tests for those reducers, including guardrails that completed sets
+  cannot exceed the programmed set count.
+- Updated the Compose shell so Training can complete sets, Diet can add/delete
+  meals, and AI Coach can show a local chat transcript.
+- Re-ran
+  `JAVA_HOME=/opt/homebrew/opt/openjdk@17 ANDROID_HOME=/opt/homebrew/share/android-commandlinetools ./gradlew testDebugUnitTest assembleDebug --no-daemon`;
+  result: `BUILD SUCCESSFUL`.
+
 Current local working-tree notes:
 
 - `FitGenius.xcodeproj/project.pbxproj` has a pre-existing iOS version-number

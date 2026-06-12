@@ -14,6 +14,8 @@
     <string name="exercise_row">Cable Row</string>
     <string name="exercise_press">Overhead Press</string>
     <string name="exercise_raise">Lateral Raise</string>
+    <string name="complete_set">Complete set</string>
+    <string name="completed">Completed</string>
     <string name="nutrition_title">Nutrition today</string>
     <string name="nutrition_subtitle">Meal photos and manual entries will write macros back here.</string>
     <string name="calories">Calories</string>
@@ -24,12 +26,16 @@
     <string name="grams_format">%1$dg</string>
     <string name="meal_breakfast">Breakfast</string>
     <string name="meal_lunch">Lunch</string>
+    <string name="add_sample_meal">Add meal</string>
+    <string name="delete">Delete</string>
+    <string name="meal_snack">Snack</string>
     <string name="meal_macro_format">Protein %1$dg · Carbs %2$dg · Fat %3$dg</string>
     <string name="assistant_title">AI Coach</string>
     <string name="assistant_subtitle">Ask about training, meals, or upload media in the next milestone.</string>
     <string name="assistant_card_title">FitGenius coach</string>
     <string name="assistant_card_body">Android will use the same backend AI proxy as iOS, so provider keys stay on the server.</string>
     <string name="assistant_placeholder">Ask FitGenius...</string>
+    <string name="assistant_local_reply">I will connect to the FitGenius backend AI proxy in the next milestone. For now, your question is saved in this local Android session.</string>
     <string name="send">Send</string>
     <string name="form_title">Form Coach</string>
     <string name="form_subtitle">Android will use MediaPipe to produce the same pose frames as iOS Vision.</string>

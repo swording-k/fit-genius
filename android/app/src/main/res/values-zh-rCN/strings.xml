@@ -14,6 +14,8 @@
     <string name="exercise_row">绳索划船</string>
     <string name="exercise_press">站姿推举</string>
     <string name="exercise_raise">侧平举</string>
+    <string name="complete_set">完成一组</string>
+    <string name="completed">已完成</string>
     <string name="nutrition_title">今日饮食</string>
     <string name="nutrition_subtitle">餐食照片和手动记录会把热量与三大营养写回这里。</string>
     <string name="calories">热量</string>
@@ -24,12 +26,16 @@
     <string name="grams_format">%1$d克</string>
     <string name="meal_breakfast">早餐</string>
     <string name="meal_lunch">午餐</string>
+    <string name="add_sample_meal">添加一餐</string>
+    <string name="delete">删除</string>
+    <string name="meal_snack">加餐</string>
     <string name="meal_macro_format">蛋白质 %1$d克 · 碳水 %2$d克 · 脂肪 %3$d克</string>
     <string name="assistant_title">AI 助手</string>
     <string name="assistant_subtitle">下一阶段可询问训练、饮食，或上传图片/视频。</string>
     <string name="assistant_card_title">FitGenius 教练</string>
     <string name="assistant_card_body">安卓版会使用与 iOS 相同的后端 AI 代理，第三方模型 Key 只保存在服务端。</string>
     <string name="assistant_placeholder">问问 FitGenius...</string>
+    <string name="assistant_local_reply">下一阶段我会接入 FitGenius 后端 AI 代理。现在这条问题会先保存在安卓本地会话中。</string>
     <string name="send">发送</string>
     <string name="form_title">动作教练</string>
     <string name="form_subtitle">安卓版会用 MediaPipe 生成与 iOS Vision 对齐的姿态关键点。</string>
