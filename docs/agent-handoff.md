@@ -32,6 +32,8 @@ MiniMax provider migration is in progress on 2026-06-22:
   HTTP 401. An authenticated in-app smoke test still requires a real Apple
   session because Vercel sensitive values cannot be pulled back to mint a local
   production session.
+- The iPhone app, Widget, and Watch targets are aligned for release version
+  `1.2` with build number `2`; App Store archive/upload remains pending.
 
 Android client kickoff is now in progress. The Android work must stay isolated
 under `android/` so the existing iOS SwiftUI app, Watch app, Widget, and Xcode

@@ -18,7 +18,7 @@
 [![Platform](https://img.shields.io/badge/Platform-iOS%2017.6+-blue.svg)](https://developer.apple.com/ios/)
 [![SwiftUI](https://img.shields.io/badge/SwiftUI-5.0-green.svg)](https://developer.apple.com/xcode/swiftui/)
 [![SwiftData](https://img.shields.io/badge/SwiftData-Latest-purple.svg)](https://developer.apple.com/xcode/swiftdata/)
-[![Version](https://img.shields.io/badge/Version-1.1.0-blue.svg)](https://github.com/swording-k/fit-genius)
+[![Version](https://img.shields.io/badge/Version-1.2.0-blue.svg)](https://github.com/swording-k/fit-genius)
 
 [![App Store](https://img.shields.io/badge/App_Store-已上架-green.svg)]()
 
