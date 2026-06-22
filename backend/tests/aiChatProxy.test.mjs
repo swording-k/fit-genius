@@ -4,12 +4,15 @@ import { createAIChatHandler } from "../../api/ai/chat.js";
 
 const originalSecret = process.env.SESSION_SECRET;
 const originalIssuer = process.env.SESSION_ISSUER;
-const originalKey = process.env.ALIYUN_API_KEY;
 
 try {
   process.env.SESSION_SECRET = "z".repeat(32);
   delete process.env.SESSION_ISSUER;
-  process.env.ALIYUN_API_KEY = "test-aliyun-key";
+
+  const minimaxEnv = {
+    AI_PROVIDER: "minimax",
+    MINIMAX_API_KEY: "test-minimax-key"
+  };
 
   const { token } = await signSessionToken({
     userId: "usr_ai",
@@ -25,22 +28,23 @@ try {
       headers: { "Content-Type": "application/json" }
     });
   };
-  const handler = createAIChatHandler({ fetchImpl: fakeFetch });
+  const handler = createAIChatHandler({ fetchImpl: fakeFetch, providerEnv: minimaxEnv });
 
   // Happy path.
   const ok = await invoke(handler, {
     method: "POST",
     headers: { authorization: `Bearer ${token}` },
-    body: { messages: [{ role: "user", content: "hi" }], model: "qwen-test" }
+    body: { messages: [{ role: "user", content: "hi" }], model: "qwen3-omni-flash" }
   });
   assert.equal(ok.statusCode, 200);
   assert.equal(ok.body.ok, true);
-  assert.match(captured.url, /dashscope\.aliyuncs\.com\/compatible-mode\/v1\/chat\/completions/);
-  assert.match(captured.init.headers.Authorization, /^Bearer test-aliyun-key/);
+  assert.equal(captured.url, "https://api.minimaxi.com/v1/chat/completions");
+  assert.match(captured.init.headers.Authorization, /^Bearer test-minimax-key/);
   const sentBody = JSON.parse(captured.init.body);
-  assert.equal(sentBody.model, "qwen-test");
+  assert.equal(sentBody.model, "MiniMax-M3");
   assert.equal(sentBody.messages[0].role, "user");
   assert.equal(sentBody.stream, false);
+  assert.equal(sentBody.reasoning_split, true);
 
   // Multimodal message content must be forwarded without flattening or
   // rewriting the image payload.
@@ -54,10 +58,46 @@ try {
   const multimodal = await invoke(handler, {
     method: "POST",
     headers: { authorization: `Bearer ${token}` },
-    body: { messages: multimodalMessages, model: "qwen-test" }
+    body: { messages: multimodalMessages, model: "qwen-vl-max" }
   });
   assert.equal(multimodal.statusCode, 200);
-  assert.deepEqual(JSON.parse(captured.init.body).messages, multimodalMessages);
+  const multimodalBody = JSON.parse(captured.init.body);
+  assert.deepEqual(multimodalBody.messages, multimodalMessages);
+  assert.equal(multimodalBody.model, "MiniMax-M3");
+  assert.equal(multimodalBody.reasoning_split, true);
+
+  // MiniMax streaming SSE is forwarded unchanged. MiniMax may close the
+  // stream without a final [DONE] marker, which the current iOS client accepts.
+  const streamFetch = async () => new Response(
+    "data: {\"choices\":[{\"delta\":{\"content\":\"hello\"}}]}\n\n",
+    { status: 200, headers: { "Content-Type": "text/event-stream" } }
+  );
+  const streamHandler = createAIChatHandler({ fetchImpl: streamFetch, providerEnv: minimaxEnv });
+  const streamed = await invoke(streamHandler, {
+    method: "POST",
+    headers: { authorization: `Bearer ${token}` },
+    body: { messages: [{ role: "user", content: "hi" }], stream: true }
+  });
+  assert.equal(streamed.statusCode, 200);
+  assert.equal(streamed.headers["Content-Type"], "text/event-stream");
+  assert.match(streamed.streamBody, /\"content\":\"hello\"/);
+
+  // Environment-only rollback keeps the old provider available without a
+  // mobile release.
+  const aliyunHandler = createAIChatHandler({
+    fetchImpl: fakeFetch,
+    providerEnv: { AI_PROVIDER: "aliyun", ALIYUN_API_KEY: "test-aliyun-key" }
+  });
+  const rollback = await invoke(aliyunHandler, {
+    method: "POST",
+    headers: { authorization: `Bearer ${token}` },
+    body: { messages: [{ role: "user", content: "hi" }], model: "fitgenius-vision" }
+  });
+  assert.equal(rollback.statusCode, 200);
+  assert.match(captured.url, /dashscope\.aliyuncs\.com/);
+  const rollbackBody = JSON.parse(captured.init.body);
+  assert.equal(rollbackBody.model, "qwen-vl-max");
+  assert.equal("reasoning_split" in rollbackBody, false);
 
   // Missing auth.
   const noAuth = await invoke(handler, { method: "POST", body: { messages: [] } });
@@ -87,7 +127,7 @@ try {
 
   // Upstream 500 → proxy 502.
   const errorFetch = async () => new Response("upstream-broke", { status: 500 });
-  const errorHandler = createAIChatHandler({ fetchImpl: errorFetch, aliyunApiKey: "x" });
+  const errorHandler = createAIChatHandler({ fetchImpl: errorFetch, providerEnv: minimaxEnv });
   const upstreamError = await invoke(errorHandler, {
     method: "POST",
     headers: { authorization: `Bearer ${token}` },
@@ -101,7 +141,7 @@ try {
   const throwFetch = async () => {
     throw new Error("econnrefused");
   };
-  const throwHandler = createAIChatHandler({ fetchImpl: throwFetch, aliyunApiKey: "x" });
+  const throwHandler = createAIChatHandler({ fetchImpl: throwFetch, providerEnv: minimaxEnv });
   const unreachable = await invoke(throwHandler, {
     method: "POST",
     headers: { authorization: `Bearer ${token}` },
@@ -110,14 +150,24 @@ try {
   assert.equal(unreachable.statusCode, 502);
   assert.equal(unreachable.body.error, "upstream_unreachable");
 
+  const missingProvider = createAIChatHandler({
+    fetchImpl: fakeFetch,
+    providerEnv: { AI_PROVIDER: "minimax" }
+  });
+  const notConfigured = await invoke(missingProvider, {
+    method: "POST",
+    headers: { authorization: `Bearer ${token}` },
+    body: { messages: [{ role: "user", content: "hi" }] }
+  });
+  assert.equal(notConfigured.statusCode, 503);
+  assert.equal(notConfigured.body.error, "provider_not_configured");
+
   console.log("aiChatProxy tests passed");
 } finally {
   if (originalSecret === undefined) delete process.env.SESSION_SECRET;
   else process.env.SESSION_SECRET = originalSecret;
   if (originalIssuer === undefined) delete process.env.SESSION_ISSUER;
   else process.env.SESSION_ISSUER = originalIssuer;
-  if (originalKey === undefined) delete process.env.ALIYUN_API_KEY;
-  else process.env.ALIYUN_API_KEY = originalKey;
 }
 
 async function invoke(targetHandler, request) {
@@ -127,7 +177,7 @@ async function invoke(targetHandler, request) {
 }
 
 function createResponse() {
-  const result = { statusCode: 200, headers: {}, body: undefined };
+  const result = { statusCode: 200, headers: {}, body: undefined, streamBody: "" };
   return {
     result,
     setHeader(name, value) {
@@ -142,7 +192,8 @@ function createResponse() {
       result.body = body;
       return this;
     },
-    write() {
+    write(chunk) {
+      result.streamBody += Buffer.isBuffer(chunk) ? chunk.toString("utf8") : String(chunk);
       return true;
     },
     end() {

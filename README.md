@@ -41,6 +41,8 @@
 
 FitGenius 是一款原生 iOS 健身应用，支持**训练计划管理**和**饮食追踪**双模式，通过 AI 技术为用户生成个性化训练计划，并提供智能饮食分析和营养建议。
 
+AI 请求统一通过 Vercel 的 provider-neutral 代理；当前主用 MiniMax，Aliyun 仅作紧急回滚。iOS 包内不含任何第三方 API key。
+
 ### ✨ 核心特性
 
 #### 🏋️ 训练模块

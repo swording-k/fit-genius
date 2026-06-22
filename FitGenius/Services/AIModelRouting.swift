@@ -1,8 +1,9 @@
 import Foundation
 
 enum AIModelRouting {
-    static let textModel = "qwen3-omni-flash"
-    static let dietImageModel = textModel
-    static let fitnessImageModel = "qwen-vl-max"
-    static let formSkeletonVisionModel = "qwen-vl-max"
+    static let textModel = "fitgenius-text"
+    static let dietImageModel = "fitgenius-vision"
+    static let fitnessImageModel = "fitgenius-vision"
+    static let fitnessVideoModel = "fitgenius-video"
+    static let formSkeletonVisionModel = "fitgenius-vision"
 }

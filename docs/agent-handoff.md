@@ -1,6 +1,6 @@
 # FitGenius Agent Handoff
 
-Last updated: 2026-06-12 21:15 Asia/Shanghai
+Last updated: 2026-06-22 Asia/Shanghai
 
 ## Read First
 
@@ -10,6 +10,28 @@ Last updated: 2026-06-12 21:15 Asia/Shanghai
 4. `docs/agent-handoff.md`
 
 ## Current Status
+
+MiniMax provider migration is in progress on 2026-06-22:
+
+- The public iOS API remains `/api/ai/chat`; released builds are not forced to
+  update and continue to authenticate with the same FitGenius session token.
+- The backend now has a provider-neutral adapter. It maps both legacy Qwen
+  model names and new `fitgenius-text`, `fitgenius-vision`, and
+  `fitgenius-video` aliases to `MiniMax-M3` when `AI_PROVIDER=minimax`.
+- MiniMax uses `reasoning_split: true` so internal reasoning is not rendered in
+  the user-visible chat response. Aliyun remains an environment-only emergency
+  rollback path.
+- Direct provider probes confirmed the supplied China-region credential works
+  for text, image, video, and streaming requests at `api.minimaxi.com`. The key
+  has not been written to the repository or iOS bundle.
+- Production Vercel deployment `dpl_14CsiwMuA62xRMbzs73S2ML1FDmr` is READY and
+  aliased to `https://fitgenius-ashen.vercel.app`. Production now has encrypted
+  `MINIMAX_API_KEY` plus `AI_PROVIDER=minimax`; the prior Aliyun credential is
+  retained for emergency rollback.
+- Production health returned HTTP 200 and unauthenticated AI requests returned
+  HTTP 401. An authenticated in-app smoke test still requires a real Apple
+  session because Vercel sensitive values cannot be pulled back to mint a local
+  production session.
 
 Android client kickoff is now in progress. The Android work must stay isolated
 under `android/` so the existing iOS SwiftUI app, Watch app, Widget, and Xcode
@@ -329,6 +351,22 @@ phone sessions are invalid. Users with the old local Apple identity must use the
 new reconnect prompt once to receive a new FitGenius cloud session.
 
 ## Latest Validation
+
+- 2026-06-22 MiniMax migration validation so far:
+  - `npm run test:backend` passed: 26 tests, including provider selection,
+    legacy/new model alias mapping, multimodal passthrough, streaming EOF,
+    missing credentials, upstream errors, and Aliyun rollback.
+  - `hybrid-ai-routing-tests` passed with distinct provider-neutral aliases for
+    text, image, and video requests.
+  - Full `scripts/predeploy-check.sh` passed: backend 26/26, all iOS script
+    tests, Widget/Watch regressions, localization, and deployable secret scan.
+  - Production deployment completed successfully; `/api/health` returned 200
+    and `/api/ai/chat` preserved its 401 authentication boundary.
+  - Direct MiniMax probes passed for non-streaming text, image, video, and SSE
+    streaming. `reasoning_split: true` keeps reasoning outside visible content.
+  - Xcode shell build and XcodeBuildMCP runtime launch are currently blocked by
+    a missing/unavailable iOS 26.1 Simulator Runtime on this Mac. This is a
+    local Xcode component issue, not a compiler diagnostic from the app code.
 
 - 2026-06-11 regression fix validation:
   - Added `AIModelRouting` and `FormAnalysisChatPresentation` to make the two

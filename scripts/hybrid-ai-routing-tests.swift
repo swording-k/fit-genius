@@ -11,12 +11,24 @@ func require(_ condition: @autoclosure () -> Bool, _ message: String) {
 struct HybridAIRoutingTests {
     static func main() {
         require(
-            AIModelRouting.dietImageModel == AIModelRouting.textModel,
-            "Diet image analysis should use the fast stable multimodal text model instead of the heavy VL model"
+            AIModelRouting.textModel == "fitgenius-text",
+            "Text requests should use the provider-neutral backend alias"
         )
         require(
-            AIModelRouting.formSkeletonVisionModel == "qwen-vl-max",
-            "Form skeleton enrichment should keep using qwen-vl-max"
+            AIModelRouting.dietImageModel == "fitgenius-vision",
+            "Diet image analysis should use the provider-neutral vision alias"
+        )
+        require(
+            AIModelRouting.fitnessImageModel == "fitgenius-vision",
+            "Fitness images should use the provider-neutral vision alias"
+        )
+        require(
+            AIModelRouting.fitnessVideoModel == "fitgenius-video",
+            "Fitness videos should use the provider-neutral video alias"
+        )
+        require(
+            AIModelRouting.formSkeletonVisionModel == "fitgenius-vision",
+            "Form skeleton enrichment should use the provider-neutral vision alias"
         )
 
         let realFrame = Data([1, 2, 3])

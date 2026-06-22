@@ -13,11 +13,12 @@ sync.
 | GET/PUT | `/api/cloud-snapshot` | Restore or save profile, plan, workout, and diet data.| Bearer token  |
 | DELETE  | `/api/account`        | Delete the current user and cascaded cloud data.     | Bearer token  |
 | POST    | `/api/auth/apple`     | Exchange an Apple identityToken for a session JWT.    | None          |
-| POST    | `/api/ai/chat`        | Proxy an OpenAI-compatible chat completion to Aliyun. | Bearer token  |
+| POST    | `/api/ai/chat`        | Proxy an OpenAI-compatible AI completion.             | Bearer token  |
 
-`/api/ai/chat` forwards the request to
-`https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions` using
-the server-side `ALIYUN_API_KEY`. The iOS app never sees the provider key.
+`/api/ai/chat` uses a server-side provider adapter. Production uses MiniMax;
+Aliyun remains available as an emergency rollback. Old iOS builds that send
+Qwen model names and new builds that send `fitgenius-*` aliases are both mapped
+to the active provider model. The iOS app never sees either provider key.
 
 ## Required Environment Variables
 
@@ -29,7 +30,11 @@ development). Never commit real values.
 | `DATABASE_URL`        | Yes (prod) | Neon Postgres connection string. Apply `backend/schema.sql` first.        |
 | `SESSION_SECRET`      | Yes (prod) | 32+ chars. Generate with `openssl rand -hex 32`.                           |
 | `APPLE_BUNDLE_ID`     | Yes (prod) | Must match the iOS app bundle id (e.g. `com.swordingk.fitgenius`).          |
-| `ALIYUN_API_KEY`      | Yes (prod) | Used by `/api/ai/chat`.                                                     |
+| `AI_PROVIDER`         | Yes (prod) | `minimax` for production; `aliyun` for emergency rollback.                  |
+| `MINIMAX_API_KEY`     | If MiniMax | Sensitive key used only by `/api/ai/chat`.                                  |
+| `MINIMAX_ENDPOINT`    | No         | Defaults to the MiniMax China OpenAI-compatible endpoint.                   |
+| `MINIMAX_MODEL`       | No         | Defaults to `MiniMax-M3`.                                                   |
+| `ALIYUN_API_KEY`      | If Aliyun  | Retained only for emergency rollback.                                       |
 | `SESSION_ISSUER`      | No        | Defaults to `fitgenius`. Keep stable across deployments.                    |
 | `FITGENIUS_DEV_SYNC_TOKEN` | No    | Optional development bearer token for `/api/form-analyses`.                 |
 | `BACKEND_PUBLIC_URL`  | No        | The public URL of this backend. Diagnostic only.                            |
@@ -88,7 +93,7 @@ is an account restore and multi-device continuity layer.
 - Apple identity tokens are verified against Apple's published JWKS and
   are never stored on the server.
 - Session tokens are HS256 JWTs with a 30-day TTL.
-- The AI proxy uses the server-side `ALIYUN_API_KEY` so the key never
-  appears in the iOS app bundle or in `git`.
+- The AI proxy uses server-side provider credentials, so neither MiniMax nor
+  Aliyun keys appear in the iOS app bundle or in `git`.
 - `users.email` is stored only when Apple returns it on the first
   sign-in; it is never refreshed from the client.

@@ -123,11 +123,12 @@ enum AIServiceError: Error, LocalizedError {
 // MARK: - AI 服务类
 @MainActor
 class AIService {
-    // Phase 2: 所有 AI 请求都强制走 FitGenius 后端代理。Aliyun API key
-    // 只在 Vercel env 中存在,app bundle 不再持有任何 fallback key。
+    // 所有 AI 请求都强制走 FitGenius 后端代理。Provider key
+    // 只在 Vercel env 中存在,app bundle 不持有任何 fallback key。
     private let textModel = AIModelRouting.textModel
     private let dietImageModel = AIModelRouting.dietImageModel
     private let fitnessImageModel = AIModelRouting.fitnessImageModel
+    private let fitnessVideoModel = AIModelRouting.fitnessVideoModel
     private let formSkeletonVisionModel = AIModelRouting.formSkeletonVisionModel
     private let settings: SyncSettings = .live
     private let languagePolicy = AppLanguagePolicy.current
@@ -844,7 +845,7 @@ class AIService {
     }
 
 	func analyzeFitnessMedia(userMessage: String, profile: UserProfile, plan: WorkoutPlan?, images: [Data], videos: [Data]) async throws -> String {
-        let mediaModel = videos.isEmpty ? fitnessImageModel : textModel
+		let mediaModel = videos.isEmpty ? fitnessImageModel : fitnessVideoModel
 		var systemContents: [VisionChatCompletionRequest.Content] = []
         let systemText = languagePolicy.fitnessMediaSystemPrompt
         let systemContent = VisionChatCompletionRequest.Content(type: "text", text: systemText, image_url: nil, video_url: nil)

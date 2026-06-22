@@ -1,7 +1,8 @@
 import { extractBearerToken, verifySessionToken } from "../../backend/sessionToken.mjs";
-
-const ALIYUN_ENDPOINT = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
-const DEFAULT_MODEL = "qwen3-omni-flash";
+import {
+  resolveAIProviderConfig,
+  resolveUpstreamModel
+} from "../../backend/aiProviderConfig.mjs";
 
 export const config = {
   maxDuration: 60
@@ -9,16 +10,16 @@ export const config = {
 
 /**
  * Creates a Vercel-style handler that proxies chat completions to the
- * Aliyun OpenAI-compatible API using a server-side ALIYUN_API_KEY.
+ * configured OpenAI-compatible provider.
  *
  * The handler enforces a valid FitGenius session token before forwarding
  * the request; provider API keys never reach the iOS bundle.
  *
  * @param {object} [deps]
  * @param {typeof fetch} [deps.fetchImpl] Override for tests.
- * @param {string} [deps.aliyunApiKey] Override for tests; defaults to env.
+ * @param {object} [deps.providerEnv] Override provider environment for tests.
  */
-export function createAIChatHandler({ fetchImpl, aliyunApiKey } = {}) {
+export function createAIChatHandler({ fetchImpl, providerEnv } = {}) {
   const fetchFn = fetchImpl || globalThis.fetch;
   return async function handler(request, response) {
     if (request.method !== "POST") {
@@ -39,8 +40,14 @@ export function createAIChatHandler({ fetchImpl, aliyunApiKey } = {}) {
       return;
     }
 
-    const apiKey = aliyunApiKey ?? process.env.ALIYUN_API_KEY;
-    if (!apiKey) {
+    let provider;
+    try {
+      provider = resolveAIProviderConfig(providerEnv || process.env);
+    } catch {
+      response.status(503).json({ ok: false, error: "provider_not_configured" });
+      return;
+    }
+    if (!provider.apiKey) {
       response.status(503).json({ ok: false, error: "provider_not_configured" });
       return;
     }
@@ -52,18 +59,21 @@ export function createAIChatHandler({ fetchImpl, aliyunApiKey } = {}) {
     }
 
     const upstreamBody = {
-      model: model || DEFAULT_MODEL,
+      model: resolveUpstreamModel(model, provider),
       messages,
       stream: Boolean(stream)
     };
+    if (provider.reasoningSplit) {
+      upstreamBody.reasoning_split = true;
+    }
 
     let upstreamResponse;
     try {
-      upstreamResponse = await fetchFn(ALIYUN_ENDPOINT, {
+      upstreamResponse = await fetchFn(provider.endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`
+          Authorization: `Bearer ${provider.apiKey}`
         },
         body: JSON.stringify(upstreamBody)
       });

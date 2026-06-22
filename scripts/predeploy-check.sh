@@ -19,7 +19,7 @@ echo "\n== Localization =="
 scripts/check-localization.sh
 
 echo "\n== Secret scan =="
-if rg "sk-[A-Za-z0-9]|ALIYUN_API_KEY =[^[:space:]]|<key>ALIYUN" -n . \
+if rg "sk-(api-)?[A-Za-z0-9]{12,}|(ALIYUN|MINIMAX)_API_KEY =[^[:space:]]|<key>(ALIYUN|MINIMAX)" -n . \
   -g '!*.xcuserstate' \
   -g '!*.png' \
   -g '!node_modules/**' \
@@ -36,8 +36,17 @@ required_vars=(
   DATABASE_URL
   SESSION_SECRET
   APPLE_BUNDLE_ID
-  ALIYUN_API_KEY
 )
+
+provider="${AI_PROVIDER:-minimax}"
+case "$provider" in
+  minimax) required_vars+=(MINIMAX_API_KEY) ;;
+  aliyun) required_vars+=(ALIYUN_API_KEY) ;;
+  *)
+    echo "Unsupported AI_PROVIDER: $provider"
+    exit 1
+    ;;
+esac
 
 missing=()
 for name in "${required_vars[@]}"; do

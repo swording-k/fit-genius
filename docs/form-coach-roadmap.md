@@ -230,6 +230,9 @@ Last verified on 2026-06-04:
 - `npm run test:backend`: 15/15 tests passed.
 - `scripts/check-localization.sh`: 70/70 required form-coach keys passed.
 - Production AI non-streaming and streaming requests returned real Qwen output.
+- On 2026-06-22, a provider-neutral backend adapter was added for a staged
+  MiniMax migration. It accepts both released-build Qwen model names and new
+  `fitgenius-*` aliases, while retaining Aliyun as an environment-only rollback.
 - Production form-analysis storage returned HTTP 200 with `mode: stored`.
 - Production cloud-snapshot route deployed; unauthenticated and invalid-session
   requests return HTTP 401. Authenticated first-sync acceptance remains a
@@ -290,4 +293,5 @@ UI issue fixed during smoke test:
 - The first valuable niche is gym strength-training users.
 - Backend, Watch, and Android/Huawei support should be staged after iOS form-analysis value is proven.
 - The app is currently free; subscription support is reserved but not launched.
-- Any exposed Aliyun key must be rotated in the provider dashboard.
+- Any provider credential exposed outside the deployment environment must be
+  rotated in that provider's dashboard.

@@ -63,7 +63,7 @@ iOS 包内**不携带**任何 AI provider 真实 key；所有第三方 key 全�
         │  │  apple      │ │  chat       │ │  analyses     │  │
         │  └──────┬──────┘ └──────┬──────┘ └───────┬───────┘  │
         │         │               │                │          │
-        │   Apple JWKS       Aliyun OpenAI     buildInsert     │
+        │   Apple JWKS       AI provider       buildInsert     │
         │   verify (jose)    compatible API    SQL → Neon      │
         │         │               │                │          │
         │         └──────┬────────┴────────────────┘          │
@@ -87,7 +87,7 @@ iOS 包内**不携带**任何 AI provider 真实 key；所有第三方 key 全�
 数据流要点：
 - iOS 写 SwiftData 是**第一优先级**，离线/弱网也能用。
 - 同步是**尽力而为**：sync coordinator 拿 `pending` / `failed` 记录重试，3 次指数退避（2s/4s/8s）。
-- AI 走代理：iOS 只发 `Authorization: Bearer <sessionToken>`，**永不**接触 Aliyun key。
+- AI 走代理：iOS 只发 `Authorization: Bearer <sessionToken>`，**永不**接触 provider key。
 
 ---
 
@@ -188,7 +188,7 @@ FitGenius/
 - **框架**: 纯 Vercel Serverless Functions（无 Express）
 - **数据库**: Neon Serverless Postgres（`@neondatabase/serverless`）
 - **认证**: `jose`（Apple JWKS 验签 + HS256 session JWT）
-- **AI 转发**: Aliyun OpenAI 兼容接口（仅服务端持有 key）
+- **AI 转发**: provider-neutral OpenAI 兼容代理（MiniMax 主用，Aliyun 紧急回滚；仅服务端持有 key）
 
 ### 部署
 - **后端**: Vercel（GitHub 集成自动部署；环境变量在 dashboard 配）
@@ -199,7 +199,7 @@ FitGenius/
 
 ## 5. 关键不变量（破坏任何一条 = P0）
 
-1. **Aliyun key 不进 iOS 包**。plist / scheme / build settings / 代码字面量都不得出现真实 key。
+1. **任何 AI provider key 不进 iOS 包**。plist / scheme / build settings / 代码字面量都不得出现真实 key。
 2. **SwiftData 是 local source of truth**。网络失败不应阻塞用户操作。
 3. **iOS 只发 `Authorization: Bearer <sessionToken>`**。任何 provider key 都不经过 iOS。
 4. **Privacy manifest (`PrivacyInfo.xcprivacy`) 必须与 `Info.plist` 真实权限声明一致**。
