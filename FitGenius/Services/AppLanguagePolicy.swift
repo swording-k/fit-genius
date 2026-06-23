@@ -44,6 +44,8 @@ struct AppLanguagePolicy {
             1. 新手/时间少：3-4天循环
             2. 中级/时间适中：4-5天循环
             3. 高级/时间充足：6-7天循环
+            4. 如果目标是运动表现或备注里提到篮球、跑步、格斗、备赛等专项需求，计划要围绕力量、爆发力、核心稳定、移动能力和恢复安排，不要套用普通增肌模板
+            5. 如果目标是提升力量，优先安排深蹲、硬拉、卧推、推举、划船/引体等基础力量动作，并保留足够恢复
 
             JSON 格式要求：
             1. 不要返回任何 Markdown 标记（如 ```json），只返回纯 JSON 字符串
@@ -63,6 +65,8 @@ struct AppLanguagePolicy {
         1. Beginner or limited availability: 3-4 day cycle
         2. Intermediate or moderate availability: 4-5 day cycle
         3. Advanced or high availability: 6-7 day cycle
+        4. If the goal is sport performance, or notes mention basketball, running, combat sports, competition prep, or a specific sport, build the plan around strength, power, core stability, movement quality, and recovery instead of a generic bodybuilding template.
+        5. If the goal is strength, prioritize compound strength lifts such as squat, deadlift, bench press, overhead press, rows, and pull-ups with enough recovery.
 
         JSON requirements:
         1. Return raw JSON only. Do not include Markdown fences or explanatory text.
@@ -89,6 +93,8 @@ struct AppLanguagePolicy {
             5. 休息日必须设置：isRestDay: true, exercises: []
             6. 训练日必须设置：isRestDay: false
             7. \(planContentInstruction)
+            8. 如果目标是运动表现或备注中出现篮球、跑步、格斗、备赛等专项需求，动作选择必须服务于专项表现、爆发力、核心稳定、移动能力和恢复，而不是只按传统健美分化。
+            9. 如果目标是提升力量，围绕基础复合动作安排主项、辅助动作和恢复日。
 
             示例 JSON：
             \(workoutPlanJSONExample)
@@ -104,6 +110,8 @@ struct AppLanguagePolicy {
         4. Rest days must use isRestDay: true and exercises: [].
         5. Training days must use isRestDay: false.
         6. \(planContentInstruction)
+        7. If the goal is sport performance or the notes mention basketball, running, combat sports, competition prep, or another specific sport, choose exercises that support sport performance, power, core stability, movement quality, and recovery rather than a generic bodybuilding split.
+        8. If the goal is strength, structure training around main compound lifts, assistance work, and recovery days.
 
         Example JSON:
         \(workoutPlanJSONExample)

@@ -488,6 +488,8 @@
 "health_workout_sync_detail" = "FitGenius saves strength workout type and duration. Starting on Apple Watch can provide richer sensor-based data such as heart rate.";
 "fitness_goal_lose_weight" = "Lose Weight";
 "fitness_goal_build_muscle" = "Build Muscle";
+"fitness_goal_strength" = "Build Strength";
+"fitness_goal_sport_performance" = "Sport Performance";
 "fitness_goal_endurance" = "Improve Endurance";
 "fitness_goal_flexibility" = "Flexibility";
 "fitness_goal_general_health" = "General Health";
@@ -555,7 +557,7 @@
 "basic_info_title" = "Basic Information";
 "basic_info_subtitle" = "Let us know your basic information";
 "fitness_goal_title" = "Fitness Goal";
-"fitness_goal_subtitle" = "Select your fitness goal and training environment";
+"fitness_goal_subtitle" = "Pick the closest goal; add sport, competition, posture, or recovery details in notes.";
 "your_goal" = "Your Goal";
 "training_environment" = "Training Environment";
 "next" = "Next";
@@ -573,7 +575,7 @@
 "clear_all" = "Clear All";
 "selected_equipment_count" = "Selected %d equipment";
 "notes_title" = "Notes";
-"notes_subtitle" = "You can fill in: injuries, additional equipment, preferred split (e.g., 3-day, 4-day split)";
+"notes_subtitle" = "Add sport needs such as basketball, running, or combat sports, a competition date, injuries, weekly availability, preferred split, or lifts you want to improve.";
 "generating_plan" = "Generating your personalized training plan...";
 "completed" = "Completed!";
 "generation_failed" = "Generation Failed";

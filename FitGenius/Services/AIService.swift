@@ -364,10 +364,10 @@ class AIService {
             - 健身目标：\(profile.goal.localizedName)
             - 训练环境：\(profile.environment.localizedName)
             - 可用器械：\(equipment)
-            - 备注：\(injuries)
+            - 个性化备注/专项需求：\(injuries)
             """
             if let userRequest {
-                text += "\n\n用户要求：\n\(userRequest)\n\n请根据用户要求重新生成训练计划。只返回 JSON，不要有任何其他文字。"
+                text += "\n\n用户要求：\n\(userRequest)\n\n请根据用户要求重新生成训练计划。若用户提到篮球、跑步、格斗、备赛、体态、恢复或某个动作表现，请把它作为核心目标处理。只返回 JSON，不要有任何其他文字。"
             } else {
                 text += """
 
@@ -378,6 +378,7 @@ class AIService {
                 4. 必须包含至少一天休息日
                 5. 根据可用器械选择合适的动作
                 6. 如果备注中提到伤病，避免相关动作
+                7. 如果备注中提到篮球、跑步、格斗、备赛、体态、恢复或某个动作表现，把计划做成专项训练，不要只生成普通增肌/减脂模板
                 """
             }
             return text
@@ -392,10 +393,10 @@ class AIService {
         - Fitness goal: \(profile.goal.localizedName)
         - Training environment: \(profile.environment.localizedName)
         - Available equipment: \(equipment)
-        - Notes or limitations: \(injuries)
+        - Personalized notes, sport needs, or limitations: \(injuries)
         """
         if let userRequest {
-            text += "\n\nUser request:\n\(userRequest)\n\nRegenerate the training plan from the user's request. Return JSON only."
+            text += "\n\nUser request:\n\(userRequest)\n\nRegenerate the training plan from the user's request. Treat basketball, running, combat sports, competition prep, posture, recovery, or specific lift-performance notes as core requirements. Return JSON only."
         } else {
             text += """
 
@@ -406,7 +407,8 @@ class AIService {
             4. Include at least one rest day.
             5. Choose exercises that match the available equipment.
             6. Avoid exercises that conflict with notes or injuries.
-            7. Keep every user-visible string in English.
+            7. If notes mention basketball, running, combat sports, competition prep, posture, recovery, or a specific lift-performance goal, generate a sport-specific plan instead of a generic muscle-gain or fat-loss template.
+            8. Keep every user-visible string in English.
             """
         }
         return text

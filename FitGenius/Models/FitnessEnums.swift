@@ -3,6 +3,8 @@ import Foundation
 enum FitnessGoal: String, Codable, CaseIterable, Identifiable {
     case loseWeight = "减重"
     case buildMuscle = "增肌"
+    case strength = "提升力量"
+    case sportPerformance = "运动表现"
     case improveEndurance = "提升耐力"
     case flexibility = "柔韧性"
     case generalHealth = "一般健康"
@@ -13,6 +15,8 @@ enum FitnessGoal: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .loseWeight: return "fitness_goal_lose_weight".localized
         case .buildMuscle: return "fitness_goal_build_muscle".localized
+        case .strength: return "fitness_goal_strength".localized
+        case .sportPerformance: return "fitness_goal_sport_performance".localized
         case .improveEndurance: return "fitness_goal_endurance".localized
         case .flexibility: return "fitness_goal_flexibility".localized
         case .generalHealth: return "fitness_goal_general_health".localized

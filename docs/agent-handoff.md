@@ -1,6 +1,6 @@
 # FitGenius Agent Handoff
 
-Last updated: 2026-06-22 Asia/Shanghai
+Last updated: 2026-06-23 Asia/Shanghai
 
 ## Read First
 
@@ -11,7 +11,7 @@ Last updated: 2026-06-22 Asia/Shanghai
 
 ## Current Status
 
-MiniMax provider migration is in progress on 2026-06-22:
+MiniMax provider migration is deployed and verified:
 
 - The public iOS API remains `/api/ai/chat`; released builds are not forced to
   update and continue to authenticate with the same FitGenius session token.
@@ -33,7 +33,18 @@ MiniMax provider migration is in progress on 2026-06-22:
   session because Vercel sensitive values cannot be pulled back to mint a local
   production session.
 - The iPhone app, Widget, and Watch targets are aligned for release version
-  `1.2` with build number `2`; App Store archive/upload remains pending.
+  `1.2` with build number `2`.
+- On 2026-06-23, the pre-App-Store polish pass improved the AI Assistant and
+  onboarding experience: AI replies are cleaned before display so Markdown
+  markers such as `#`, `**`, and code fences do not leak into chat bubbles;
+  Fitness and Diet assistants now include bounded recent conversation context
+  in requests while still keeping full history visible locally; fitness AI
+  system/action replies are inserted into SwiftData consistently; onboarding
+  now includes Strength and Sport Performance goals plus notes guidance for
+  basketball, competition prep, posture, recovery, weekly availability, and
+  specific lift-performance needs. Training-plan prompts now treat sport
+  performance and strength as first-class plan-generation goals instead of
+  falling back to generic bodybuilding templates.
 
 Android client kickoff is now in progress. The Android work must stay isolated
 under `android/` so the existing iOS SwiftUI app, Watch app, Widget, and Xcode
@@ -74,12 +85,11 @@ Android interaction milestone achieved on 2026-06-12:
 
 Current local working-tree notes:
 
-- `FitGenius.xcodeproj/project.pbxproj` has a pre-existing iOS version-number
-  change (`MARKETING_VERSION` 1.1 -> 1.2, `CURRENT_PROJECT_VERSION` 1 -> 1.1).
 - `FitGenius.xcodeproj/xcuserdata/.../xcschememanagement.plist` has a
   pre-existing Xcode scheme-order change for the Watch scheme.
 - `HYBRID_AI_UPGRADE_PLAN.md` is an untracked local planning file.
-- Do not revert or fold those into Android work unless the user explicitly asks.
+- Do not revert or fold unrelated local files into product work unless the
+  user explicitly asks.
 
 The cloud-sync and Apple Watch milestone is committed at `bafaf2e`, the
 form-coach product-quality milestone is committed at `ab59258`, and the

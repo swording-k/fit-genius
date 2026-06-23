@@ -4,7 +4,13 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 
-swiftc -D DEBUG \
+xcrun swiftc \
+  FitGenius/Utilities/AIResponseFormatter.swift \
+  scripts/ai-response-formatter-tests.swift \
+  -o /tmp/ai-response-formatter-tests
+/tmp/ai-response-formatter-tests
+
+xcrun swiftc -D DEBUG \
   FitGenius/Services/FormAnalysis/DebugFormAnalysisVideoProvider.swift \
   scripts/debug-video-provider-tests.swift \
   -o /tmp/debug-video-provider-tests
@@ -133,6 +139,8 @@ xcrun swiftc \
 scripts/product-localization-regression-tests.sh
 
 xcrun swiftc \
+  FitGenius/Models/FitnessEnums.swift \
+  FitGenius/Utilities/LocalizedString.swift \
   FitGenius/Services/AppLanguagePolicy.swift \
   scripts/app-language-policy-tests.swift \
   -o /tmp/app-language-policy-tests

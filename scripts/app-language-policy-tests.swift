@@ -24,9 +24,14 @@ struct AppLanguagePolicyTests {
         expect(english.planContentInstruction.contains("focus field is an internal contract"), "English plan instruction should keep focus as an internal enum")
         expect(english.workoutPlanJSONExample.contains("Barbell Bench Press"), "English plan example should use English exercise names")
         expect(!english.workoutPlanJSONExample.contains("杠铃卧推"), "English plan example should not contain Chinese exercise names")
+        expect(english.initialPlanSystemPrompt.contains("sport performance"), "English plan prompt should support sport-performance goals")
+        expect(english.initialPlanSystemPrompt.contains("basketball"), "English plan prompt should explicitly support basketball-style goals")
         expect(english.dietAnalyzeSystemPrompt.contains("Return raw JSON only"), "English diet analysis prompt should be English")
         expect(!english.dietAnalyzeSystemPrompt.contains("你是一个专业"), "English diet analysis prompt should not start from Chinese role text")
         expect(english.fitnessMediaSystemPrompt.contains("professional personal trainer"), "English media prompt should be English")
+
+        expect(FitnessGoal.sportPerformance.localizedName == "fitness_goal_sport_performance".localized, "Sport performance goal should have a localized name")
+        expect(FitnessGoal.strength.localizedName == "fitness_goal_strength".localized, "Strength goal should have a localized name")
 
         let traditionalChinese = AppLanguagePolicy(preferredLanguageIdentifier: "zh-Hant-TW")
         expect(!traditionalChinese.prefersSimplifiedChinese, "Traditional Chinese should currently use the English fallback")

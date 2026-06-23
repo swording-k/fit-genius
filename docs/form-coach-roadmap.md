@@ -34,6 +34,13 @@ The AI Assistant becomes the unified coaching surface:
    correct-form teaching examples, but it must not invent or replace the local
    score, exercise type, or detected issue list.
 
+Pre-release polish on 2026-06-23 also makes onboarding more personalized:
+Strength and Sport Performance are first-class goals, and notes explicitly
+invite sport-specific needs such as basketball, competition prep, posture,
+recovery, weekly availability, and target lifts. Initial and regenerated plan
+prompts must treat those inputs as core constraints rather than falling back to
+generic fat-loss or bodybuilding templates.
+
 Training plans and Stats support this loop. The first Watch workout companion
 is now implemented, while Android/Huawei and broad exercise expansion remain
 paused until this experience is useful.

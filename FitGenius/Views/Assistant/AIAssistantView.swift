@@ -437,7 +437,7 @@ struct MessageBubble: View {
                         }
 					}
 				}
-				Text(message.content)
+				Text(AIResponseFormatter.displayText(from: message.content))
 					.padding(12)
 					.background(
 						RoundedRectangle(cornerRadius: 16)

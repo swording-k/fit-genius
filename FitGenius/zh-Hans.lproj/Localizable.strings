@@ -488,6 +488,8 @@
 "health_workout_sync_detail" = "FitGenius 会保存力量训练类型和训练时长。使用 Apple Watch 开始训练时，可由心率等传感器生成更完整的数据。";
 "fitness_goal_lose_weight" = "减重";
 "fitness_goal_build_muscle" = "增肌";
+"fitness_goal_strength" = "提升力量";
+"fitness_goal_sport_performance" = "运动表现";
 "fitness_goal_endurance" = "提升耐力";
 "fitness_goal_flexibility" = "柔韧性";
 "fitness_goal_general_health" = "一般健康";
@@ -555,7 +557,7 @@
 "basic_info_title" = "基本信息";
 "basic_info_subtitle" = "让我们了解一下您的基本情况";
 "fitness_goal_title" = "健身目标";
-"fitness_goal_subtitle" = "选择您的健身目标和训练环境";
+"fitness_goal_subtitle" = "选择最接近的目标；专项运动、备赛和体态需求可在备注里补充";
 "your_goal" = "您的目标";
 "training_environment" = "训练环境";
 "next" = "下一步";
@@ -573,7 +575,7 @@
 "clear_all" = "清空";
 "selected_equipment_count" = "已选择 %d 种器械";
 "notes_title" = "备注";
-"notes_subtitle" = "可以填写：伤病情况、额外器械、期望的训练分化（如3分化、4分化、5分化）等";
+"notes_subtitle" = "可以填写：篮球/跑步/格斗等专项需求、备赛日期、伤病限制、每周训练时间、期望分化或特别想提升的动作。";
 "generating_plan" = "正在生成您的专属训练计划";
 "completed" = "完成！";
 "generation_failed" = "生成失败";

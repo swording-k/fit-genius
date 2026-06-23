@@ -13,7 +13,8 @@ echo "== Backend tests =="
 npm run test:backend
 
 echo "\n== iOS form-analysis tests =="
-scripts/run-form-analysis-tests.sh
+MACOS_SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
+SDKROOT="$MACOS_SDKROOT" scripts/run-form-analysis-tests.sh
 
 echo "\n== Localization =="
 scripts/check-localization.sh

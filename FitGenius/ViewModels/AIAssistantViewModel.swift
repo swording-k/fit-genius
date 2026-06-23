@@ -196,12 +196,13 @@ class AIAssistantViewModel: ObservableObject {
     
     // MARK: - 建议模式：仅提供文字建议
 	func provideSuggestionOnly(userMessage: String, profile: UserProfile, plan: WorkoutPlan) async {
+        storeUserMessageIfNeeded(userMessage)
         isLoading = true
         errorMessage = nil
 		do {
 			let (response, _) = try await aiService.chat(
                 userMessage: messageWithRecentFormContext(
-                    suggestionOnlyPromptPrefix + userMessage
+                    messageWithRecentConversationContext(suggestionOnlyPromptPrefix + userMessage)
                 ),
                 profile: profile,
                 plan: plan
@@ -210,7 +211,7 @@ class AIAssistantViewModel: ObservableObject {
 			modelContext.insert(tip)
 			messages.append(tip)
 			if !response.isEmpty {
-				let aiMessage = ChatMessage(content: response, isUser: false)
+				let aiMessage = ChatMessage(content: AIResponseFormatter.displayText(from: response), isUser: false)
 				modelContext.insert(aiMessage)
 				messages.append(aiMessage)
             }
@@ -279,7 +280,7 @@ class AIAssistantViewModel: ObservableObject {
                 images: isVideo ? [] : [mediaData],
                 videos: isVideo ? [mediaData] : []
             )
-			let aiMessage = ChatMessage(content: response, isUser: false)
+			let aiMessage = ChatMessage(content: AIResponseFormatter.displayText(from: response), isUser: false)
 			modelContext.insert(aiMessage)
 			messages.append(aiMessage)
             isLoading = false
@@ -407,7 +408,7 @@ class AIAssistantViewModel: ObservableObject {
         do {
             // 调用 AI 服务
             let (response, command) = try await aiService.chat(
-                userMessage: messageWithRecentFormContext(userMessage),
+                userMessage: messageWithRecentFormContext(messageWithRecentConversationContext(userMessage)),
                 profile: profile,
                 plan: plan
             )
@@ -422,10 +423,12 @@ class AIAssistantViewModel: ObservableObject {
                     isUser: false,
                     isSystemAction: true
                 )
+                modelContext.insert(systemMessage)
                 messages.append(systemMessage)
             } else if !response.isEmpty {
                 // 普通文本回复
-                let aiMessage = ChatMessage(content: response, isUser: false)
+                let aiMessage = ChatMessage(content: AIResponseFormatter.displayText(from: response), isUser: false)
+                modelContext.insert(aiMessage)
                 messages.append(aiMessage)
             }
             
@@ -439,6 +442,7 @@ class AIAssistantViewModel: ObservableObject {
                 content: localizedFailure(prefixChinese: "抱歉，出现了错误", prefixEnglish: "Sorry, something went wrong", error: error),
                 isUser: false
             )
+            modelContext.insert(errorChatMessage)
             messages.append(errorChatMessage)
         }
     }
@@ -479,6 +483,51 @@ class AIAssistantViewModel: ObservableObject {
         \(userMessage)
         """
     }
+
+    private func messageWithRecentConversationContext(_ userMessage: String) -> String {
+        let recent = messages
+            .dropLast()
+            .filter { !$0.isSystemAction && $0.mediaData == nil && !$0.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+            .suffix(6)
+
+        guard !recent.isEmpty else { return userMessage }
+
+        let transcript = recent.map { message in
+            let role = message.isUser
+                ? (languagePolicy.prefersSimplifiedChinese ? "用户" : "User")
+                : (languagePolicy.prefersSimplifiedChinese ? "教练" : "Coach")
+            return "\(role)：\(message.content.truncatedForAIContext(maxLength: 420))"
+        }.joined(separator: "\n")
+
+        if languagePolicy.prefersSimplifiedChinese {
+            return """
+            最近对话上下文（只在相关时使用，不要逐字复述）：
+            \(transcript)
+
+            当前用户消息：
+            \(userMessage)
+            """
+        }
+
+        return """
+        Recent conversation context. Use only when relevant and do not repeat it verbatim:
+        \(transcript)
+
+        Current user message:
+        \(userMessage)
+        """
+    }
+
+    private func storeUserMessageIfNeeded(_ userMessage: String) {
+        let trimmed = userMessage.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        if messages.last?.isUser == true && messages.last?.content == trimmed {
+            return
+        }
+        let userChatMessage = ChatMessage(content: trimmed, isUser: true)
+        modelContext.insert(userChatMessage)
+        messages.append(userChatMessage)
+    }
     
     // MARK: - 重新生成计划
     func regeneratePlan(profile: UserProfile) async {
@@ -511,6 +560,7 @@ class AIAssistantViewModel: ObservableObject {
                 isUser: false,
                 isSystemAction: true
             )
+            modelContext.insert(successMessage)
             messages.append(successMessage)
             
             isLoading = false
@@ -523,6 +573,7 @@ class AIAssistantViewModel: ObservableObject {
                 content: localizedFailure(prefixChinese: "抱歉，重新生成计划失败", prefixEnglish: "Sorry, regenerating the plan failed", error: error),
                 isUser: false
             )
+            modelContext.insert(errorChatMessage)
             messages.append(errorChatMessage)
         }
     }
