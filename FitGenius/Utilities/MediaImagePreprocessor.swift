@@ -46,6 +46,24 @@ struct MediaImagePreprocessor {
         throw MediaImagePreprocessorError.imageTooLarge
     }
 
+    /// 保证产出很小的 JPEG，用于 CloudBase HTTP 触发对文本/JSON 请求体约 100KB 的限制。
+    /// 不抛错：逐级降到极小尺寸/质量，返回能拿到的最小结果（最坏情况返回原数据）。
+    /// 目标 raw ≤ `maxBytes`，使 base64 后总请求体 < ~75KB 可安全通过网关。
+    static func compressedForVisionPayload(from data: Data, maxBytes: Int = 50_000) -> Data {
+        guard let source = UIImage(data: data) else { return data }
+        var best: Data?
+        for dimension in [720, 512, 384, 256] {
+            let image = resized(source, maxDimension: CGFloat(dimension))
+            for quality in stride(from: 0.7, through: 0.3, by: -0.1) {
+                if let enc = image.jpegData(compressionQuality: quality) {
+                    if enc.count <= maxBytes { return enc }
+                    if best == nil || enc.count < best!.count { best = enc }
+                }
+            }
+        }
+        return best ?? data
+    }
+
     private static func resized(_ image: UIImage, maxDimension: CGFloat) -> UIImage {
         let longest = max(image.size.width, image.size.height)
         guard longest > maxDimension, longest > 0 else { return image }

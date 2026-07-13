@@ -826,8 +826,11 @@ class AIService {
 		userContents.append(intro)
 		let question = VisionChatCompletionRequest.Content(type: "text", text: userMessage, image_url: nil, video_url: nil)
 		userContents.append(question)
-		for data in images {
-			let base64 = data.base64EncodedString()
+		// CloudBase HTTP 触发对 JSON 请求体限制约 100KB，base64 大图必超 EXCEED_MAX_PAYLOAD_SIZE。
+		// 压到可容纳尺寸，且每轮仅发送首张图（多图无法在同请求内塞下）。
+		if let first = images.first {
+			let compressed = MediaImagePreprocessor.compressedForVisionPayload(from: first)
+			let base64 = compressed.base64EncodedString()
 			let urlString = "data:image/jpeg;base64,\(base64)"
 			let imageURL = VisionChatCompletionRequest.ImageURL(url: urlString)
 			let content = VisionChatCompletionRequest.Content(type: "image_url", text: nil, image_url: imageURL, video_url: nil)
@@ -914,16 +917,15 @@ class AIService {
         userContents.append(textContent)
         let descContent = VisionChatCompletionRequest.Content(type: "text", text: description, image_url: nil, video_url: nil)
         userContents.append(descContent)
-		for entry in entries {
-			for data in entry.images {
-				// 先压缩图片，避免原图 base64 后超过 CloudBase 请求体上限（EXCEED_MAX_PAYLOAD_SIZE）
-				let compressed = (try? MediaImagePreprocessor.normalizedJPEG(from: data, maxDimension: 1280, maxBytes: 700_000)) ?? data
-				let base64 = compressed.base64EncodedString()
-				let urlString = "data:image/jpeg;base64,\(base64)"
-				let imageURL = VisionChatCompletionRequest.ImageURL(url: urlString)
-				let content = VisionChatCompletionRequest.Content(type: "image_url", text: nil, image_url: imageURL, video_url: nil)
-				userContents.append(content)
-			}
+		// CloudBase HTTP 触发对 JSON 请求体限制约 100KB，base64 多张大图必超上限。
+		// 仅取跨条目首张图并压到可容纳尺寸（多图无法在同请求内塞下，先保证不报错）。
+		if let firstImageData = entries.flatMap({ $0.images }).first {
+			let compressed = MediaImagePreprocessor.compressedForVisionPayload(from: firstImageData)
+			let base64 = compressed.base64EncodedString()
+			let urlString = "data:image/jpeg;base64,\(base64)"
+			let imageURL = VisionChatCompletionRequest.ImageURL(url: urlString)
+			let content = VisionChatCompletionRequest.Content(type: "image_url", text: nil, image_url: imageURL, video_url: nil)
+			userContents.append(content)
 		}
 		let requestBody = VisionChatCompletionRequest(
 			model: effectiveVisionModel,
@@ -963,9 +965,9 @@ class AIService {
             )
         ]
 
-        for imageData in skeletonImages {
-            // 压缩骨架帧，避免多帧 base64 累加超过 CloudBase 请求体上限
-            let compressed = (try? MediaImagePreprocessor.normalizedJPEG(from: imageData, maxDimension: 1024, maxBytes: 400_000)) ?? imageData
+        // 仅取首帧骨架图并压到可容纳尺寸（CloudBase JSON 请求体约 100KB 上限）。
+        if let first = skeletonImages.first {
+            let compressed = MediaImagePreprocessor.compressedForVisionPayload(from: first)
             let imageURL = VisionChatCompletionRequest.ImageURL(
                 url: "data:image/jpeg;base64,\(compressed.base64EncodedString())"
             )
@@ -1055,13 +1057,16 @@ class AIService {
         }
         let questionContent = VisionChatCompletionRequest.Content(type: "text", text: userMessage, image_url: nil, video_url: nil)
         userContents.append(questionContent)
-        for data in images {
-            let base64 = data.base64EncodedString()
-            let urlString = "data:image/jpeg;base64,\(base64)"
-            let imageURL = VisionChatCompletionRequest.ImageURL(url: urlString)
-            let content = VisionChatCompletionRequest.Content(type: "image_url", text: nil, image_url: imageURL, video_url: nil)
-            userContents.append(content)
-        }
+		// CloudBase HTTP 触发对 JSON 请求体限制约 100KB，base64 多张大图必超上限。
+		// 压到可容纳尺寸，且每轮仅发送首张图。
+		if let first = images.first {
+			let compressed = MediaImagePreprocessor.compressedForVisionPayload(from: first)
+			let base64 = compressed.base64EncodedString()
+			let urlString = "data:image/jpeg;base64,\(base64)"
+			let imageURL = VisionChatCompletionRequest.ImageURL(url: urlString)
+			let content = VisionChatCompletionRequest.Content(type: "image_url", text: nil, image_url: imageURL, video_url: nil)
+			userContents.append(content)
+		}
         for data in videos {
             // 智能压缩：如果大于 10MB，尝试压缩 (API 通常限制 payload 大小)
             var finalData = data
