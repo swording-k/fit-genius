@@ -232,30 +232,58 @@ struct AnimatedGIFView: View {
 }
 
 /// 用 UIImageView 播放 animatedImage（SwiftUI Image 不支持逐帧 GIF）。
+///
+/// 关键坑：直接把 `UIImageView` 当 representable 根视图时，它的
+/// `intrinsicContentSize` 等于图片尺寸，SwiftUI 会把它撑大到图片原始大小，
+/// 再被外层 52×52 圆角裁掉一角（表现为"只显示动作图的一部分"）。
+/// 解决：用一个**无固有尺寸**的宿主 `UIView` 作根视图（SwiftUI 严格设为分配的
+/// 52×52），内部 `UIImageView` 用约束钉满宿主，scaleAspectFit 整图等比缩进框内。
 private struct AnimatedImageContainer: UIViewRepresentable {
     let image: UIImage
     /// 是否播放动画。缩略图传 false（仅显示首帧静态图），避免常驻解码帧占内存。
     let animate: Bool
 
-    func makeUIView(context: Context) -> UIImageView {
-        let view = UIImageView()
-        view.contentMode = .scaleAspectFit
-        view.clipsToBounds = true
-        return view
+    func makeUIView(context: Context) -> _GIFHostView {
+        _GIFHostView()
     }
 
-    func updateUIView(_ uiView: UIImageView, context: Context) {
-        uiView.image = image
-        // SwiftUI 会把本 representable 根视图的 frame 设为它分配的尺寸
-        // （缩略图父容器为 52×52），无需手动钉 Auto Layout 约束——那样反而
-        // 会因 superview 时机/约束冲突导致 UIImageView 停留固有尺寸被外层裁掉一角。
-        // 用 scaleAspectFit 即可让整张图等比缩进 52×52 框内。
-        uiView.contentMode = .scaleAspectFit
-        uiView.clipsToBounds = true
+    func updateUIView(_ host: _GIFHostView, context: Context) {
+        host.configure(image: image, animate: animate)
+    }
+}
+
+/// 无固有尺寸的宿主视图：SwiftUI 会把它严格设为父容器分配的尺寸（缩略图 52×52）。
+/// 内部 UIImageView 在初始化时已用约束钉满宿主，故始终铺满、不会被图片尺寸撑大。
+private final class _GIFHostView: UIView {
+    private let imageView: UIImageView = {
+        let iv = UIImageView()
+        iv.contentMode = .scaleAspectFit
+        iv.clipsToBounds = true
+        iv.translatesAutoresizingMaskIntoConstraints = false
+        return iv
+    }()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        backgroundColor = .clear
+        addSubview(imageView)
+        NSLayoutConstraint.activate([
+            imageView.topAnchor.constraint(equalTo: topAnchor),
+            imageView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            imageView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            imageView.trailingAnchor.constraint(equalTo: trailingAnchor)
+        ])
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError() }
+
+    func configure(image: UIImage, animate: Bool) {
+        imageView.image = image
         if animate {
-            uiView.startAnimating()
+            imageView.startAnimating()
         } else {
-            uiView.stopAnimating()
+            imageView.stopAnimating()
         }
     }
 }
