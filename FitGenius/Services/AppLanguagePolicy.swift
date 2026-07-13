@@ -46,6 +46,7 @@ struct AppLanguagePolicy {
             3. 高级/时间充足：6-7天循环
             4. 如果目标是运动表现或备注里提到篮球、跑步、格斗、备赛等专项需求，计划要围绕力量、爆发力、核心稳定、移动能力和恢复安排，不要套用普通增肌模板
             5. 如果目标是提升力量，优先安排深蹲、硬拉、卧推、推举、划船/引体等基础力量动作，并保留足够恢复
+            6. 备注（个性化备注/专项需求）里用户明确写出的分化偏好、专项运动或伤病限制必须落实到计划中，不要套用千篇一律的通用模板
 
             JSON 格式要求：
             1. 不要返回任何 Markdown 标记（如 ```json），只返回纯 JSON 字符串
@@ -66,9 +67,10 @@ struct AppLanguagePolicy {
         2. Intermediate or moderate availability: 4-5 day cycle
         3. Advanced or high availability: 6-7 day cycle
         4. If the goal is sport performance, or notes mention basketball, running, combat sports, competition prep, or a specific sport, build the plan around strength, power, core stability, movement quality, and recovery instead of a generic bodybuilding template.
-        5. If the goal is strength, prioritize compound strength lifts such as squat, deadlift, bench press, overhead press, rows, and pull-ups with enough recovery.
+            5. If the goal is strength, prioritize compound strength lifts such as squat, deadlift, bench press, overhead press, rows, and pull-ups with enough recovery.
+            6. Any split preference, specific sport, or injury limitation the user explicitly wrote in the notes must be reflected in the plan. Do not fall back on a generic one-size-fits-all template.
 
-        JSON requirements:
+            JSON requirements:
         1. Return raw JSON only. Do not include Markdown fences or explanatory text.
         2. Required top-level fields: name, days.
         3. Each day must include: dayNumber, focus, isRestDay, exercises.
@@ -84,6 +86,8 @@ struct AppLanguagePolicy {
         if prefersSimplifiedChinese {
             return """
             你是一个专业的健身教练。用户想要修改训练计划的整体结构。请根据用户要求重新生成完整训练计划。
+
+            最高优先级：下文【用户要求】里写的具体修改指令（例如改成某分化、某天数、替换/增删动作）必须被严格满足，不得忽略或弱化。在满足用户要求的前提下，才去尽量保留现有计划中仍适用的动作与进度连续性。
 
             JSON 格式要求：
             1. 只返回纯 JSON，不要有任何 Markdown 标记（如 ```json）
@@ -101,7 +105,9 @@ struct AppLanguagePolicy {
             """
         }
         return """
-        You are a professional strength and fitness coach. The user wants to change the overall training-plan structure. Regenerate the full plan as strict JSON.
+        You are a professional strength and fitness coach. The user wants to change the overall training-plan structure. Regenerate the full plan as strict JSON based on the user's CURRENT plan.
+
+        HIGHEST PRIORITY: the specific modification request in "User request" below (e.g. change to a particular split, a specific number of training days, replace/add/remove exercises) MUST be satisfied exactly—do not ignore or weaken it. Only within that constraint should you keep continuity of exercises and progress worth preserving.
 
         JSON requirements:
         1. Return raw JSON only. Do not include Markdown fences or explanatory text.

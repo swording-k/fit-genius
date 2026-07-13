@@ -19,9 +19,9 @@ enum ExerciseCatalogSeed {
     /// 在主线程 ModelContext 上执行，保证动作库 @Query 立即可见。
     @MainActor
     static func ensureSeeded(modelContext: ModelContext) async {
-        guard !isSeeded else { return }
-
-        // 升级场景：若已有模板则直接标记完成
+        // 不再仅依赖 seededKey 硬卡：以 SwiftData 中实际是否有模板为准。
+        // 若已存在模板（含升级/重复调用场景）直接标记完成返回；否则主动重新写入，
+        // 避免「seededKey 为 true 但模板缺失（如 SwiftData 被重置）」时动作库永久为空。
         let countDescriptor = FetchDescriptor<ExerciseTemplate>()
         if let existing = try? modelContext.fetch(countDescriptor), !existing.isEmpty {
             UserDefaults.standard.set(true, forKey: seededKey)

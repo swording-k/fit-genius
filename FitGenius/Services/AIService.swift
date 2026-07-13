@@ -4,6 +4,9 @@ struct BackendProxyResponse: Codable {
     let ok: Bool
     let data: ProxyData?
     let error: String?
+    // 后端在 5xx/4xx 代理失败时返回的 `detail`（通常是上游模型/服务商的原始错误），
+    // 透传给调用方，便于真机排查"图片分析失败"等问题的真实根因。
+    let detail: String?
     
     struct ProxyData: Codable {
         let choices: [Choice]?
@@ -246,7 +249,9 @@ class AIService {
                    let content = proxyResp.data?.choices?.first?.message?.content {
                     fullText = content
                 } else if let errorMsg = proxyResp.error {
-                    throw AIServiceError.invalidResponse(errorMsg)
+                    // 透传后端.detail（上游服务商原始错误），不要再只抛代号，方便定位根因。
+                    let detailMsg = proxyResp.detail?.isEmpty == false ? "\(errorMsg)：\(proxyResp.detail!)" : errorMsg
+                    throw AIServiceError.invalidResponse(detailMsg)
                 } else {
                     throw AIServiceError.emptyContent
                 }
@@ -333,6 +338,13 @@ class AIService {
         if !catalog.isEmpty {
             systemMessage += buildExerciseCatalogSection(catalog, preferChinese: languagePolicy.prefersSimplifiedChinese)
         }
+        // 注入当前训练计划，让 AI 基于现有计划调整/重构，而不是从零乱编。
+        if let currentPlan = profile.workoutPlan {
+            let planContext = serializePlanToContext(plan: currentPlan, profile: profile)
+            systemMessage += languagePolicy.prefersSimplifiedChinese
+                ? "\n\n当前训练计划（请基于它进行调整或重构，保持可保留的动作与进度连续性，不要完全另起炉灶）：\n\(planContext)"
+                : "\n\nCurrent training plan (adjust or restructure based on it; keep continuity of the exercises and progress that should be preserved; do not start from scratch):\n\(planContext)"
+        }
         let userMessage = profilePrompt(profile: profile, userRequest: userRequest)
         
 		let requestBody = ChatCompletionRequest(
@@ -346,11 +358,17 @@ class AIService {
 		let content = try await sendStreamingRequest(body: requestBody)
         let candidate = Self.extractJSONObject(from: content) ?? cleanMarkdownCodeBlock(content)
 
-        // 解析 JSON 并创建 WorkoutPlan；解析失败时使用本地兜底计划
+        // 解析 JSON 并创建 WorkoutPlan。
+        // 注意：解析失败时【不再】静默落一个不相关的兜底计划——那会让用户误以为“已按我的要求改好”，
+        // 实际却是个固定增肌模板，表现就是“乱改/没按我改”。改为抛出错误，由上层提示重试并保留旧计划。
         do {
-            return try parseWorkoutPlan(from: candidate, profile: profile, catalog: catalog)
+            let parsed = try parseWorkoutPlan(from: candidate, profile: profile, catalog: catalog)
+            guard !(parsed.days ?? []).isEmpty else {
+                throw AIServiceError.invalidResponse("AI 返回的计划为空，请重试或把要求说得更具体")
+            }
+            return parsed
         } catch {
-            return fallbackPlan(for: profile)
+            throw AIServiceError.invalidResponse("AI 返回的训练计划无法解析（可能未严格返回 JSON）。请重试，或把要求说得更具体。")
         }
     }
 
@@ -498,7 +516,7 @@ class AIService {
             - 个性化备注/专项需求：\(injuries)
             """
             if let userRequest {
-                text += "\n\n用户要求：\n\(userRequest)\n\n请根据用户要求重新生成训练计划。若用户提到篮球、跑步、格斗、备赛、体态、恢复或某个动作表现，请把它作为核心目标处理。只返回 JSON，不要有任何其他文字。"
+                text += "\n\n用户要求（必须严格执行，这是最高优先级）：\n\(userRequest)\n\n请严格按照上述用户要求修改训练计划，不得忽略其中任何一条。若用户提到篮球、跑步、格斗、备赛、体态、恢复或某个动作表现，请把它作为核心目标处理。只返回 JSON，不要有任何其他文字。"
             } else {
                 text += """
 
@@ -527,7 +545,7 @@ class AIService {
         - Personalized notes, sport needs, or limitations: \(injuries)
         """
         if let userRequest {
-            text += "\n\nUser request:\n\(userRequest)\n\nRegenerate the training plan from the user's request. Treat basketball, running, combat sports, competition prep, posture, recovery, or specific lift-performance notes as core requirements. Return JSON only."
+            text += "\n\nUser request (must be followed exactly; this is the highest priority):\n\(userRequest)\n\nModify the training plan strictly according to the user request above; do not omit any part of it. Treat basketball, running, combat sports, competition prep, posture, recovery, or specific lift-performance notes as core requirements. Return JSON only."
         } else {
             text += """
 
@@ -898,7 +916,9 @@ class AIService {
         userContents.append(descContent)
 		for entry in entries {
 			for data in entry.images {
-				let base64 = data.base64EncodedString()
+				// 先压缩图片，避免原图 base64 后超过 CloudBase 请求体上限（EXCEED_MAX_PAYLOAD_SIZE）
+				let compressed = (try? MediaImagePreprocessor.normalizedJPEG(from: data, maxDimension: 1280, maxBytes: 700_000)) ?? data
+				let base64 = compressed.base64EncodedString()
 				let urlString = "data:image/jpeg;base64,\(base64)"
 				let imageURL = VisionChatCompletionRequest.ImageURL(url: urlString)
 				let content = VisionChatCompletionRequest.Content(type: "image_url", text: nil, image_url: imageURL, video_url: nil)
@@ -944,8 +964,10 @@ class AIService {
         ]
 
         for imageData in skeletonImages {
+            // 压缩骨架帧，避免多帧 base64 累加超过 CloudBase 请求体上限
+            let compressed = (try? MediaImagePreprocessor.normalizedJPEG(from: imageData, maxDimension: 1024, maxBytes: 400_000)) ?? imageData
             let imageURL = VisionChatCompletionRequest.ImageURL(
-                url: "data:image/jpeg;base64,\(imageData.base64EncodedString())"
+                url: "data:image/jpeg;base64,\(compressed.base64EncodedString())"
             )
             userContents.append(VisionChatCompletionRequest.Content(
                 type: "image_url",
