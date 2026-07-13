@@ -114,7 +114,7 @@ struct AnimatedGIFView: View {
         // 1) 命中沙盒缓存（key 不变，两种 CDN 共享）
         if !force, let cached = Self.cachedData(for: cacheKey) {
             if isThumbnail {
-                if let first = Self.firstFrame(from: cached, maxPixelSize: 160) {
+                if let first = Self.firstFrame(from: cached, maxPixelSize: 120) {
                     state = .loaded(first)
                     return
                 }
@@ -133,7 +133,7 @@ struct AnimatedGIFView: View {
                 }
                 Self.writeCache(data, for: cacheKey)
                 if isThumbnail {
-                    if let first = Self.firstFrame(from: data, maxPixelSize: 160) {
+                    if let first = Self.firstFrame(from: data, maxPixelSize: 120) {
                         state = .loaded(first)
                         return
                     }
@@ -246,21 +246,12 @@ private struct AnimatedImageContainer: UIViewRepresentable {
 
     func updateUIView(_ uiView: UIImageView, context: Context) {
         uiView.image = image
+        // SwiftUI 会把本 representable 根视图的 frame 设为它分配的尺寸
+        // （缩略图父容器为 52×52），无需手动钉 Auto Layout 约束——那样反而
+        // 会因 superview 时机/约束冲突导致 UIImageView 停留固有尺寸被外层裁掉一角。
+        // 用 scaleAspectFit 即可让整张图等比缩进 52×52 框内。
         uiView.contentMode = .scaleAspectFit
-        // 关键：把 UIImageView 用 Auto Layout 约束钉到它的父容器（SwiftUI 提供的
-        // 尺寸，如列表缩略图的 52×52）。这样无论 GIF 原始尺寸多大（常为 400×300+），
-        // 都会随父容器尺寸缩放，配合 scaleAspectFit 把整张图等比缩小显示，
-        // 而不是保留固有尺寸被外层圆角裁掉一局部。
-        if let superview = uiView.superview {
-            uiView.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.deactivate(uiView.constraints)
-            NSLayoutConstraint.activate([
-                uiView.topAnchor.constraint(equalTo: superview.topAnchor),
-                uiView.bottomAnchor.constraint(equalTo: superview.bottomAnchor),
-                uiView.leadingAnchor.constraint(equalTo: superview.leadingAnchor),
-                uiView.trailingAnchor.constraint(equalTo: superview.trailingAnchor)
-            ])
-        }
+        uiView.clipsToBounds = true
         if animate {
             uiView.startAnimating()
         } else {
