@@ -18,7 +18,7 @@
 [![Platform](https://img.shields.io/badge/Platform-iOS%2017.6+-blue.svg)](https://developer.apple.com/ios/)
 [![SwiftUI](https://img.shields.io/badge/SwiftUI-5.0-green.svg)](https://developer.apple.com/xcode/swiftui/)
 [![SwiftData](https://img.shields.io/badge/SwiftData-Latest-purple.svg)](https://developer.apple.com/xcode/swiftdata/)
-[![Version](https://img.shields.io/badge/Version-1.2.0-blue.svg)](https://github.com/swording-k/fit-genius)
+[![Version](https://img.shields.io/badge/Version-1.4.0-blue.svg)](https://github.com/swording-k/fit-genius)
 
 [![App Store](https://img.shields.io/badge/App_Store-已上架-green.svg)]()
 
@@ -206,7 +206,15 @@ FitGenius 的所有健康、饮食、运动建议均基于以下权威来源：
 
 ## 📝 版本历史
 
-### v1.2.0 - 当前开发版
+### v1.4.0 - 当前 App Store 版本
+- 🐛 **动作库图标修复**：缩略图完整显示（修复 UIImageView 固有尺寸撑破 52×52 容器导致只显示一部分）
+- 🐛 **图片分析修复**：饮食/健身图片分析不再报 `EXCEED_MAX_PAYLOAD_SIZE`（CloudBase JSON 体 ~100KB 硬限，图片压到 ≤50KB 单图发送）
+- 🐛 **AI 改计划修复**：解析失败不再静默兜底“假成功+乱改”，改为保留旧计划并提示用户
+- 🔧 **提示词优先级强化**：用户要求与备注中的分化偏好/伤病限制为最高优先级，必须严格执行
+- 🐛 **内存修复**：动作库列表 GIF 改为仅解码首帧，修复滚动时全帧解码导致 OOM 强杀（signal 9）
+- 底层沿用 v1.2.0 的 AI 动作教练、后端基础设施、Watch/Widget 与合规能力
+
+### v1.2.0 - 开发版
 - ✨ **AI 助手动作教练**（深蹲 / 硬拉 / 卧推 / 站姿推举，使用 Apple Vision）
   - 视频帧提取 → 姿态关键点 → 规则引擎评分
   - AI 助手内输出画线关键帧、动作评分、证据、修正口令、练习方法和下次训练重点
