@@ -78,6 +78,10 @@ final class Exercise {
     var workoutDay: WorkoutDay?
     @Relationship(deleteRule: .cascade)
     var logs: [ExerciseLog]? = []
+    /// 来源动作模板（动作库）。为空表示手敲的自由动作；非空则可看 GIF、
+    /// 标准说明、并作为姿态对照的参考基线。删除模板不影响本动作。
+    @Relationship(deleteRule: .nullify)
+    var template: ExerciseTemplate?
     init(name: String, sets: Int, reps: String, weight: Double = 0, notes: String = "", isCompleted: Bool = false) {
         self.name = name
         self.sets = sets
@@ -117,6 +121,17 @@ final class Exercise {
         if !calendar.isDateInToday(lastDate) {
             isCompleted = false
         }
+    }
+
+    /// 展示名。与动作库保持一致，跟随**系统语言**：
+    /// 只要关联到动作库模板，就复用模板的 `displayName`（它本身按系统语言返回
+    /// 中文或英文），因此计划里的动作也会随 iPhone 系统语言切换而中/英切换，
+    /// 不会卡在当初加入时存下的那一种语言。无模板（手敲/AI 自由动作）才回退已存 `name`。
+    var localizedDisplayName: String {
+        if let t = template {
+            return t.displayName
+        }
+        return name
     }
 }
 

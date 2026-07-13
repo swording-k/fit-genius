@@ -1,12 +1,30 @@
 import SwiftUI
 import SwiftData
 
+/// 详情页可通过该 Preference 请求隐藏全局"模式切换"浮层按钮，
+/// 避免它与被 push 页面左上角的返回按钮重合冲突。
+struct HideModeToggleKey: PreferenceKey {
+    static var defaultValue: Bool = false
+    static func reduce(value: inout Bool, nextValue: () -> Bool) {
+        value = value || nextValue()
+    }
+}
+
+extension View {
+    /// 在被 push 的详情页调用，进入时隐藏全局模式切换按钮，返回后自动恢复。
+    func hidesGlobalModeToggle() -> some View {
+        preference(key: HideModeToggleKey.self, value: true)
+    }
+}
+
 // MARK: - 主页面（带 TabView）
 struct MainView: View {
     @Environment(\.modelContext) private var modelContext
     @AppStorage("appMode") private var appMode: String = "training"
     @State private var selectedTrainingTab = 0
     @State private var selectedDietTab = 0
+    /// 被详情页请求隐藏时为 true（此时不显示顶部模式切换浮层）。
+    @State private var hideModeToggle = false
 
     var body: some View {
         Group {
@@ -21,17 +39,20 @@ struct MainView: View {
                     }
                     .tabLabel("ai_assistant", systemImage: "bubble.left.and.bubble.right")
                     .tag(1)
+                    ExerciseLibraryView()
+                        .tabLabel("exercise_library_title", systemImage: "books.vertical")
+                        .tag(2)
                     NavigationStack {
                         StatsView(modelContext: modelContext)
                     }
                     .tabLabel("stats", systemImage: "chart.xyaxis.line")
-                    .tag(2)
+                    .tag(3)
 
                     NavigationStack {
                         ProfileView()
                     }
                     .tabLabel("profile", systemImage: "person.circle")
-                    .tag(3)
+                    .tag(4)
                 }
             } else {
                 TabView(selection: $selectedDietTab) {
@@ -74,22 +95,27 @@ struct MainView: View {
             appMode = "training"
             selectedTrainingTab = 0
         }
+        .onPreferenceChange(HideModeToggleKey.self) { hide in
+            hideModeToggle = hide
+        }
         .safeAreaInset(edge: .top) {
-            HStack {
-                Button(action: toggleMode) {
-                    HStack(spacing: 6) {
-                        Image(systemName: appMode == "training" ? "fork.knife" : "figure.run")
-                        Text(appMode == "training" ? "diet_mode" : "training_mode")
+            if !hideModeToggle {
+                HStack {
+                    Button(action: toggleMode) {
+                        HStack(spacing: 6) {
+                            Image(systemName: appMode == "training" ? "fork.knife" : "figure.run")
+                            Text(appMode == "training" ? "diet_mode" : "training_mode")
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color.blue.opacity(0.1))
+                        .cornerRadius(16)
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Color.blue.opacity(0.1))
-                    .cornerRadius(16)
+                    Spacer()
                 }
-                Spacer()
+                .padding(.horizontal, 12)
+                .padding(.top, 4)
             }
-            .padding(.horizontal, 12)
-            .padding(.top, 4)
         }
     }
 

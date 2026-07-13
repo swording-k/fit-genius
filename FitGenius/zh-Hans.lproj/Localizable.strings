@@ -606,3 +606,54 @@
 "disclaimer_accept" = "我已知晓";
 "disclaimer_warning" = "AI 建议仅供参考，有健康问题请咨询专业人员。";
 "about" = "关于";
+
+// MARK: - 动作库 Exercise Library
+"exercise_library_title" = "动作库";
+"exercise_library_search_placeholder" = "搜索动作名 / 部位 / 肌肉";
+"exercise_library_filter_all" = "全部";
+"exercise_library_empty" = "没有匹配的动作";
+"exercise_library_count_format" = "共 %d 个动作";
+"exercise_equipment_bodyweight" = "徒手";
+"exercise_equipment_dumbbell" = "哑铃";
+"exercise_equipment_barbell" = "杠铃";
+"exercise_equipment_machine" = "器械";
+"exercise_equipment_kettlebell" = "壶铃";
+"exercise_equipment_band" = "弹力带";
+"exercise_equipment_other" = "其他";
+"exercise_detail_instructions" = "动作说明";
+"exercise_detail_target" = "主要肌肉";
+"exercise_detail_secondary" = "协同肌群";
+"exercise_detail_equipment" = "所需器械";
+"exercise_detail_body_part" = "训练部位";
+"exercise_detail_demo" = "动作演示";
+"exercise_detail_demo_loading" = "正在加载演示…";
+"exercise_detail_demo_failed" = "演示加载失败，点按重试";
+"exercise_detail_attribution_format" = "演示素材版权：%@";
+"exercise_add_to_plan" = "加入计划";
+"exercise_add_to_plan_title" = "加入训练日";
+"exercise_add_to_plan_sets" = "组数";
+"exercise_add_to_plan_reps" = "次数";
+"exercise_add_to_plan_weight" = "重量 (kg)";
+"exercise_add_to_plan_confirm" = "确认加入";
+"exercise_add_to_plan_success" = "已加入训练计划";
+"exercise_add_to_plan_no_plan" = "请先生成训练计划";
+"exercise_add_to_plan_select_day" = "选择训练日";
+"search_library" = "从动作库搜索";
+"selected_from_library" = "已选动作库动作";
+
+/* AI 服务 / 后端配置 */
+"ai_service" = "AI 服务";
+"ai_direct_mode" = "国内直连 AI（用自己的 Key）";
+"ai_provider" = "服务商";
+"ai_api_key" = "API Key";
+"ai_get_key" = "如何获取 Key";
+"ai_direct_hint" = "国内网络下 Vercel 后端常连不上。填入自己的阿里云百炼 / MiniMax Key 即可直连，生成计划、饮食分析、动作纠正都不再依赖后端，也无需登录。";
+"backend_url" = "后端服务地址";
+"test_connection" = "测试连接";
+"backend_reachable" = "可连接";
+"backend_unreachable" = "无法连接";
+"backend_unreachable_code" = "无法连接（HTTP %d）";
+"backend_unreachable_error" = "无法连接：%@";
+
+"backend_status" = "后端服务状态";
+"ai_service_hint" = "训练计划生成、动作纠正等 AI 能力由 FitGenius 服务端提供，无需你配置任何密钥。若显示不可连接，请稍后重试或联系开发者。";

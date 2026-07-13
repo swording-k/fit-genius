@@ -606,3 +606,54 @@
 "disclaimer_accept" = "I Understand";
 "disclaimer_warning" = "AI advice is for reference only. Consult professionals for medical issues.";
 "about" = "About";
+
+// MARK: - Exercise Library
+"exercise_library_title" = "Exercises";
+"exercise_library_search_placeholder" = "Search name / body part / muscle";
+"exercise_library_filter_all" = "All";
+"exercise_library_empty" = "No matching exercises";
+"exercise_library_count_format" = "%d exercises";
+"exercise_equipment_bodyweight" = "Bodyweight";
+"exercise_equipment_dumbbell" = "Dumbbell";
+"exercise_equipment_barbell" = "Barbell";
+"exercise_equipment_machine" = "Machine";
+"exercise_equipment_kettlebell" = "Kettlebell";
+"exercise_equipment_band" = "Band";
+"exercise_equipment_other" = "Other";
+"exercise_detail_instructions" = "Instructions";
+"exercise_detail_target" = "Target Muscle";
+"exercise_detail_secondary" = "Secondary Muscles";
+"exercise_detail_equipment" = "Equipment";
+"exercise_detail_body_part" = "Body Part";
+"exercise_detail_demo" = "Demo";
+"exercise_detail_demo_loading" = "Loading demo…";
+"exercise_detail_demo_failed" = "Failed to load, tap to retry";
+"exercise_detail_attribution_format" = "Demo media © %@";
+"exercise_add_to_plan" = "Add to Plan";
+"exercise_add_to_plan_title" = "Add to Workout Day";
+"exercise_add_to_plan_sets" = "Sets";
+"exercise_add_to_plan_reps" = "Reps";
+"exercise_add_to_plan_weight" = "Weight (kg)";
+"exercise_add_to_plan_confirm" = "Add";
+"exercise_add_to_plan_success" = "Added to your plan";
+"exercise_add_to_plan_no_plan" = "Generate a plan first";
+"exercise_add_to_plan_select_day" = "Select Day";
+"search_library" = "Search library";
+"selected_from_library" = "Selected from library";
+
+/* AI Service / Backend config */
+"ai_service" = "AI Service";
+"ai_direct_mode" = "Direct AI (your own key)";
+"ai_provider" = "Provider";
+"ai_api_key" = "API Key";
+"ai_get_key" = "How to get a key";
+"ai_direct_hint" = "The Vercel backend is often unreachable from mainland China. Enter your own Aliyun/Minimax key to connect directly — plan generation, diet analysis and form coaching no longer depend on the backend and need no login.";
+"backend_url" = "Backend URL";
+"test_connection" = "Test connection";
+"backend_reachable" = "Reachable";
+"backend_unreachable" = "Unreachable";
+"backend_unreachable_code" = "Unreachable (HTTP %d)";
+"backend_unreachable_error" = "Unreachable: %@";
+
+"backend_status" = "Backend status";
+"ai_service_hint" = "AI features (plan generation, form coaching) are served by the FitGenius backend. No key configuration needed. If unreachable, retry later or contact the developer.";

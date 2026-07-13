@@ -16,8 +16,10 @@ class UserProfileViewModel: ObservableObject {
         errorMessage = nil
         
         do {
+            // 按用户环境/器械筛选动作库，供 AI 生成计划时同源取用
+            let catalog = ExerciseTemplate.catalog(for: profile, in: context)
             // 调用 AI 服务生成计划
-            let plan = try await aiService.generateInitialPlan(profile: profile)
+            let plan = try await aiService.generateInitialPlan(profile: profile, catalog: catalog)
             
             // 保存到 SwiftData
             profile.workoutPlan = plan

@@ -147,8 +147,12 @@ class OnboardingViewModel: ObservableObject {
                 
                 print("🔍 [Onboarding] 开始调用 AI 生成计划...")
                 
+                // 按用户环境/器械筛选动作库，供 AI 生成计划时同源取用
+                let catalog = ExerciseTemplate.catalog(for: profile, in: context)
+                print("📚 [Onboarding] 注入动作库候选 \(catalog.count) 个")
+                
                 // 调用 AI 服务
-                let plan = try await aiService.generateInitialPlan(profile: profile)
+                let plan = try await aiService.generateInitialPlan(profile: profile, catalog: catalog)
                 
                 print("✅ [Onboarding] AI 返回计划：\(plan.name)，共 \((plan.days ?? []).count) 天")
                 

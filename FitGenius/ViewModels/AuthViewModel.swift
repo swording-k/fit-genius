@@ -185,6 +185,7 @@ final class AuthViewModel: ObservableObject {
         // 2. 清除 Keychain + 后端 session
         Keychain.delete(keyKey)
         Keychain.delete("aliyun_api_key")
+        Keychain.delete(AIProviderSettings.keychainKey)
         settings.setSessionToken(nil, userId: nil)
 
         // 3. 清除 UserDefaults（保留语言设置）

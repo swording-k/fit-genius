@@ -54,3 +54,12 @@ Config.plist
 *.mobileprovision
 .vercel
 .env*
+
+# WorkBuddy local memory (project, contains private notes — DO NOT COMMIT)
+.workbuddy/
+
+# Python cache
+scripts/__pycache__/
+
+# Deprecated Cloud Run experiment (kept locally only)
+cloudrun/

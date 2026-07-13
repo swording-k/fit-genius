@@ -1,0 +1,20 @@
+{
+  "envId": "fitgenius-d0ghm1rz21cef6594",
+  "version": "2.0",
+  "functionRoot": "cloudfunctions",
+  "functions": [
+    {
+      "name": "fitgenius-api",
+      "timeout": 60,
+      "runtime": "Nodejs18.15",
+      "memorySize": 256,
+      "envVariables": {
+        "NODE_ENV": "production",
+        "SESSION_SECRET": "5a50c275de019a6d2f23355e5a4a7cb10a290e3b2df7b323f46cfac7cc5b26ac",
+        "APPLE_BUNDLE_ID": "com.swordingk.fitgenius",
+        "AI_PROVIDER": "minimax",
+        "MINIMAX_API_KEY": "sk-api-x8eT81a3BDWux8nTYoXCUGbVnM2yRLIVTftvAIWulWFjaZQXTKhKm-iiXvRvW2mtXS7_OWsKCiLpzRPp2lY7yIoqJq6qBZY1jNtvq91mL4X18E2txvWL5YA"
+      }
+    }
+  ]
+}

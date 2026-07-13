@@ -16,6 +16,11 @@ struct ProfileView: View {
     @State private var showDeleteAccountError = false
     @ObservedObject private var watchSync = WatchSyncService.shared
 
+    // MARK: - 后端服务连接状态（只读，终端用户无需配置 Key）
+    @State private var testingBackend = false
+    @State private var backendStatus: String?
+    @State private var backendReachable = false
+
     var currentProfile: UserProfile? {
         profiles.first
     }
@@ -174,6 +179,26 @@ struct ProfileView: View {
                     WidgetBackgroundSettingsView()
                 }
 
+                Section(header: Text("ai_service".localized)) {
+                    HStack {
+                        Text("backend_status".localized)
+                        Spacer()
+                        if testingBackend {
+                            ProgressView()
+                        } else if let status = backendStatus {
+                            Label(status, systemImage: backendReachable ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                .foregroundColor(backendReachable ? .green : .red)
+                                .font(.caption)
+                        }
+                    }
+                    Button("test_connection".localized) {
+                        Task { await testBackendConnection() }
+                    }
+                    Text("ai_service_hint".localized)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 Section(header: Text("settings")) {
                     Button(role: .destructive) {
                         showResetConfirmation = true
@@ -268,6 +293,40 @@ struct ProfileView: View {
         let start = id.prefix(3)
         let end = id.suffix(3)
         return String(start) + "***" + String(end)
+    }
+
+    // MARK: - 后端连接测试
+    private func testBackendConnection() async {
+        let urlString = SyncSettings.live.backendBaseURLString.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let url = URL(string: urlString), !urlString.isEmpty else {
+            backendStatus = "backend_unreachable".localized
+            backendReachable = false
+            return
+        }
+        testingBackend = true
+        defer { testingBackend = false }
+        do {
+            var request = URLRequest(url: url.appendingPathComponent("api/health"))
+            request.timeoutInterval = 10
+            let (data, response) = try await URLSession.shared.data(for: request)
+            if let http = response as? HTTPURLResponse,
+               (200...299).contains(http.statusCode) {
+                backendReachable = true
+                backendStatus = "backend_reachable".localized
+            } else {
+                backendReachable = false
+                backendStatus = String(format: "backend_unreachable_code".localized, (response as? HTTPURLResponse)?.statusCode ?? 0)
+            }
+            // 尝试解析 body 中的 ok 字段做二次确认
+            if let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let ok = obj["ok"] as? Bool {
+                backendReachable = ok
+                backendStatus = ok ? "backend_reachable".localized : "backend_unreachable".localized
+            }
+        } catch {
+            backendReachable = false
+            backendStatus = String(format: "backend_unreachable_error".localized, error.localizedDescription)
+        }
     }
 
     private func resetAllData() {

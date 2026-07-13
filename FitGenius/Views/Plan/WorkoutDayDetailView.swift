@@ -95,7 +95,7 @@ struct ExerciseRowView: View {
                 
                 // 动作信息
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(exercise.name)
+                    Text(exercise.localizedDisplayName)
                         .font(.headline)
                         .strikethrough(exercise.isCompleted)
                         .foregroundColor(exercise.isCompleted ? .secondary : .primary)

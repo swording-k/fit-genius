@@ -1,5 +1,23 @@
 import Foundation
 
+struct BackendProxyResponse: Codable {
+    let ok: Bool
+    let data: ProxyData?
+    let error: String?
+    
+    struct ProxyData: Codable {
+        let choices: [Choice]?
+        
+        struct Choice: Codable {
+            let message: Message?
+            
+            struct Message: Codable {
+                let content: String?
+            }
+        }
+    }
+}
+
 struct ChatCompletionRequest: Codable {
 	let model: String
 	let messages: [Message]
@@ -123,15 +141,22 @@ enum AIServiceError: Error, LocalizedError {
 // MARK: - AI 服务类
 @MainActor
 class AIService {
-    // 所有 AI 请求都强制走 FitGenius 后端代理。Provider key
-    // 只在 Vercel env 中存在,app bundle 不持有任何 fallback key。
-    private let textModel = AIModelRouting.textModel
-    private let dietImageModel = AIModelRouting.dietImageModel
-    private let fitnessImageModel = AIModelRouting.fitnessImageModel
-    private let fitnessVideoModel = AIModelRouting.fitnessVideoModel
-    private let formSkeletonVisionModel = AIModelRouting.formSkeletonVisionModel
+    // 所有 AI 请求：直连模式下直接请求 provider（用户自有 Key），否则走后端代理。
+    // Provider key 只在用户 Keychain 或 Vercel env 中存在,app bundle 不持有明文。
     private let settings: SyncSettings = .live
     private let languagePolicy = AppLanguagePolicy.current
+    private let providerSettings = AIProviderSettings.shared
+
+    /// 直连模式下把 App 内部模型别名替换成提供方真实模型名；后端代理模式保持别名
+    /// （由服务端 `resolveUpstreamModel` 映射）。
+    private var effectiveTextModel: String {
+        providerSettings.isConfigured ? providerSettings.realModel(for: AIModelRouting.textModel) : AIModelRouting.textModel
+    }
+    private var effectiveVisionModel: String {
+        providerSettings.isConfigured
+            ? providerSettings.realModel(for: AIModelRouting.dietImageModel)
+            : AIModelRouting.dietImageModel
+    }
 
     /// 解析请求目标 URL。**只**走后端代理;未配置 backendBaseURL 时返回
     /// nil 让调用方抛 `backendNotConfigured`。
@@ -153,11 +178,32 @@ class AIService {
     // 任何路径都解析失败时,直接抛对应的错误让调用方处理。
 
 	private func sendStreamingRequest<T: Encodable>(body: T) async throws -> String {
-		guard let authHeader = resolveAuthHeader() else {
-			throw AIServiceError.missingSessionToken
-		}
-		guard let url = resolveRequestURL() else {
-			throw AIServiceError.backendNotConfigured
+		let url: URL
+		let authHeader: String
+		if providerSettings.isConfigured {
+			// 国内直连模式：直接请求 provider 的 OpenAI 兼容端点，使用用户自己的 Key，
+			// 不依赖 Vercel 后端，也不需要 Apple 登录 session token。
+			guard let endpoint = providerSettings.endpoint else {
+				throw AIServiceError.invalidURL
+			}
+			guard let key = providerSettings.apiKey, !key.isEmpty else {
+				throw AIServiceError.networkError(NSError(
+					domain: "AIService", code: -1,
+					userInfo: [NSLocalizedDescriptionKey: "未配置 AI Key，请在「我的 → AI 服务」中填写"]
+				))
+			}
+			url = endpoint
+			authHeader = "Bearer \(key)"
+		} else {
+			// 后端代理模式（兼容 CloudBase 等可直连部署）。
+			guard let header = resolveAuthHeader() else {
+				throw AIServiceError.missingSessionToken
+			}
+			guard let backendURL = resolveRequestURL() else {
+				throw AIServiceError.backendNotConfigured
+			}
+			url = backendURL
+			authHeader = header
 		}
 		var request = URLRequest(url: url)
 		request.httpMethod = "POST"
@@ -186,19 +232,43 @@ class AIService {
 			throw AIServiceError.invalidResponse(errorText.isEmpty ? "无效的服务器响应" : errorText)
 		}
 		var fullText = ""
-		for try await line in bytes.lines {
-			if line.hasPrefix("data: ") {
-				let dataPart = String(line.dropFirst(6))
-				if dataPart == "[DONE]" {
-					break
-				}
-				guard let jsonData = dataPart.data(using: .utf8) else { continue }
-				if let chunk = try? JSONDecoder().decode(ChatCompletionStreamChunk.self, from: jsonData),
-					let delta = chunk.choices.first?.delta.content {
-					fullText.append(delta)
-				}
-			}
-		}
+        // CloudBase SCF returns non-streaming JSON; detect Content-Type to choose parser.
+        let contentType = (response as? HTTPURLResponse)?.allHeaderFields["Content-Type"] as? String ?? ""
+        if contentType.contains("application/json") {
+            // Non-streaming backend proxy response: { ok: true, data: { choices: [{ message: { content: "..." } }] } }
+            var jsonBody = ""
+            for try await line in bytes.lines {
+                jsonBody += line
+            }
+            if let jsonData = jsonBody.data(using: .utf8),
+               let proxyResp = try? JSONDecoder().decode(BackendProxyResponse.self, from: jsonData) {
+                if proxyResp.ok == true,
+                   let content = proxyResp.data?.choices?.first?.message?.content {
+                    fullText = content
+                } else if let errorMsg = proxyResp.error {
+                    throw AIServiceError.invalidResponse(errorMsg)
+                } else {
+                    throw AIServiceError.emptyContent
+                }
+            } else {
+                throw AIServiceError.invalidResponse("无法解析后端响应")
+            }
+        } else {
+            // SSE streaming (existing behavior)
+            for try await line in bytes.lines {
+                if line.hasPrefix("data: ") {
+                    let dataPart = String(line.dropFirst(6))
+                    if dataPart == "[DONE]" {
+                        break
+                    }
+                    guard let jsonData = dataPart.data(using: .utf8) else { continue }
+                    if let chunk = try? JSONDecoder().decode(ChatCompletionStreamChunk.self, from: jsonData),
+                        let delta = chunk.choices.first?.delta.content {
+                        fullText.append(delta)
+                    }
+                }
+            }
+        }
 		let trimmed = fullText.trimmingCharacters(in: .whitespacesAndNewlines)
 		if trimmed.isEmpty {
 			throw AIServiceError.emptyContent
@@ -207,57 +277,66 @@ class AIService {
 	}
     
     // MARK: - 生成初始训练计划
-	func generateInitialPlan(profile: UserProfile) async throws -> WorkoutPlan {
+	func generateInitialPlan(profile: UserProfile, catalog: [ExerciseTemplate] = []) async throws -> WorkoutPlan {
 		print("🤖 [AIService] 开始生成训练计划...")
 		print("🤖 [AIService] 用户信息：\(profile.name), \(profile.age)岁, 目标：\(profile.goal.rawValue)")
 
-		// 验证请求目标 URL。Phase 2 强制走后端代理;没配 backendBaseURL
-		// 时直接抛 backendNotConfigured 让用户知道这是个配置问题。
-		guard resolveRequestURL() != nil else {
-			throw AIServiceError.backendNotConfigured
-		}
-		// 验证 Authorization:必须登录拿到 session token,否则走兜底计划
-		guard resolveAuthHeader() != nil else {
-			print("⚠️ [AIService] 未登录，使用兜底训练计划")
-			return fallbackPlan(for: profile)
+		// 直连模式不需要后端地址与登录；只有后端代理模式才强制校验。
+		if !providerSettings.isConfigured {
+			guard resolveRequestURL() != nil else {
+				throw AIServiceError.backendNotConfigured
+			}
+			guard resolveAuthHeader() != nil else {
+				print("⚠️ [AIService] 未登录，使用兜底训练计划")
+				return fallbackPlan(for: profile)
+			}
+			print("✅ [AIService] 使用后端代理模式")
+		} else {
+			print("✅ [AIService] 使用国内直连模式（自有 AI Key）")
 		}
 
-		print("✅ [AIService] 已登录，使用后端代理模式")
-        
-        let systemMessage = languagePolicy.initialPlanSystemPrompt
+        var systemMessage = languagePolicy.initialPlanSystemPrompt
+        if !catalog.isEmpty {
+            systemMessage += buildExerciseCatalogSection(catalog, preferChinese: languagePolicy.prefersSimplifiedChinese)
+        }
         let userMessage = profilePrompt(profile: profile, userRequest: nil)
         
         let requestBody = ChatCompletionRequest(
-            model: textModel,
+            model: effectiveTextModel,
             messages: [
                 ChatCompletionRequest.Message(role: "system", content: systemMessage),
                 ChatCompletionRequest.Message(role: "user", content: userMessage)
             ],
             stream: true
         )
-        let content = try await sendStreamingRequest(body: requestBody)
-        let cleanedContent = cleanMarkdownCodeBlock(content)
-        
+		let content = try await sendStreamingRequest(body: requestBody)
+        let candidate = Self.extractJSONObject(from: content) ?? cleanMarkdownCodeBlock(content)
+
         // 解析为 WorkoutPlan；解析失败时使用本地兜底计划
         do {
-            return try parseWorkoutPlan(from: cleanedContent, profile: profile)
+            return try parseWorkoutPlan(from: candidate, profile: profile, catalog: catalog)
         } catch {
             return fallbackPlan(for: profile)
         }
     }
     
-    // MARK: - 根据用户要求重新生成训练计划
-	func regeneratePlan(profile: UserProfile, userRequest: String) async throws -> WorkoutPlan {
-		// 验证 Authorization:未登录时走兜底计划
-		guard resolveAuthHeader() != nil else {
-			return fallbackPlan(for: profile)
+	// MARK: - 根据用户要求重新生成训练计划
+	func regeneratePlan(profile: UserProfile, userRequest: String, catalog: [ExerciseTemplate] = []) async throws -> WorkoutPlan {
+		// 直连模式下不要求登录；后端代理模式未登录时走兜底计划
+		if !providerSettings.isConfigured {
+			guard resolveAuthHeader() != nil else {
+				return fallbackPlan(for: profile)
+			}
 		}
-		
-        let systemMessage = languagePolicy.regeneratePlanSystemPrompt
+
+        var systemMessage = languagePolicy.regeneratePlanSystemPrompt
+        if !catalog.isEmpty {
+            systemMessage += buildExerciseCatalogSection(catalog, preferChinese: languagePolicy.prefersSimplifiedChinese)
+        }
         let userMessage = profilePrompt(profile: profile, userRequest: userRequest)
         
 		let requestBody = ChatCompletionRequest(
-			model: textModel,
+			model: effectiveTextModel,
 			messages: [
 				ChatCompletionRequest.Message(role: "system", content: systemMessage),
 				ChatCompletionRequest.Message(role: "user", content: userMessage)
@@ -265,21 +344,67 @@ class AIService {
 			stream: true
 		)
 		let content = try await sendStreamingRequest(body: requestBody)
-		let cleanedContent = cleanMarkdownCodeBlock(content)
-        
+        let candidate = Self.extractJSONObject(from: content) ?? cleanMarkdownCodeBlock(content)
+
         // 解析 JSON 并创建 WorkoutPlan；解析失败时使用本地兜底计划
         do {
-            return try parseWorkoutPlan(from: cleanedContent, profile: profile)
+            return try parseWorkoutPlan(from: candidate, profile: profile, catalog: catalog)
         } catch {
             return fallbackPlan(for: profile)
         }
     }
+
+    // MARK: - 动作库注入 & 匹配
+
+    /// 构造注入 system prompt 的动作清单段落。只放"名字"（控 token），
+    /// 数量上限 400 个，避免 prompt 过大。
+    private func buildExerciseCatalogSection(_ catalog: [ExerciseTemplate], preferChinese: Bool) -> String {
+        let names = catalog.prefix(400).map { $0.displayName }
+        guard !names.isEmpty else { return "" }
+        let list = names.joined(separator: ", ")
+        if preferChinese {
+            return """
+
+
+            可用动作库（你生成计划时必须优先从下面这份清单里挑选动作，并**原样使用清单中的英文动作名**填入 exercises[].name；只有当清单里确实没有合适动作时才允许自创）：
+            \(list)
+            """
+        }
+        return """
+
+
+        Available exercise library (when building the plan you must prefer exercises from the list below and use the exact exercise name from the list for exercises[].name; only invent a new name if nothing suitable exists):
+        \(list)
+        """
+    }
+
+    /// 按名把解析出的动作匹配回 ExerciseTemplate（大小写不敏感 + 唯一近似匹配）。
+    private func matchTemplate(name: String, in catalog: [ExerciseTemplate]) -> ExerciseTemplate? {
+        guard !catalog.isEmpty else { return nil }
+        let target = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let exact = catalog.first(where: { $0.displayName.caseInsensitiveCompare(target) == .orderedSame }) {
+            return exact
+        }
+        let fuzzy = catalog.filter {
+            $0.displayName.localizedCaseInsensitiveContains(target) || target.localizedCaseInsensitiveContains($0.displayName)
+        }
+        return fuzzy.count == 1 ? fuzzy.first : nil
+    }
     
     // MARK: - AI 助手对话（支持计划修改）
-	func chat(userMessage: String, profile: UserProfile, plan: WorkoutPlan) async throws -> (response: String, command: AIActionCommand?) {
+	func chat(userMessage: String, profile: UserProfile, plan: WorkoutPlan, catalog: [ExerciseTemplate] = []) async throws -> (response: String, command: AIActionCommand?) {
 		// 序列化当前计划为 JSON（简化版）
         let planContext = serializePlanToContext(plan: plan, profile: profile)
-        
+
+        // 注入动作库清单：让 AI 在修改/新增动作时优先使用库内精确名称，
+        // 这样解析后的动作能回连 ExerciseTemplate，打通 GIF 演示与详情。
+        let catalogSection = catalog.isEmpty
+            ? ""
+            : buildExerciseCatalogSection(catalog, preferChinese: languagePolicy.prefersSimplifiedChinese)
+        let libraryModifyNote = languagePolicy.prefersSimplifiedChinese
+            ? "修改/新增动作时，old_exercise、new_exercise、exercise_name 必须使用上面动作库清单里的精确名称（优先英文动作名，或其对应的中文显示名）。若清单里确实没有，才允许自造动作名。"
+            : "When modifying or adding exercises, old_exercise, new_exercise, and exercise_name MUST use the exact names from the exercise library list above (prefer the English name, or its Chinese display name). Only invent a name if nothing suitable exists in the list."
+
         let systemMessage = """
         \(languagePolicy.chatSystemIntro)
 
@@ -294,12 +419,16 @@ class AIService {
 
         \(languagePolicy.actionJSONExample)
 
+        \(libraryModifyNote)
+
+        \(catalogSection)
+
         \(languagePolicy.prefersSimplifiedChinese ? "重要：如果返回 JSON，不要包含任何 Markdown 标记（如 ```json），只返回纯 JSON。" : "Important: if returning JSON, return raw JSON only. Do not include Markdown fences or explanatory text.")
         \(languagePolicy.responseLanguageInstruction)
         """
         
 		let requestBody = ChatCompletionRequest(
-			model: textModel,
+			model: effectiveTextModel,
 			messages: [
 				ChatCompletionRequest.Message(role: "system", content: systemMessage),
 				ChatCompletionRequest.Message(role: "user", content: userMessage)
@@ -307,15 +436,17 @@ class AIService {
 			stream: true
 		)
 		let content = try await sendStreamingRequest(body: requestBody)
-		let cleanedContent = cleanMarkdownCodeBlock(content)
-        
+        // 优先从文本中抽出结构化 JSON 对象（兼容废话/Markdown 围栏包裹的情况），
+        // 抽不到再退回纯清理后的文本。
+        let candidate = Self.extractJSONObject(from: content) ?? cleanMarkdownCodeBlock(content)
+
         // 尝试解析为 JSON 指令
-        if let command = try? parseActionCommand(from: cleanedContent) {
+        if let command = try? parseActionCommand(from: candidate) {
             // 返回空字符串和指令（不显示 JSON 给用户）
             return ("", command)
         } else {
             // 普通文本回复
-            return (cleanedContent, nil)
+            return (content.trimmingCharacters(in: .whitespacesAndNewlines), nil)
         }
     }
     
@@ -453,6 +584,42 @@ class AIService {
     }
     
     // MARK: - 解析 AI 操作指令
+
+    /// 从可能含有废话、Markdown 围栏、前后缀说明文字的文本里，抽出一个结构完整的
+    /// JSON 对象（支持嵌套大括号与字符串内的转义引号）。抽不到返回 nil。
+    ///
+    /// 这是“让修改计划真正生效”的关键兜底：MiniMax 等模型不一定返回纯净 JSON，
+    /// 常见情况有「根据渐进超负荷原则… ```json {...} ```」或前后带解释文字，
+    /// 直接 `JSONDecoder().decode` 会失败 → 解析不到指令 → 计划不改动。
+    private static func extractJSONObject(from text: String) -> String? {
+        guard let start = text.firstIndex(of: "{") else { return nil }
+        var depth = 0
+        var inString = false
+        var escaped = false
+        var endIndex: String.Index? = nil
+        let indices = text[start..<text.endIndex].indices
+        for i in indices {
+            let c = text[i]
+            if inString {
+                if escaped { escaped = false }
+                else if c == "\\" { escaped = true }
+                else if c == "\"" { inString = false }
+            } else {
+                if c == "\"" { inString = true }
+                else if c == "{" { depth += 1 }
+                else if c == "}" {
+                    depth -= 1
+                    if depth == 0 {
+                        endIndex = i
+                        break
+                    }
+                }
+            }
+        }
+        guard let end = endIndex else { return nil }
+        return String(text[start...end])
+    }
+
     private func parseActionCommand(from jsonString: String) throws -> AIActionCommand {
         guard let jsonData = jsonString.data(using: .utf8) else {
             throw AIServiceError.decodingError(NSError(domain: "AIService", code: -1))
@@ -481,7 +648,7 @@ class AIService {
     }
     
     // MARK: - 辅助方法：解析 JSON 为 WorkoutPlan
-    private func parseWorkoutPlan(from jsonString: String, profile: UserProfile) throws -> WorkoutPlan {
+    private func parseWorkoutPlan(from jsonString: String, profile: UserProfile, catalog: [ExerciseTemplate] = []) throws -> WorkoutPlan {
         // 定义临时解析结构
         struct PlanJSON: Codable {
             let name: String
@@ -556,6 +723,8 @@ class AIService {
                         weight: exerciseJSON.weight,
                         notes: exerciseJSON.notes ?? ""
                     )
+                    // 尝试把 AI 返回的动作名回连到动作库模板（同源）
+                    exercise.template = matchTemplate(name: exerciseJSON.name, in: catalog)
                     exercise.workoutDay = workoutDay
                     
                     if workoutDay.exercises == nil {
@@ -617,7 +786,7 @@ class AIService {
 	func dietChat(userMessage: String) async throws -> String {
 		let systemMessage = languagePolicy.dietCoachSystemPrompt
 		let requestBody = ChatCompletionRequest(
-			model: textModel,
+			model: effectiveTextModel,
 			messages: [
 				ChatCompletionRequest.Message(role: "system", content: systemMessage),
 			ChatCompletionRequest.Message(role: "user", content: userMessage)
@@ -647,7 +816,7 @@ class AIService {
 			userContents.append(content)
 		}
 		let requestBody = VisionChatCompletionRequest(
-			model: dietImageModel,
+			model: effectiveVisionModel,
 			messages: [
 				VisionChatCompletionRequest.Message(
 					role: "system",
@@ -700,7 +869,7 @@ class AIService {
 			}
 		}
 		let requestBody = ChatCompletionRequest(
-			model: textModel,
+			model: effectiveTextModel,
 			messages: [
 				ChatCompletionRequest.Message(role: "system", content: systemMessage),
 			ChatCompletionRequest.Message(role: "user", content: description)
@@ -708,8 +877,8 @@ class AIService {
 			stream: true
 		)
 		let content = try await sendStreamingRequest(body: requestBody)
-		let cleaned = cleanMarkdownCodeBlock(content)
-        guard let jsonData = cleaned.data(using: .utf8) else { throw AIServiceError.decodingError(NSError(domain: "AIService", code: -1)) }
+		let candidate = Self.extractJSONObject(from: content) ?? cleanMarkdownCodeBlock(content)
+        guard let jsonData = candidate.data(using: .utf8) else { throw AIServiceError.decodingError(NSError(domain: "AIService", code: -1)) }
         return try JSONDecoder().decode(DietAnalyzeResponse.self, from: jsonData)
     }
 
@@ -737,7 +906,7 @@ class AIService {
 			}
 		}
 		let requestBody = VisionChatCompletionRequest(
-			model: dietImageModel,
+			model: effectiveVisionModel,
 			messages: [
 				VisionChatCompletionRequest.Message(
 					role: "system",
@@ -751,7 +920,7 @@ class AIService {
 			stream: true
 		)
 		let content = try await sendStreamingRequest(body: requestBody)
-		let cleaned = cleanMarkdownCodeBlock(content)
+		let cleaned = Self.extractJSONObject(from: content) ?? cleanMarkdownCodeBlock(content)
         guard let jsonData = cleaned.data(using: .utf8) else { throw AIServiceError.decodingError(NSError(domain: "AIService", code: -1)) }
         return try JSONDecoder().decode(DietAnalyzeResponse.self, from: jsonData)
     }
@@ -787,7 +956,7 @@ class AIService {
         }
 
         let requestBody = VisionChatCompletionRequest(
-            model: formSkeletonVisionModel,
+            model: effectiveVisionModel,
             messages: [
                 VisionChatCompletionRequest.Message(
                     role: "system",
@@ -802,8 +971,8 @@ class AIService {
             ],
             stream: true
         )
-        let content = try await sendStreamingRequest(body: requestBody)
-        let cleaned = cleanMarkdownCodeBlock(content)
+		let content = try await sendStreamingRequest(body: requestBody)
+		let cleaned = Self.extractJSONObject(from: content) ?? cleanMarkdownCodeBlock(content)
         guard let jsonData = cleaned.data(using: .utf8) else {
             throw AIServiceError.decodingError(NSError(domain: "AIService", code: -1))
         }
@@ -847,7 +1016,7 @@ class AIService {
     }
 
 	func analyzeFitnessMedia(userMessage: String, profile: UserProfile, plan: WorkoutPlan?, images: [Data], videos: [Data]) async throws -> String {
-		let mediaModel = videos.isEmpty ? fitnessImageModel : fitnessVideoModel
+		let mediaModel = effectiveVisionModel
 		var systemContents: [VisionChatCompletionRequest.Content] = []
         let systemText = languagePolicy.fitnessMediaSystemPrompt
         let systemContent = VisionChatCompletionRequest.Content(type: "text", text: systemText, image_url: nil, video_url: nil)

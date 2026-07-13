@@ -24,6 +24,7 @@ struct FitGeniusApp: App {
             WorkoutDay.self,
             Exercise.self,
             ExerciseLog.self,
+            ExerciseTemplate.self,
             ChatMessage.self,
             MealEntry.self,
             MealDay.self,
@@ -49,6 +50,10 @@ struct FitGeniusApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(auth)
+                .task {
+                    // 首启把动作库种子写入 SwiftData（一次性，已写入则跳过）
+                    await ExerciseCatalogSeed.ensureSeeded(modelContext: modelContainer.mainContext)
+                }
                 .onOpenURL { url in
                     handleDeepLink(url: url)
                 }

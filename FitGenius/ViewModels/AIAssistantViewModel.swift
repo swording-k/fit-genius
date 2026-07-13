@@ -17,7 +17,7 @@ class AIAssistantViewModel: ObservableObject {
     @Published var showPlanRegenerationAlert: Bool = false
     @Published var showClearHistoryAlert: Bool = false
     @Published var pendingUserMessage: String = ""
-    @Published var suggestionOnly: Bool = true
+    @Published var suggestionOnly: Bool = false
     
     // 待发送的媒体
     @Published var pendingMediaData: Data?
@@ -405,18 +405,22 @@ class AIAssistantViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
+        // 动作库目录：供 AI 同源取动作名，并供本地把 AI 返回的名字解析回连 ExerciseTemplate。
+        let catalog = ExerciseTemplate.catalog(for: profile, in: modelContext)
+        
         do {
             // 调用 AI 服务
             let (response, command) = try await aiService.chat(
                 userMessage: messageWithRecentFormContext(messageWithRecentConversationContext(userMessage)),
                 profile: profile,
-                plan: plan
+                plan: plan,
+                catalog: catalog
             )
             
             // 如果有操作指令，执行它
             if let command = command {
-                let feedbackMessage = try executeCommand(command, plan: plan)
-                
+                let feedbackMessage = try executeCommand(command, plan: plan, catalog: catalog)
+
                 // 添加系统反馈消息
                 let systemMessage = ChatMessage(
                     content: feedbackMessage,
@@ -430,6 +434,16 @@ class AIAssistantViewModel: ObservableObject {
                 let aiMessage = ChatMessage(content: AIResponseFormatter.displayText(from: response), isUser: false)
                 modelContext.insert(aiMessage)
                 messages.append(aiMessage)
+            } else {
+                // 既没有可执行的指令，也没有可显示的文本（通常是 AI 返回了空内容或
+                // 无法解析为动作指令）。给一句明确的中文/英文引导，而不是什么都不显示，
+                // 让用户知道怎么表达才能触发计划修改。
+                let hint = languagePolicy.prefersSimplifiedChinese
+                    ? "我没有理解成具体的动作修改。请更明确一些，例如：\n• 把第1天的杠铃卧推换成哑铃飞鸟\n• 第2天加一个高位下拉\n• 把第1天的卧推改成5组\n• 删除第3天的绳索下压"
+                    : "I couldn't interpret that as a specific plan edit. Try being explicit, e.g.:\n• Replace barbell bench press with dumbbell fly on day 1\n• Add lat pulldown to day 2\n• Change day 1 bench press to 5 sets\n• Remove cable pushdown from day 3"
+                let hintMessage = ChatMessage(content: hint, isUser: false, isSystemAction: true)
+                modelContext.insert(hintMessage)
+                messages.append(hintMessage)
             }
             
             isLoading = false
@@ -437,11 +451,18 @@ class AIAssistantViewModel: ObservableObject {
         } catch {
             isLoading = false
             errorMessage = error.localizedDescription
-            
-            let errorChatMessage = ChatMessage(
-                content: localizedFailure(prefixChinese: "抱歉，出现了错误", prefixEnglish: "Sorry, something went wrong", error: error),
-                isUser: false
-            )
+
+            // 针对“AI 返回空内容”给出更友好的重试/改法引导，而不是只显示原始错误。
+            let message: String
+            if case .emptyContent = error as? AIServiceError {
+                message = languagePolicy.prefersSimplifiedChinese
+                    ? "AI 暂时没有返回有效内容，请稍后再试；或换一种更明确的改法，例如：「把第1天的杠铃卧推换成哑铃飞鸟」。"
+                    : "The AI didn't return usable content. Please retry, or rephrase the edit, e.g. \"Replace barbell bench press with dumbbell fly on day 1\"."
+            } else {
+                message = localizedFailure(prefixChinese: "抱歉，出现了错误", prefixEnglish: "Sorry, something went wrong", error: error)
+            }
+
+            let errorChatMessage = ChatMessage(content: message, isUser: false)
             modelContext.insert(errorChatMessage)
             messages.append(errorChatMessage)
         }
@@ -535,10 +556,13 @@ class AIAssistantViewModel: ObservableObject {
         errorMessage = nil
         
         do {
+            // 按用户环境/器械筛选动作库，供 AI 重新生成计划时同源取用
+            let catalog = ExerciseTemplate.catalog(for: profile, in: modelContext)
             // 调用 AI 服务重新生成计划
             let newPlan = try await aiService.regeneratePlan(
                 profile: profile,
-                userRequest: pendingUserMessage
+                userRequest: pendingUserMessage,
+                catalog: catalog
             )
             
             // 先持久化新计划，不改变现有链接，避免空状态闪断
@@ -579,23 +603,23 @@ class AIAssistantViewModel: ObservableObject {
     }
     
     // MARK: - 执行 AI 操作指令
-    private func executeCommand(_ command: AIActionCommand, plan: WorkoutPlan) throws -> String {
+    private func executeCommand(_ command: AIActionCommand, plan: WorkoutPlan, catalog: [ExerciseTemplate]) throws -> String {
         var feedbackMessages: [String] = []
         
         for action in command.actions {
             switch command.type {
             case "update_plan":
-                if let feedback = updateExercise(action: action, plan: plan) {
+                if let feedback = updateExercise(action: action, plan: plan, catalog: catalog) {
                     feedbackMessages.append(feedback)
                 }
                 
             case "add_exercise":
-                if let feedback = addExercise(action: action, plan: plan) {
+                if let feedback = addExercise(action: action, plan: plan, catalog: catalog) {
                     feedbackMessages.append(feedback)
                 }
                 
             case "remove_exercise":
-                if let feedback = removeExercise(action: action, plan: plan) {
+                if let feedback = removeExercise(action: action, plan: plan, catalog: catalog) {
                     feedbackMessages.append(feedback)
                 }
                 
@@ -610,8 +634,24 @@ class AIAssistantViewModel: ObservableObject {
         return feedbackMessages.isEmpty ? (languagePolicy.prefersSimplifiedChinese ? "操作完成" : "Done") : feedbackMessages.joined(separator: "\n")
     }
     
+    // MARK: - 把 AI 返回的动作名解析回动作库
+    /// 将 AI 给的动作名解析为动作库里的规范显示名（与 `ExerciseTemplate.displayName` 对齐），
+    /// 并返回对应模板，用于回连 GIF 演示与详情。模糊匹配仅在唯一命中时采用，避免误改。
+    private func resolveCatalogName(_ name: String, catalog: [ExerciseTemplate]) -> (displayName: String, template: ExerciseTemplate?) {
+        let target = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !catalog.isEmpty else { return (target, nil) }
+        if let exact = catalog.first(where: { $0.displayName.caseInsensitiveCompare(target) == .orderedSame }) {
+            return (exact.displayName, exact)
+        }
+        let fuzzy = catalog.filter {
+            $0.displayName.localizedCaseInsensitiveContains(target) || target.localizedCaseInsensitiveContains($0.displayName)
+        }
+        if fuzzy.count == 1 { return (fuzzy.first!.displayName, fuzzy.first!) }
+        return (target, nil)
+    }
+    
     // MARK: - 更新动作
-    private func updateExercise(action: AIActionCommand.Action, plan: WorkoutPlan) -> String? {
+    private func updateExercise(action: AIActionCommand.Action, plan: WorkoutPlan, catalog: [ExerciseTemplate]) -> String? {
         guard let dayNumber = action.day,
               let oldName = action.oldExercise,
               let newName = action.newExercise else {
@@ -623,21 +663,30 @@ class AIAssistantViewModel: ObservableObject {
             return dayNotFoundMessage(dayNumber)
         }
         
-        // 找到要替换的动作（优先精确匹配，失败时仅在唯一近似匹配时回退）
-        let exactMatches = (day.exercises ?? []).filter { $0.name.caseInsensitiveCompare(oldName) == .orderedSame }
+        // 找到要替换的动作（优先精确匹配动作名或其模板显示名，失败时仅在唯一近似匹配时回退）
+        let exactMatches = (day.exercises ?? []).filter {
+            $0.name.caseInsensitiveCompare(oldName) == .orderedSame
+            || ($0.template?.displayName.caseInsensitiveCompare(oldName) == .orderedSame)
+        }
         let targetExercise: Exercise?
         if exactMatches.count == 1 {
             targetExercise = exactMatches.first
         } else {
-            let fuzzyMatches = (day.exercises ?? []).filter { $0.name.localizedCaseInsensitiveContains(oldName) || oldName.localizedCaseInsensitiveContains($0.name) }
+            let fuzzyMatches = (day.exercises ?? []).filter {
+                $0.name.localizedCaseInsensitiveContains(oldName)
+                || oldName.localizedCaseInsensitiveContains($0.name)
+                || ($0.template?.displayName.localizedCaseInsensitiveContains(oldName) ?? false)
+            }
             targetExercise = (fuzzyMatches.count == 1) ? fuzzyMatches.first : nil
         }
         guard let exercise = targetExercise else {
             return exerciseNotFoundMessage(dayNumber: dayNumber, exerciseName: oldName)
         }
         
-        // 更新动作信息
-        exercise.name = newName
+        // 更新动作信息：新名字按动作库解析为规范名，并回连模板（打通 GIF/详情）
+        let resolved = resolveCatalogName(newName, catalog: catalog)
+        exercise.name = resolved.displayName
+        exercise.template = resolved.template
         if let sets = action.sets {
             exercise.sets = sets
         }
@@ -650,12 +699,12 @@ class AIAssistantViewModel: ObservableObject {
         
         let reason = action.reason ?? defaultUpdateReason
         return languagePolicy.prefersSimplifiedChinese
-            ? "✅ 已将第 \(dayNumber) 天的「\(oldName)」替换为「\(newName)」\n原因：\(reason)"
-            : "✅ Replaced \(oldName) with \(newName) on day \(dayNumber).\nReason: \(reason)"
+            ? "✅ 已将第 \(dayNumber) 天的「\(oldName)」替换为「\(resolved.displayName)」\n原因：\(reason)"
+            : "✅ Replaced \(oldName) with \(resolved.displayName) on day \(dayNumber).\nReason: \(reason)"
     }
     
     // MARK: - 添加动作
-    private func addExercise(action: AIActionCommand.Action, plan: WorkoutPlan) -> String? {
+    private func addExercise(action: AIActionCommand.Action, plan: WorkoutPlan, catalog: [ExerciseTemplate]) -> String? {
         guard let dayNumber = action.day,
               let exerciseName = action.newExercise ?? action.exerciseName else {
             return nil
@@ -666,13 +715,15 @@ class AIAssistantViewModel: ObservableObject {
             return dayNotFoundMessage(dayNumber)
         }
         
-        // 创建新动作
+        // 创建新动作：名字按动作库解析为规范名，并回连模板（打通 GIF/详情）
+        let resolved = resolveCatalogName(exerciseName, catalog: catalog)
         let newExercise = Exercise(
-            name: exerciseName,
+            name: resolved.displayName,
             sets: action.sets ?? 3,
             reps: action.reps ?? "8-12",
             weight: action.weight ?? 0
         )
+        newExercise.template = resolved.template
         newExercise.workoutDay = day
         if day.exercises == nil { day.exercises = [] }
         newExercise.orderIndex = (day.exercises ?? []).count
@@ -681,12 +732,12 @@ class AIAssistantViewModel: ObservableObject {
         
         let reason = action.reason ?? defaultAddReason
         return languagePolicy.prefersSimplifiedChinese
-            ? "✅ 已在第 \(dayNumber) 天添加动作「\(exerciseName)」\n原因：\(reason)"
-            : "✅ Added \(exerciseName) to day \(dayNumber).\nReason: \(reason)"
+            ? "✅ 已在第 \(dayNumber) 天添加动作「\(resolved.displayName)」\n原因：\(reason)"
+            : "✅ Added \(resolved.displayName) to day \(dayNumber).\nReason: \(reason)"
     }
     
     // MARK: - 删除动作
-    private func removeExercise(action: AIActionCommand.Action, plan: WorkoutPlan) -> String? {
+    private func removeExercise(action: AIActionCommand.Action, plan: WorkoutPlan, catalog: [ExerciseTemplate]) -> String? {
         guard let dayNumber = action.day,
               let exerciseName = action.exerciseName ?? action.oldExercise else {
             return nil
@@ -699,14 +750,17 @@ class AIAssistantViewModel: ObservableObject {
         
         // 找到要删除的动作（优先精确匹配，失败时仅在唯一近似匹配时回退）
         let exactIndexes = (day.exercises ?? []).enumerated().compactMap { idx, ex in
-            ex.name.caseInsensitiveCompare(exerciseName) == .orderedSame ? idx : nil
+            (ex.name.caseInsensitiveCompare(exerciseName) == .orderedSame
+             || ex.template?.displayName.caseInsensitiveCompare(exerciseName) == .orderedSame) ? idx : nil
         }
         var index: Int?
         if exactIndexes.count == 1 {
             index = exactIndexes.first
         } else {
             let fuzzyIndexes = (day.exercises ?? []).enumerated().compactMap { idx, ex in
-                (ex.name.localizedCaseInsensitiveContains(exerciseName) || exerciseName.localizedCaseInsensitiveContains(ex.name)) ? idx : nil
+                (ex.name.localizedCaseInsensitiveContains(exerciseName)
+                 || exerciseName.localizedCaseInsensitiveContains(ex.name)
+                 || (ex.template?.displayName.localizedCaseInsensitiveContains(exerciseName) ?? false)) ? idx : nil
             }
             index = (fuzzyIndexes.count == 1) ? fuzzyIndexes.first : nil
         }
