@@ -35,7 +35,8 @@ struct AnimatedGIFView: View {
         ZStack {
             switch state {
             case .loaded(let image):
-                AnimatedImageContainer(image: image)
+                // 缩略图只显示首帧静态图（不播动画），详情页才播放完整动图。
+                AnimatedImageContainer(image: image, animate: style == .detail)
             case .loading:
                 loadingView
             case .failed:
@@ -106,24 +107,40 @@ struct AnimatedGIFView: View {
         }
         state = .loading
 
+        // 缩略图只解码首帧（并按显示尺寸降采样），避免把每个 GIF 的全部帧常驻内存，
+        // 否则动作库列表滚动时会累积数百 MB 解码帧导致系统强杀（signal 9 / OOM）。
+        let isThumbnail = style == .thumbnail
+
         // 1) 命中沙盒缓存（key 不变，两种 CDN 共享）
-        if !force, let cached = Self.cachedData(for: cacheKey),
-           let image = Self.animatedImage(from: cached) {
-            state = .loaded(image)
-            return
+        if !force, let cached = Self.cachedData(for: cacheKey) {
+            if isThumbnail {
+                if let first = Self.firstFrame(from: cached, maxPixelSize: 160) {
+                    state = .loaded(first)
+                    return
+                }
+            } else if let image = Self.animatedImage(from: cached) {
+                state = .loaded(image)
+                return
+            }
         }
 
         // 2) 依次尝试候选地址：国内可达的 jsDelivr 优先，raw.githubusercontent 兜底。
         for url in ExerciseMedia.candidateURLs(for: urlString) {
             do {
                 let (data, response) = try await URLSession.shared.data(from: url)
-                guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode),
-                      let image = Self.animatedImage(from: data) else {
+                guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
                     continue
                 }
                 Self.writeCache(data, for: cacheKey)
-                state = .loaded(image)
-                return
+                if isThumbnail {
+                    if let first = Self.firstFrame(from: data, maxPixelSize: 160) {
+                        state = .loaded(first)
+                        return
+                    }
+                } else if let image = Self.animatedImage(from: data) {
+                    state = .loaded(image)
+                    return
+                }
             } catch {
                 continue
             }
@@ -174,6 +191,31 @@ struct AnimatedGIFView: View {
         return UIImage.animatedImage(with: frames, duration: totalDuration > 0 ? totalDuration : Double(frames.count) / 20.0)
     }
 
+    /// 仅解码 GIF 首帧，并按 `maxPixelSize` 降采样，用于列表缩略图。
+    /// 内存开销从“全部帧全分辨率”（数十 MB）降到单张小图（数十 KB），
+    /// 避免动作库列表滚动时内存无限累积导致 OOM 强杀。
+    static func firstFrame(from data: Data, maxPixelSize: Int? = nil) -> UIImage? {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil) else {
+            return UIImage(data: data)
+        }
+        guard CGImageSourceGetCount(source) > 0 else { return UIImage(data: data) }
+
+        if let maxPixelSize {
+            let opts = [
+                kCGImageSourceCreateThumbnailFromImageAlways: true,
+                kCGImageSourceThumbnailMaxPixelSize: maxPixelSize,
+                kCGImageSourceCreateThumbnailFromImageIfAbsent: true
+            ] as CFDictionary
+            if let cg = CGImageSourceCreateThumbnailAtIndex(source, 0, opts) {
+                return UIImage(cgImage: cg)
+            }
+        }
+        guard let cg = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
+            return UIImage(data: data)
+        }
+        return UIImage(cgImage: cg)
+    }
+
     private static func frameDuration(source: CGImageSource, index: Int) -> Double {
         guard let props = CGImageSourceCopyPropertiesAtIndex(source, index, nil) as? [CFString: Any],
               let gif = props[kCGImagePropertyGIFDictionary] as? [CFString: Any] else {
@@ -192,6 +234,8 @@ struct AnimatedGIFView: View {
 /// 用 UIImageView 播放 animatedImage（SwiftUI Image 不支持逐帧 GIF）。
 private struct AnimatedImageContainer: UIViewRepresentable {
     let image: UIImage
+    /// 是否播放动画。缩略图传 false（仅显示首帧静态图），避免常驻解码帧占内存。
+    let animate: Bool
 
     func makeUIView(context: Context) -> UIImageView {
         let view = UIImageView()
@@ -217,7 +261,11 @@ private struct AnimatedImageContainer: UIViewRepresentable {
                 uiView.trailingAnchor.constraint(equalTo: superview.trailingAnchor)
             ])
         }
-        uiView.startAnimating()
+        if animate {
+            uiView.startAnimating()
+        } else {
+            uiView.stopAnimating()
+        }
     }
 }
 
