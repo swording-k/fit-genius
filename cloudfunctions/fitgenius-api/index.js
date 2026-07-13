@@ -77,14 +77,14 @@ exports.main = async (event, context) => {
     const upstreamBody = {
       model: resolveUpstreamModel(model, provider),
       messages,
-      stream: false  // Cloud Functions don't support SSE; use non-streaming
-      // NOTE: We deliberately do NOT enable `reasoning_split` here.
-      // Fitness-plan / action-command outputs are structured JSON. Reasoning mode
-      // (a) is slow and often trips the 50s Cloud Function timeout, (b) sometimes
-      // returns an EMPTY `content` (answer pushed into `reasoning_content`), and
-      // (c) wraps the JSON in filler text + markdown fences — all of which break
-      // the iOS client parser and make "modify plan" appear to do nothing.
-      // reasoning_split: false
+      stream: false,  // Cloud Functions don't support SSE; use non-streaming
+      // Disable MiniMax-M3 thinking mode. We need fast, structured JSON for
+      // plan-modification commands. Thinking mode emits <think>…</think> tags and,
+      // on vague "整体加强"-style requests, can spin in reasoning past the 50s SCF
+      // timeout without ever emitting the JSON the iOS client needs.
+      // (reasoning_split only controls HOW thinking is returned; it cannot turn
+      // thinking off — `thinking: {type:"disabled"}` is what actually disables it.)
+      thinking: { type: "disabled" }
     };
 
     try {
