@@ -41,7 +41,7 @@
 
 FitGenius 是一款原生 iOS 健身应用，支持**训练计划管理**和**饮食追踪**双模式，通过 AI 技术为用户生成个性化训练计划，并提供智能饮食分析和营养建议。
 
-AI 请求统一通过 Vercel 的 provider-neutral 代理；当前主用 MiniMax，Aliyun 仅作紧急回滚。iOS 包内不含任何第三方 API key。
+AI 请求统一通过**腾讯云 CloudBase** 的 provider-neutral 代理（云函数 `fitgenius-api`）；当前主用 MiniMax-M3，Aliyun 仅作紧急回滚。iOS 包内不含任何第三方 API key——也支持 App 内「直连模式」填自有 Key，完全不依赖后端。
 
 ### ✨ 核心特性
 
@@ -70,7 +70,7 @@ AI 请求统一通过 Vercel 的 provider-neutral 代理；当前主用 MiniMax�
 #### 🔐 隐私与安全
 - 🍎 **Apple 登录**：支持 Sign in with Apple，保护用户隐私
 - 📴 **本地优先**：数据主要存储在本地设备
-- ☁️ **后端云同步**：登录后通过 Vercel + Neon 同步训练计划、饮食记录和账户快照
+- ☁️ **后端云同步**：登录后通过腾讯云 CloudBase 同步训练计划、饮食记录和账户快照
 - 🔒 **健康免责声明**：所有健康建议均标注来源，仅供参考
 
 ---
@@ -171,18 +171,28 @@ AI 根据这些信息生成定制化训练计划。
 - **用户可见反馈图**：始终使用真实视频截帧作为背景，在截帧上绘制绿色骨架和红色问题位置；骨架白底图只作为内部 AI 教练理解动作的辅助输入，不作为主反馈图展示。
 - **AI 教练补充**：大模型根据本地指标、问题列表和骨架关键帧生成解释、修正口令和练习建议；它不能覆盖本地评分或编造未检测到的问题。
 - **饮食图片识别**：饮食图片使用快速稳定的多模态模型路径，结果写回每餐热量、蛋白质、碳水和脂肪；复杂混合餐会要求模型拆分主食、蛋白、蔬菜和油脂/酱汁进行估算。
-- **隐私边界**：原始训练视频不上传到多模态 AI 接口；AI provider key 只在 Vercel 环境变量中。
+- **隐私边界**：原始训练视频不上传到多模态 AI 接口；AI provider key 只在 CloudBase 后端环境变量中，绝不进 iOS 包。
 
-### 后端（同仓库 monorepo）
+### 后端（同仓库 monorepo，部署于腾讯云 CloudBase）
 | 技术 | 说明 |
 |------|------|
-| Vercel Serverless Functions | `api/*.js` 端点 |
+| 腾讯云 CloudBase 云函数 | `cloudfunctions/fitgenius-api`（Event 函数：`/api/ai/chat`、`/api/auth/apple`）|
 | Node.js 22 | 运行时 |
-| Neon Postgres | 用户与表单分析记录持久化 |
-| `@neondatabase/serverless` | 数据库 driver |
+| MiniMax-M3 | 全模态大模型（视觉 + 文本），经后端代理转发 |
 | `jose` | Apple JWKS 验签 + HS256 session JWT |
+| CloudBase 存储 | 动作库 GIF / 媒体资源 CDN |
 
-> 阿里云 / OpenAI 等 provider 的 API key 只存在于 Vercel 环境变量，**绝不打包进 iOS bundle**。iOS 通过 session JWT 访问 `/api/ai/chat` 代理。
+> **双模式 AI 通道**：① 默认走 CloudBase 代理（iOS 仅持 `Authorization: Bearer <sessionToken>`，provider key 只在后端 env）；② App 内「直连模式」填自有 OpenAI 兼容 Key，免登录、免后端。两种模式 **provider key 绝不进 iOS bundle**。
+
+> ⚠️ 仓库内仍保留早期的 Vercel `api/` + `vercel.json` 方案，但**当前生产环境已迁移至 CloudBase**，`Info.plist` 的 `FitGeniusBackendURL` 指向 CloudBase 域名。
+
+---
+
+## 🛠 构建与运行（开发者）
+
+- **环境要求**：Xcode 15+，部署目标 iOS 17.6+；真机运行需自有 Apple Developer 签名 Team，模拟器无需付费即可运行。
+- **AI 功能接入**：默认连接 CloudBase 后端代理（需后端在线）；若想自托管或纯本地体验，可在 App「我的 → AI 服务」填入自有 OpenAI 兼容 Key 走**直连模式**，无需后端、无需登录。
+- **获取最新源码**：`git clone` 默认分支即为当前可用版本（见版本历史），或下载 `v1.4.0` 标签。
 
 ---
 
@@ -206,7 +216,7 @@ FitGenius 的所有健康、饮食、运动建议均基于以下权威来源：
 
 ## 📝 版本历史
 
-### v1.4.0 - 当前 App Store 版本
+### v1.4.0 - 当前发布候选（送审中）
 - 🐛 **动作库图标修复**：缩略图完整显示（修复 UIImageView 固有尺寸撑破 52×52 容器导致只显示一部分）
 - 🐛 **图片分析修复**：饮食/健身图片分析不再报 `EXCEED_MAX_PAYLOAD_SIZE`（CloudBase JSON 体 ~100KB 硬限，图片压到 ≤50KB 单图发送）
 - 🐛 **AI 改计划修复**：解析失败不再静默兜底“假成功+乱改”，改为保留旧计划并提示用户
@@ -219,7 +229,7 @@ FitGenius 的所有健康、饮食、运动建议均基于以下权威来源：
   - 视频帧提取 → 姿态关键点 → 规则引擎评分
   - AI 助手内输出画线关键帧、动作评分、证据、修正口令、练习方法和下次训练重点
   - 原始训练视频不上传到多模态 AI 接口
-- ✨ **后端基础设施**（Vercel + Neon）
+- ✨ **后端基础设施**（云同步：训练计划 / 饮食记录 / 动作分析 / 账户快照，现基于腾讯云 CloudBase）
   - Apple Sign in token 交换与会话管理
   - AI 代理（iOS 不再直连 provider）
   - 训练计划、饮食记录、动作分析与账户快照云同步
