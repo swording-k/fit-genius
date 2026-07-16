@@ -81,14 +81,14 @@ iOS 包内**不携带**任何 AI provider 真实 key；所有第三方 key 全�
         │       └──────────┬───────────┘                     │
         └──────────────────┼─────────────────────────────────┘
                            ▼
-             （暂无独立数据库：云同步端点 form-analyses /
-              cloud-snapshot 尚未上线 → iOS 端同步目前为 no-op，
-              但 App 离线也能完整可用）
+             （CloudBase NoSQL 集合 form_analyses / cloud_snapshots 已开通，
+              云同步端点已上线 → iOS 端同步为实时备份/跨设备；
+              App 离线也能完整可用，SwiftData 为本地主源）
 ```
 
 数据流要点：
 - iOS 写 SwiftData 是**第一优先级**，离线/弱网也能用；即使云端同步关闭，App 也完整可用。
-- 云同步目前是 **no-op**：iOS 的 `FormAnalysisSyncCoordinator` / `CloudSnapshotCoordinator` 会按 `pending`/`failed` 重试（3 次指数退避 2s/4s/8s）并向 `/api/form-analyses`、`/api/cloud-snapshot` 发请求，但**线上 CloudBase 函数尚未实现这两条路由 + 无数据库**，请求返回 404 被静默吞掉。详见第 9 节「云同步开启条件」。
+- 云同步**已上线**（2026-07-16 经 CloudBase MCP 部署）：iOS 的 `FormAnalysisSyncCoordinator` / `CloudSnapshotCoordinator` 按 `pending`/`failed` 重试（3 次指数退避 2s/4s/8s）并向 `/api/form-analyses`、`/api/cloud-snapshot` 发请求；CloudBase `index.js` 已实现这两条路由（写/读 `form_analyses`、`cloud_snapshots`，按 `userId` 隔离）。网关路由默认关闭「路径透传」，`event.path` 收到 `/`，函数改用 HTTP method 还原路由（POST→form-analyses，GET/PUT→cloud-snapshot），各端点 method 唯一、映射无歧义，**无需改动 iOS 端**。详见第 9 节。
 - AI 走代理：iOS 只发 `Authorization: Bearer <sessionToken>`，**永不**接触 provider key。
 
 ---
@@ -238,8 +238,8 @@ FitGenius/
 | Apple 登录 token 交换 | `AppleAuthAPIClient.exchange(...)` | POST `/api/auth/apple` |
 | Session 存储 | `SyncSettings.setSessionToken(...)` | `UserDefaults`，iOS 端零 Keychain 依赖 |
 | AI 代理 URL | `AIService.resolveBaseURL()` | `backendBaseURL + "/api/ai/chat"` |
-| 表单同步协调 | `FormAnalysisSyncCoordinator` | 3 次指数退避；**当前 no-op**（后端无 `/api/form-analyses`） |
-| 账户快照同步 | `CloudSnapshotCoordinator` | 按账户隔离；**当前 no-op**（后端无 `/api/cloud-snapshot`） |
+| 表单同步协调 | `FormAnalysisSyncCoordinator` | 3 次指数退避；**已上线**（POST `/api/form-analyses`，写 `form_analyses`） |
+| 账户快照同步 | `CloudSnapshotCoordinator` | 按账户隔离；**已上线**（GET/PUT `/api/cloud-snapshot`，读写 `cloud_snapshots`） |
 | Watch 同步 | `WatchSyncService` | 今日训练、逐组完成、休息计时与完成状态 |
 | 数据模型（动作分析） | `Models/Form/FormAnalysisRecord` | `syncStatusRaw` ∈ `pending`/`failed`/`synced` |
 | 规则引擎 | `Services/FormAnalysis/FormRuleEngine` | 平台无关：`PoseFrame` / `JointPoint` / `FormMetric` / `FormIssue` |
@@ -259,30 +259,19 @@ FitGenius/
 
 ---
 
-## 9. 云同步开启条件（iOS 端已就绪，仅差服务端）
+## 9. 云同步现状（iOS 端 + 服务端均已就绪并上线）
 
-**现状**：iOS 端 `FormAnalysisSyncCoordinator`（POST `/api/form-analyses`，payload = `FormAnalysisRecord.syncPayload()`）与 `CloudSnapshotCoordinator`/`CloudSnapshotService`（GET/PUT `/api/cloud-snapshot`，payload = `CloudSnapshot` 全量账户快照）已完整实现并随 scene 回到前台触发。但线上 CloudBase `index.js` 无这 2 条路由、无数据库 → 404 no-op。
+**状态（2026-07-16）**：云同步**已上线**。iOS 端 `FormAnalysisSyncCoordinator`（POST `/api/form-analyses`，payload = `FormAnalysisRecord.syncPayload()`）与 `CloudSnapshotCoordinator`/`CloudSnapshotService`（GET/PUT `/api/cloud-snapshot`，payload = `CloudSnapshot` 全量账户快照）完整实现并随 scene 回到前台触发；服务端 CloudBase `fitgenius-api` 已实现这两条路由，并开通了 NoSQL 集合 `form_analyses` 与 `cloud_snapshots`（按 `userId` 隔离）。端到端已验证：POST 写入、PUT/GET 快照往返、跨用户隔离（404）、无 token 返回 401。
 
-**要真正打开，需补三件事（都在 CloudBase 侧）：**
+**路由实现细节（重要）**：网关 `createRoute` 默认 `EnablePathTransmission = false`，会把请求路径剥离后转发给 Event 函数（`event.path` 收到 `/`）。三条内置路由（health/auth/apple/ai/chat）在初始化时即以 transmission ON 创建，保留真实路径；两条云同步路由通过 transmission-off 路由暴露到默认域名 `fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com`，函数无法从 `event.path` 区分，因此 `index.js` 在 `event.path === "/"` 时按 HTTP method 还原路由（POST→form-analyses，GET/PUT→cloud-snapshot）。各端点 method 唯一，映射无歧义，**无需改动 iOS 端**。若日后在 CloudBase 控制台把这两个路由的「路径透传」打开，函数优先使用 `event.path`，逻辑向后兼容。
 
-1. **加数据库**：在 CloudBase 环境开通 NoSQL 文档数据库（或 MySQL），建集合 `form_analyses` 与 `cloud_snapshots`，按 `userId` 隔离。云函数用 `@cloudbase/node-sdk` 或 CloudBase HTTP API 读写。
-2. **加 2 条路由到 `cloudfunctions/fitgenius-api/index.js`**：
-   - `POST /api/form-analyses`：校验 Bearer session → 写 `form_analyses`。
-   - `GET|PUT /api/cloud-snapshot`：校验 session → 读/写 `cloud_snapshots`（按 userId）。
-3. **绕开 100KB 限制（关键）**：
-   - `form-analyses` 单条记录小，直接 JSON 即可。
-   - `cloud-snapshot` 是全量账户导出，**远超 100KB**，不能塞进 JSON 请求体。正确做法（与图片管线一致）：把快照 JSON 先上传到 **CloudBase Storage** 拿 `fileID`/临时 URL，再 `PUT /api/cloud-snapshot` 只传 URL 指针（走「其他请求 100MB」通道），后端按 URL 落库。GET 时返回 URL，客户端再下载还原。
+**仍需处理的限制（上线前/后）**：
+1. **100KB JSON 上限（关键）**：`form-analyses` 单条记录小，直传 JSON 即可（已验证）。`cloud-snapshot` 是全量账户导出，**对小/新账户可直传**（已验证往返），但大账户会超过 CloudBase HTTP 触发 ~100KB 文本请求体上限（实测超即 `EXCEED_MAX_PAYLOAD_SIZE`）。彻底解法（与图片管线一致）：快照 JSON 先传 **CloudBase Storage** 拿 `fileID`/临时 URL，再 `PUT /api/cloud-snapshot` 只传 URL 指针（走「其他请求 100MB」通道），后端按 URL 落库；GET 返回 URL，客户端再下载还原。该 iOS 端 Storage-first 重构尚未做。
+2. **隐私政策**：必须明确「用户训练/饮食/表单数据存于腾讯云 CloudBase」，否则过不了 App Store 审核（见上线核查）。
 
-**部署约束**：本 agent 沙箱连不上腾讯云控制面（CloudBase MCP `tcb_refresh` ECONNRESET），**无法在此部署**。需在你本机能访问腾讯云的环境执行：
-```bash
-npx @cloudbase/cli deploy -e fitgenius-d0ghm1rz21cef6594
-```
-即服务端代码可在此写好、由你部署。
+**部署**：已于 2026-07-16 通过 CloudBase MCP 完成（非 `tcb` CLI）——`updateFunctionCode` 部署 `index.js` + `@cloudbase/node-sdk`，并在默认域名上以 `createRoute` 暴露两条同步路由。此前 `tcb_refresh` ECONNRESET 的连接面问题已绕开（MCP 直连可用）。
 
-**开启后的影响**：
-- 隐私政策必须明确「用户训练/饮食/表单数据存于腾讯云 CloudBase」，否则过不了审核。
-- 你个人 CloudBase 环境将存真实用户 PII，需自行承担数据安全与合规责任。
-- 不改变「离线优先」：SwiftData 仍是本地主源，同步只是备份/跨设备。
+**开启后的影响**：不改变「离线优先」——SwiftData 仍是本地主源，同步只是备份/跨设备。你个人 CloudBase 环境存真实用户 PII，需自行承担数据安全与合规责任。
 
 ---
 

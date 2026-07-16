@@ -1,12 +1,57 @@
 "use strict";
 
+const cloudbase = require("@cloudbase/node-sdk");
 const { extractBearerToken, verifySessionToken, signSessionToken } = require("./backend/sessionToken.cjs");
 const { resolveAIProviderConfig, resolveUpstreamModel } = require("./backend/aiProviderConfig.cjs");
 const { verifyAppleIdentityToken } = require("./backend/appleTokenVerifier.cjs");
 
+// ── CloudBase NoSQL (server-side) ─────────────────────────
+// The function runs inside the `fitgenius` BaaS env, so node-sdk picks up the
+// env's service identity automatically — no secretId/secretKey needed.
+const ENV_ID = process.env.TCB_ENV || "fitgenius-d0ghm1rz21cef6594";
+const app = cloudbase.init({ env: ENV_ID });
+const db = app.database();
+
+// ── Auth helper ───────────────────────────────────────────
+function authError(status, error) {
+  const e = new Error(error);
+  e.httpStatus = status;
+  e.errorCode = error;
+  return e;
+}
+
+async function authenticate(event) {
+  const authHeader = event.headers?.authorization || event.headers?.Authorization || "";
+  const bearer = extractBearerToken(authHeader);
+  if (!bearer) throw authError(401, "missing_authorization");
+  try {
+    return await verifySessionToken(bearer);
+  } catch {
+    throw authError(401, "invalid_session");
+  }
+}
+
 exports.main = async (event, context) => {
-  const path = (event.path || "/").replace(/\/+$/, "") || "/";
   const method = (event.httpMethod || "GET").toUpperCase();
+  let path = (event.path || "/").replace(/\/+$/, "") || "/";
+
+  // CloudBase HTTP gateway note: routes provisioned via the gateway `createRoute`
+  // action default to EnablePathTransmission = false, which strips the request
+  // path before it reaches this Event function (event.path arrives as "/"). The
+  // built-in routes (health / auth/apple / ai/chat) were provisioned with path
+  // transmission ON and keep their real paths. The two cloud-sync routes
+  // (/api/form-analyses, /api/cloud-snapshot) are served through transmission-off
+  // routes to avoid depending on a console-only flag; we recover the intended
+  // route from the HTTP method, which is unique per sync endpoint:
+  //   POST -> /api/form-analyses        (form-analysis sync, write-only)
+  //   GET  -> /api/cloud-snapshot       (snapshot download)
+  //   PUT  -> /api/cloud-snapshot       (snapshot upload)
+  // A path of "/" can ONLY originate from these transmission-off sync routes, so
+  // this mapping is unambiguous (the transmission-ON routes always carry their
+  // real, non-root path).
+  if (path === "/" && (method === "POST" || method === "GET" || method === "PUT")) {
+    path = method === "POST" ? "/api/form-analyses" : "/api/cloud-snapshot";
+  }
 
   // ── Health ──────────────────────────────────────────────
   if (path === "/api/health") {
@@ -129,6 +174,88 @@ exports.main = async (event, context) => {
     } catch (err) {
       return json(502, { ok: false, error: "upstream_unreachable", detail: err.message || String(err) });
     }
+  }
+
+  // ── Form Analyses Sync (POST) ───────────────────────────
+  // iOS calls FormAnalysisSyncService.sync → POST /api/form-analyses with
+  // `Authorization: Bearer <session>` + `X-FitGenius-User-Id` and a JSON payload.
+  // Success contract: HTTP 2xx AND body.ok === true.
+  if (path === "/api/form-analyses") {
+    if (method !== "POST") return json(405, { ok: false, error: "method_not_allowed" });
+
+    let claims;
+    try { claims = await authenticate(event); }
+    catch (e) { return json(e.httpStatus || 401, { ok: false, error: e.errorCode }); }
+
+    const body = safeParse(event.body);
+    if (!body || typeof body !== "object") {
+      return json(400, { ok: false, error: "invalid_body" });
+    }
+
+    try {
+      const res = await db.collection("form_analyses").add({
+        userId: claims.userId,
+        createdAt: new Date().toISOString(),
+        payload: body
+      });
+      const localIdentifier = (res && (res.id || res._id)) ? String(res.id || res._id) : "";
+      return json(200, { ok: true, localIdentifier, mode: "stored" });
+    } catch (err) {
+      return json(500, { ok: false, error: "db_write_failed", detail: err.message || String(err) });
+    }
+  }
+
+  // ── Cloud Snapshot Sync (GET / PUT) ─────────────────────
+  // iOS CloudSnapshotService:
+  //   GET  → expects 200 + { snapshot, updatedAt }; 404 == no remote snapshot.
+  //   PUT  → sends the full CloudSnapshot JSON; expects 200 + { snapshot, updatedAt }.
+  // NOTE: PUT carries the full account snapshot. Per-user snapshots that exceed
+  // the CloudBase JSON body ~100KB gateway limit will be rejected upstream
+  // (EXCEED_MAX_PAYLOAD_SIZE) before reaching this function. Large-account
+  // support requires an iOS change (upload to Storage, send URL pointer) — see
+  // README "云同步" section. Small/new accounts sync fine as-is.
+  if (path === "/api/cloud-snapshot") {
+    let claims;
+    try { claims = await authenticate(event); }
+    catch (e) { return json(e.httpStatus || 401, { ok: false, error: e.errorCode }); }
+
+    if (method === "GET") {
+      try {
+        const res = await db.collection("cloud_snapshots").where({ userId: claims.userId }).limit(1).get();
+        const docs = (res && res.data) || [];
+        if (docs.length === 0) return json(404, { ok: false, error: "not_found" });
+        const doc = docs[0];
+        return json(200, { ok: true, snapshot: doc.snapshot, updatedAt: doc.updatedAt });
+      } catch (err) {
+        return json(500, { ok: false, error: "db_read_failed", detail: err.message || String(err) });
+      }
+    }
+
+    if (method === "PUT") {
+      const body = safeParse(event.body);
+      if (!body || typeof body !== "object") {
+        return json(400, { ok: false, error: "invalid_body" });
+      }
+      const updatedAt = new Date().toISOString();
+      try {
+        const res = await db.collection("cloud_snapshots").where({ userId: claims.userId }).limit(1).get();
+        const docs = (res && res.data) || [];
+        if (docs.length > 0) {
+          await db.collection("cloud_snapshots").doc(docs[0]._id).update({ snapshot: body, updatedAt });
+        } else {
+          await db.collection("cloud_snapshots").add({
+            userId: claims.userId,
+            snapshot: body,
+            updatedAt
+          });
+        }
+        return json(200, { ok: true, snapshot: body, updatedAt });
+      } catch (err) {
+        return json(500, { ok: false, error: "db_write_failed", detail: err.message || String(err) });
+      }
+    }
+
+    return json(405, { ok: false, error: "method_not_allowed" });
   }
 
   // ── 404 ─────────────────────────────────────────────────
