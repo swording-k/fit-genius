@@ -18,7 +18,7 @@
 [![Platform](https://img.shields.io/badge/Platform-iOS%2017.6+-blue.svg)](https://developer.apple.com/ios/)
 [![SwiftUI](https://img.shields.io/badge/SwiftUI-5.0-green.svg)](https://developer.apple.com/xcode/swiftui/)
 [![SwiftData](https://img.shields.io/badge/SwiftData-Latest-purple.svg)](https://developer.apple.com/xcode/swiftdata/)
-[![Version](https://img.shields.io/badge/Version-1.4.0-blue.svg)](https://github.com/swording-k/fit-genius)
+[![Version](https://img.shields.io/badge/Version-1.5.0-blue.svg)](https://github.com/swordheng-k/fit-genius)
 
 [![App Store](https://img.shields.io/badge/App_Store-已上架-green.svg)]()
 
@@ -192,7 +192,7 @@ AI 根据这些信息生成定制化训练计划。
 
 - **环境要求**：Xcode 15+，部署目标 iOS 17.6+；真机运行需自有 Apple Developer 签名 Team，模拟器无需付费即可运行。
 - **AI 功能接入**：默认连接 CloudBase 后端代理（需后端在线）；若想自托管或纯本地体验，可在 App「我的 → AI 服务」填入自有 OpenAI 兼容 Key 走**直连模式**，无需后端、无需登录。
-- **获取最新源码**：`git clone` 默认分支即为当前可用版本（见版本历史），或下载 `v1.4.0` 标签。
+- **获取最新源码**：`git clone` 默认分支即为当前可用版本（见版本历史），或下载最新 release 标签。
 
 ---
 
@@ -216,7 +216,11 @@ FitGenius 的所有健康、饮食、运动建议均基于以下权威来源：
 
 ## 📝 版本历史
 
-### v1.4.0 - 当前发布候选（送审中）
+### v1.5.0 - 当前发布候选（已合并 main，待 App Store 提审）
+- ✨ **能力感知处方 + 目标多选（v1.5 体验优化）**
+  - 入档新增性别、训练经验采集，目标支持多选，新增「减压/睡眠」目标
+  - AI 提示词按用户基线自动退阶（女性/新手自重复合动作优先退阶版本），用户可对话式要求 AI 修改计划
+  - 隐私政策按真实架构重写（CloudBase 云同步 + MiniMax + 可选登录 + 性别 PII 声明）
 - 🐛 **动作库图标修复**：缩略图完整显示（修复 UIImageView 固有尺寸撑破 52×52 容器导致只显示一部分）
 - 🐛 **图片分析修复**：饮食/健身图片分析不再报 `EXCEED_MAX_PAYLOAD_SIZE`（CloudBase JSON 体 ~100KB 硬限，图片压到 ≤50KB 单图发送）
 - 🐛 **AI 改计划修复**：解析失败不再静默兜底“假成功+乱改”，改为保留旧计划并提示用户
