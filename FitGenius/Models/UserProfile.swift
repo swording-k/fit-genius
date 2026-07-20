@@ -14,7 +14,12 @@ final class UserProfile {
     var environment: WorkoutEnvironment
     var availableEquipment: [String]
     var injuries: String
-    
+
+    // v1.5 新增：能力基线校准字段（均为可选，纯加法，兼容 v1.4 单值 goal，不触发迁移）
+    var goals: [FitnessGoal]?            // 多选目标；为空时由 AI 提示词回退到 goal
+    var biologicalSex: BiologicalSex?   // 生理性别（敏感个人信息，可空/不愿透露）
+    var experienceLevel: ExperienceLevel? // 训练经验水平
+
     // 坚持天数统计
     var streakDays: Int = 0
     var lastCompletedDate: Date?

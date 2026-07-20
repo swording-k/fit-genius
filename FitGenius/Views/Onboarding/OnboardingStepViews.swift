@@ -59,6 +59,32 @@ struct BasicInfoView: View {
                         .textFieldStyle(.roundedBorder)
                         .focused($focusedField, equals: .weight)
                 }
+
+                // 生理性别（可选，敏感信息）
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("生理性别（可选）")
+                        .font(.headline)
+                    Picker("生理性别", selection: $viewModel.selectedBiologicalSex) {
+                        Text("不愿透露").tag(BiologicalSex?.none)
+                        ForEach(BiologicalSex.allCases) { sex in
+                            Text(sex.localizedName).tag(BiologicalSex?(sex))
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+
+                // 训练经验
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("训练经验")
+                        .font(.headline)
+                    Picker("训练经验", selection: $viewModel.selectedExperienceLevel) {
+                        Text("未填写").tag(ExperienceLevel?.none)
+                        ForEach(ExperienceLevel.allCases) { level in
+                            Text(level.localizedName).tag(ExperienceLevel?(level))
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
             }
 
             Spacer()
@@ -115,13 +141,20 @@ struct GoalAndEnvironmentView: View {
 
                         ForEach(FitnessGoal.allCases) { goal in
                             Button(action: {
-                                viewModel.selectedGoal = goal
+                                if viewModel.selectedGoals.contains(goal) {
+                                    // 至少保留一个目标
+                                    if viewModel.selectedGoals.count > 1 {
+                                        viewModel.selectedGoals.removeAll { $0 == goal }
+                                    }
+                                } else {
+                                    viewModel.selectedGoals.append(goal)
+                                }
                             }) {
                                 HStack {
                                     Text(goal.localizedName)
                                         .foregroundColor(.primary)
                                     Spacer()
-                                    if viewModel.selectedGoal == goal {
+                                    if viewModel.selectedGoals.contains(goal) {
                                         Image(systemName: "checkmark.circle.fill")
                                             .foregroundColor(.blue)
                                     }
@@ -129,11 +162,11 @@ struct GoalAndEnvironmentView: View {
                                 .padding()
                                 .background(
                                     RoundedRectangle(cornerRadius: 12)
-                                        .fill(viewModel.selectedGoal == goal ? Color.blue.opacity(0.1) : Color.gray.opacity(0.1))
+                                        .fill(viewModel.selectedGoals.contains(goal) ? Color.blue.opacity(0.1) : Color.gray.opacity(0.1))
                                 )
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12)
-                                        .stroke(viewModel.selectedGoal == goal ? Color.blue : Color.clear, lineWidth: 2)
+                                        .stroke(viewModel.selectedGoals.contains(goal) ? Color.blue : Color.clear, lineWidth: 2)
                                 )
                             }
                         }

@@ -284,7 +284,8 @@ class AIService {
     // MARK: - 生成初始训练计划
 	func generateInitialPlan(profile: UserProfile, catalog: [ExerciseTemplate] = []) async throws -> WorkoutPlan {
 		print("🤖 [AIService] 开始生成训练计划...")
-		print("🤖 [AIService] 用户信息：\(profile.name), \(profile.age)岁, 目标：\(profile.goal.rawValue)")
+		let goalSummary = (profile.goals ?? [profile.goal]).map { $0.localizedName }.joined(separator: "、")
+		print("🤖 [AIService] 用户信息：\(profile.name), \(profile.age)岁, 目标：\(goalSummary)")
 
 		// 直连模式不需要后端地址与登录；只有后端代理模式才强制校验。
 		if !providerSettings.isConfigured {
@@ -502,6 +503,9 @@ class AIService {
             ? languagePolicy.noValueText
             : profile.availableEquipment.joined(separator: ", ")
         let injuries = profile.injuries.isEmpty ? languagePolicy.noValueText : profile.injuries
+        let goalText = (profile.goals ?? [profile.goal]).map { $0.localizedName }.joined(separator: "、")
+        let sexText = profile.biologicalSex.map { "- 生理性别：\($0.localizedName)\n" } ?? ""
+        let expText = profile.experienceLevel.map { "- 训练经验：\($0.localizedName)\n" } ?? ""
 
         if languagePolicy.prefersSimplifiedChinese {
             var text = """
@@ -510,8 +514,8 @@ class AIService {
             - 年龄：\(profile.age)
             - 身高：\(profile.height) cm
             - 体重：\(profile.weight) kg
-            - 健身目标：\(profile.goal.localizedName)
-            - 训练环境：\(profile.environment.localizedName)
+            - 健身目标：\(goalText)
+            \(sexText)\(expText)- 训练环境：\(profile.environment.localizedName)
             - 可用器械：\(equipment)
             - 个性化备注/专项需求：\(injuries)
             """
@@ -528,6 +532,8 @@ class AIService {
                 5. 根据可用器械选择合适的动作
                 6. 如果备注中提到伤病，避免相关动作
                 7. 如果备注中提到篮球、跑步、格斗、备赛、体态、恢复或某个动作表现，把计划做成专项训练，不要只生成普通增肌/减脂模板
+                8. 能力适配（重要）：若用户为女性或训练经验为新手/进阶，自重复合动作（如标准俯卧撑、引体向上、双杠臂屈伸）优先提供退阶版本（如上斜俯卧撑、跪姿俯卧撑、墙壁俯卧撑、反向划船）；不要处方用户明显无法完成的动作。若用户在对话中声明“做不了某动作”，应改用其退阶动作或同肌群更低难度的现有动作，而不是强行保留。
+                9. 若目标包含“减压/睡眠”，在低量有氧、拉伸与呼吸训练上做承载，不增加高强度负荷。
                 """
             }
             return text
@@ -539,8 +545,8 @@ class AIService {
         - Age: \(profile.age)
         - Height: \(profile.height) cm
         - Weight: \(profile.weight) kg
-        - Fitness goal: \(profile.goal.localizedName)
-        - Training environment: \(profile.environment.localizedName)
+        - Fitness goal: \(goalText)
+        \(sexText)\(expText)- Training environment: \(profile.environment.localizedName)
         - Available equipment: \(equipment)
         - Personalized notes, sport needs, or limitations: \(injuries)
         """
@@ -557,7 +563,9 @@ class AIService {
             5. Choose exercises that match the available equipment.
             6. Avoid exercises that conflict with notes or injuries.
             7. If notes mention basketball, running, combat sports, competition prep, posture, recovery, or a specific lift-performance goal, generate a sport-specific plan instead of a generic muscle-gain or fat-loss template.
-            8. Keep every user-visible string in English.
+            8. Ability adaptation (important): if the user is female or a beginner/intermediate, prioritize regressions for bodyweight compound movements (e.g., standard push-ups, pull-ups, dips) — offer incline/knee/wall push-ups and inverted rows. Never prescribe movements the user clearly cannot perform. If the user says "I can't do X", substitute its regression or a lower-difficulty same-muscle exercise from the library instead of keeping it.
+            9. If goals include "减压/睡眠" (stress relief / sleep), carry it with low-volume cardio, stretching, and breathing work; do not add high-intensity load.
+            10. Keep every user-visible string in English.
             """
         }
         return text

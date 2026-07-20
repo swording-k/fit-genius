@@ -8,7 +8,8 @@ enum FitnessGoal: String, Codable, CaseIterable, Identifiable {
     case improveEndurance = "提升耐力"
     case flexibility = "柔韧性"
     case generalHealth = "一般健康"
-    
+    case stressReliefSleep = "减压/睡眠"
+
     var id: String { self.rawValue }
     
     var localizedName: String {
@@ -20,6 +21,7 @@ enum FitnessGoal: String, Codable, CaseIterable, Identifiable {
         case .improveEndurance: return "fitness_goal_endurance".localized
         case .flexibility: return "fitness_goal_flexibility".localized
         case .generalHealth: return "fitness_goal_general_health".localized
+        case .stressReliefSleep: return "减压/睡眠"
         }
     }
 }

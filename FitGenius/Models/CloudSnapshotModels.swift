@@ -64,6 +64,7 @@ struct CloudProfile: Codable, Equatable {
     let height: Double
     let weight: Double
     let goal: FitnessGoal
+    let goals: [FitnessGoal]?   // v1.5 多选目标（可选，兼容旧单值 goal）
     let environment: WorkoutEnvironment
     let availableEquipment: [String]
     let injuries: String
@@ -78,6 +79,7 @@ struct CloudProfile: Codable, Equatable {
         height = model.height
         weight = model.weight
         goal = model.goal
+        goals = model.goals
         environment = model.environment
         availableEquipment = model.availableEquipment
         injuries = model.injuries
@@ -101,6 +103,7 @@ struct CloudProfile: Codable, Equatable {
         model.streakDays = streakDays
         model.lastCompletedDate = lastCompletedDate
         model.lastCheckDate = lastCheckDate
+        model.goals = goals
         return model
     }
 }

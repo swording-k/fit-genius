@@ -24,9 +24,13 @@ class OnboardingViewModel: ObservableObject {
     @Published var weight: String = ""
     @Published var notes: String = ""  // 备注（包括伤病、额外器械等）
     
-    // 目标和环境
-    @Published var selectedGoal: FitnessGoal = .buildMuscle
+    // 目标（v1.5 多选）和环境
+    @Published var selectedGoals: [FitnessGoal] = [.buildMuscle]
     @Published var selectedEnvironment: WorkoutEnvironment = .gym
+
+    // v1.5 能力基线（可选，性别可空/不愿透露）
+    @Published var selectedBiologicalSex: BiologicalSex? = nil
+    @Published var selectedExperienceLevel: ExperienceLevel? = nil
     
     // 器械选择
     @Published var selectedEquipment: Set<String> = []
@@ -56,7 +60,7 @@ class OnboardingViewModel: ObservableObject {
     }
     
     var canProceedFromGoalAndEnvironment: Bool {
-        true // 已经有默认选择
+        !selectedGoals.isEmpty // v1.5 至少选一个目标
     }
     
     var canProceedFromEquipment: Bool {
@@ -124,11 +128,15 @@ class OnboardingViewModel: ObservableObject {
                     age: ageInt,
                     height: heightDouble,
                     weight: weightDouble,
-                    goal: selectedGoal,
+                    goal: selectedGoals.first ?? .generalHealth,
                     environment: selectedEnvironment,
                     availableEquipment: Array(selectedEquipment),
                     injuries: notes
                 )
+                // v1.5 能力基线字段（纯加法，兼容旧单值 goal）
+                profile.goals = selectedGoals
+                profile.biologicalSex = selectedBiologicalSex
+                profile.experienceLevel = selectedExperienceLevel
                 context.insert(profile)
                 print("✅ [Onboarding] Profile 已插入到 context")
                 print("🔍 [Onboarding] ModelContext: \(context)")
