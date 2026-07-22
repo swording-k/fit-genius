@@ -629,6 +629,19 @@ body {
   transition: color .2s;
 }
 .footer-links a:hover { color: white; }
+.footer-feedback {
+  color: var(--blue) !important;
+  font-weight: 600;
+  padding: 4px 12px;
+  border: 1px solid rgba(74,108,247,.4);
+  border-radius: 999px;
+  transition: background .2s, color .2s, border-color .2s;
+}
+.footer-feedback:hover {
+  background: var(--blue) !important;
+  border-color: var(--blue) !important;
+  color: white !important;
+}
 .footer-bottom {
   margin-top: 40px;
   padding-top: 24px;
@@ -998,6 +1011,7 @@ body {
         <li><a href="#privacy">隐私政策</a></li>
         <li><a href="https://swording-k.github.io/fit-genius/privacy-policy.html" target="_blank">完整隐私条款</a></li>
         <li><a href="https://github.com/swording-k/fit-genius" target="_blank">GitHub</a></li>
+        <li><a href="mailto:swordingk@gmail.com?subject=FitGenius%20反馈" class="footer-feedback">提交反馈</a></li>
       </ul>
     </div>
     <div class="footer-bottom">
