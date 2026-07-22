@@ -11,6 +11,8 @@ struct DietHomeView: View {
     @State private var capturedImage: UIImage?
     @State private var showSourcesInfo = false
     @State private var showLoginSheet = false
+    @AppStorage("hasAcceptedMedicalDisclaimer") private var hasAcceptedDisclaimer = false
+    @State private var showDisclaimerSheet = false
 
     init(modelContext: ModelContext) {
         _viewModel = StateObject(wrappedValue: DietViewModel(modelContext: modelContext))
@@ -18,6 +20,14 @@ struct DietHomeView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            if !hasAcceptedDisclaimer {
+                DisclaimerBanner {
+                    showDisclaimerSheet = true
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+            }
+
             DatePicker("date", selection: $viewModel.selectedDate, displayedComponents: .date)
                 .datePickerStyle(.compact)
                 .padding()
@@ -39,10 +49,24 @@ struct DietHomeView: View {
                                 Text("carbs_grams_format".localized(with: s.carbs))
                                 Text("fat_grams_format".localized(with: s.fat))
                             }
-                            if !s.notes.isEmpty {
-                                Text(s.notes).foregroundColor(.secondary)
+                        if !s.notes.isEmpty {
+                            Text(s.notes).foregroundColor(.secondary)
+                        }
+
+                        // Citation footer — Apple Guideline 1.4.4 (Safety - Physical Harm) compliance
+                        VStack(alignment: .leading, spacing: 4) {
+                            Label("diet_analysis_citation", systemImage: "info.circle")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                            HStack(spacing: 12) {
+                                Link("source_china_nutrition", destination: URL(string: "https://www.cnsoc.org.cn")!)
+                                    .font(.caption2)
+                                Link("source_usda", destination: URL(string: "https://www.nal.usda.gov/food")!)
+                                    .font(.caption2)
                             }
                         }
+                        .padding(.top, 4)
+                    }
                     }
                     ForEach(day.entries ?? []) { entry in
                         VStack(alignment: .leading, spacing: 6) {
@@ -320,6 +344,9 @@ struct DietHomeView: View {
         }
         .sheet(isPresented: $showLoginSheet) {
             LoginView()
+        }
+        .sheet(isPresented: $showDisclaimerSheet) {
+            MedicalDisclaimerView(isPresented: $showDisclaimerSheet)
         }
     }
 }

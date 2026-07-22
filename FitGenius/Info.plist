@@ -25,7 +25,11 @@
 	<string>FitGenius读取已授权的训练数据，以保持训练记录一致。</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>FitGenius将完成的力量训练保存到苹果健康。</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>FitGenius需要访问您的麦克风以实现语音转文字功能。</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>FitGenius需要访问相册来选择餐食照片。</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>FitGenius需要语音识别权限以将您的语音转换为文字。</string>
 </dict>
 </plist>
