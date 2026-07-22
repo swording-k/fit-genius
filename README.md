@@ -22,6 +22,8 @@
 
 [![App Store](https://img.shields.io/badge/App_Store-已上架-green.svg)]()
 
+[![Website](https://img.shields.io/badge/官网-fit--genius-blue.svg)](https://swording-k.github.io/fit-genius/)
+
 </div>
 
 ---
@@ -261,6 +263,7 @@ FitGenius 的所有健康、饮食、运动建议均基于以下权威来源：
 
 ## 🔗 相关链接
 
+- **产品官网**: https://swording-k.github.io/fit-genius/
 - **隐私政策**: https://swording-k.github.io/fit-genius/privacy-policy.html
 - **问题反馈**: swordingk@gmail.com
 
