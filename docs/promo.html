@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FitGenius 产品宣传片</title>
+<style>
+  :root { --blue:#4A6CF7; --ink:#101a36; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+         background:linear-gradient(180deg,#eef2fb,#e3e9f7); color:var(--ink);
+         min-height:100vh; display:flex; flex-direction:column; align-items:center; }
+  header { text-align:center; padding:48px 20px 8px; }
+  .logo { font-size:34px; font-weight:800; letter-spacing:-0.02em; }
+  .logo span { color:var(--blue); }
+  .tag { margin-top:8px; color:#5b6478; font-size:16px; }
+  .stage { width:min(960px,92vw); margin:24px 0; border-radius:20px; overflow:hidden;
+           box-shadow:0 30px 80px rgba(40,60,120,.25); background:#000; }
+  video { width:100%; display:block; }
+  .actions { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-bottom:40px; }
+  a.btn { text-decoration:none; padding:12px 22px; border-radius:999px; font-weight:600; font-size:15px; }
+  a.primary { background:var(--blue); color:#fff; }
+  a.ghost { background:#fff; color:var(--blue); border:1px solid rgba(74,108,247,.4); }
+  footer { color:#8a93a6; font-size:13px; padding-bottom:40px; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="logo">Fit<span>Genius</span></div>
+    <div class="tag">让每一次训练都不白费</div>
+  </header>
+  <div class="stage">
+    <video src="promo.mp4" controls autoplay muted loop playsinline poster="promo-cover.png"></video>
+  </div>
+  <div class="actions">
+    <a class="btn primary" href="promo.mp4" download>下载 MP4</a>
+    <a class="btn ghost" href="https://github.com/swording-k/fit-genius">返回 GitHub</a>
+  </div>
+  <footer>FitGenius · AI 私人健身教练</footer>
+</body>
+</html>

@@ -39,6 +39,17 @@
   <img src="README_assets/IMG_7135.PNG" width="240" />
 </div>
 
+## 🎬 产品宣传片
+
+<div align="center">
+  <a href="https://swording-k.github.io/fit-genius/promo.html">
+    <img src="docs/promo-cover.png" width="640" alt="FitGenius 产品宣传片" />
+  </a>
+  <br/>
+  <p>▲ 点击封面观看完整宣传片（约 37 秒，展示 AI 计划 / 动作分析 / 训练统计 / 智能饮食 / AI 对话）</p>
+  <p><a href="https://swording-k.github.io/fit-genius/promo.mp4">直接观看 / 下载 MP4</a></p>
+</div>
+
 ## 应用简介
 
 FitGenius 是一款原生 iOS 健身应用，支持**训练计划管理**和**饮食追踪**双模式，通过 AI 技术为用户生成个性化训练计划，并提供智能饮食分析和营养建议。
