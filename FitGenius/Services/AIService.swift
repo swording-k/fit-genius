@@ -397,17 +397,18 @@ class AIService {
         """
     }
 
-    /// 按名把解析出的动作匹配回 ExerciseTemplate（大小写不敏感 + 唯一近似匹配）。
+    /// 按名把解析出的动作安全匹配回 ExerciseTemplate。
+    /// 只接受确定的精确/已审核别名/唯一部分匹配，有歧义时留空。
     private func matchTemplate(name: String, in catalog: [ExerciseTemplate]) -> ExerciseTemplate? {
         guard !catalog.isEmpty else { return nil }
-        let target = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        if let exact = catalog.first(where: { $0.displayName.caseInsensitiveCompare(target) == .orderedSame }) {
-            return exact
+        let candidates = catalog.map { template in
+            ExerciseTemplateResolver.Candidate(
+                id: template.externalId,
+                names: [template.nameEn, template.displayName, template.chineseName].compactMap { $0 }
+            )
         }
-        let fuzzy = catalog.filter {
-            $0.displayName.localizedCaseInsensitiveContains(target) || target.localizedCaseInsensitiveContains($0.displayName)
-        }
-        return fuzzy.count == 1 ? fuzzy.first : nil
+        guard let matchedID = ExerciseTemplateResolver.resolve(name, in: candidates) else { return nil }
+        return catalog.first { $0.externalId == matchedID }
     }
     
     // MARK: - AI 助手对话（支持计划修改）

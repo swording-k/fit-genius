@@ -54,6 +54,29 @@ struct ExerciseTutorialCatalogTests {
             "debug filtering should retain development-only media"
         )
 
+        let candidates = [
+            ExerciseTemplateResolver.Candidate(
+                id: "bench",
+                names: ["barbell bench press", "杠铃卧推"]
+            ),
+            ExerciseTemplateResolver.Candidate(
+                id: "incline",
+                names: ["incline bench press", "上斜卧推"]
+            )
+        ]
+        require(
+            ExerciseTemplateResolver.resolve("Barbell Bench-Press", in: candidates) == "bench",
+            "punctuation and case should not prevent an exact normalized match"
+        )
+        require(
+            ExerciseTemplateResolver.resolve("卧推", in: candidates) == "bench",
+            "a reviewed Chinese alias should resolve to the standard movement"
+        )
+        require(
+            ExerciseTemplateResolver.resolve("bench press", in: candidates) == nil,
+            "an ambiguous partial match must be rejected"
+        )
+
         print("exercise-tutorial-catalog-tests: PASS")
     }
 
