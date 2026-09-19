@@ -168,6 +168,38 @@ The first watchOS experience should support training-session assistance, not vid
 
 Video analysis stays on iPhone.
 
+### Phase 3.5: Exercise Learning Loop
+
+Goal: turn each generated workout item into a learnable action instead of
+leaving a beginner with only an exercise name and prescription.
+
+User flow:
+
+1. User taps an exercise in the daily plan.
+2. App resolves the plan item to the canonical exercise library entry.
+3. Detail shows the existing animated demonstration, target muscles,
+   equipment, difficulty, and step-by-step instructions.
+4. When an approved tutorial clip exists, user can watch the matching Tan Sir
+   demonstration; missing clips degrade to an external source link or an empty
+   tutorial state without blocking the exercise detail.
+5. User can select a video filmed from the same angle and compare it beside the
+   tutorial with synchronized playback, speed control, and independent manual
+   time offsets.
+
+First-version boundaries:
+
+- No automatic camera-angle recommendation or automatic repetition alignment.
+- Development-only excerpts stay out of version control and release builds.
+- Production playback requires an authorized media asset/CDN URL and recorded
+  rights status; an original-source link is not a redistributing license.
+- SwiftData remains the source of truth for plans. Tutorial metadata is an
+  additive catalog and does not change plan persistence.
+
+Local vertical-slice status (2026-09-19): the detail, tutorial, video picker,
+and two-player comparison flow are implemented. One reviewed lateral-raise
+excerpt validates the development pipeline; the remaining catalog is tracked
+in `docs/exercise-tutorial-inventory.csv` and can be filled incrementally.
+
 ### Phase 4: Android and Huawei Expansion
 
 Only start after the iOS form-analysis MVP proves user value.
