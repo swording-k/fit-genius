@@ -1,0 +1,13 @@
+source_platform,source_video_id,source_url,source_title,published_at,exercise_template_ids,clip_start_seconds,clip_end_seconds,camera_view,rights_status,review_status,notes
+bilibili,BV128bX6eExV,https://www.bilibili.com/video/BV128bX6eExV/,哑铃侧平举动作讲解，希望对大家有所帮助！！,2026-08-16,0334,132,151,front,developmentOnly,development_clip_ready,已人工确认正面全身示范；本地开发片段 19 秒，未进入 Git 或 Release
+bilibili,BV1hauq6EEfW,https://www.bilibili.com/video/BV1hauq6EEfW/,罗马尼亚硬拉动作，希望对大家有所帮助！！,2026-08-11,0085|1459,,,,developmentOnly,needs_variant_and_segment_review,需确认是杠铃还是哑铃变式
+bilibili,BV1E8un61EVg,https://www.bilibili.com/video/BV1E8un61EVg/,哑铃划船，哑铃反飞鸟动作教学，希望对大家有所帮助！！,2026-08-06,0292|0293|0383,,,,developmentOnly,needs_multi_segment_review,一条视频需分成至少两个教学片段
+bilibili,BV14QKF6FEkP,https://www.bilibili.com/video/BV14QKF6FEkP/,高位下拉动作讲解，希望对大家有所帮助！！,2026-07-18,2330|2616|0818,,,,developmentOnly,needs_variant_and_segment_review,需确认握把和动作变式
+bilibili,BV1PcNQ6AE3f,https://www.bilibili.com/video/BV1PcNQ6AE3f/,健身房器械讲解系列之坐姿夹胸，反飞鸟一体机教学讲解，希望对大家有所帮助！！,2026-07-14,0596|0601|0602,,,,developmentOnly,needs_multi_segment_review,一条视频需分为夹胸和反飞鸟片段
+bilibili,BV1wvMF6ZEqL,https://www.bilibili.com/video/BV1wvMF6ZEqL/,二练手臂训练安排，希望对大家有所参考，有所帮助！！,2026-07-04,,,,,developmentOnly,needs_action_inventory,需盘点视频中的每个二头和三头动作
+bilibili,BV1z8Th6BEij,https://www.bilibili.com/video/BV1z8Th6BEij/,腹肌动作教学，希望对大家有所帮助！！,2026-07-01,,,,,developmentOnly,needs_action_inventory,需分解视频中的多个核心动作
+bilibili,BV1RjTT6FEKo,https://www.bilibili.com/video/BV1RjTT6FEKo/,私教系列之腿部训练，希望对大家有所帮助！！,2026-06-28,,,,,developmentOnly,needs_action_inventory,长视频；需逐动作分段
+bilibili,BV1csj36CEf9,https://www.bilibili.com/video/BV1csj36CEf9/,私教系列之肩部教学，希望对大家有所帮助！！,2026-06-16,,,,,developmentOnly,needs_action_inventory,长视频；需逐动作分段
+bilibili,BV1ZxEk6cEv1,https://www.bilibili.com/video/BV1ZxEk6cEv1/,第三期私教系列之胸部教学来喽，希望对大家有所帮助！！,2026-06-12,,,,,developmentOnly,needs_action_inventory,长视频；需逐动作分段
+bilibili,BV1GzEg6wEVb,https://www.bilibili.com/video/BV1GzEg6wEVb/,第二期私教系列之手臂教学，希望对大家有所帮助！！,2026-06-08,,,,,developmentOnly,needs_action_inventory,长视频；需逐动作分段
+bilibili,BV1HR7o6CE8q,https://www.bilibili.com/video/BV1HR7o6CE8q/,新系列来喽，保姆级私教视角之背部训练！！希望对大家有所帮助！！,2026-06-04,,,,,developmentOnly,needs_action_inventory,长视频；需逐动作分段

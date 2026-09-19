@@ -54,6 +54,34 @@ struct ExerciseTutorialCatalogTests {
             "debug filtering should retain development-only media"
         )
 
+        let developmentAssetClip = ExerciseTutorialClip(
+            id: "tan-local-development",
+            exerciseTemplateIDs: ["0334"],
+            creatorName: "谭成义",
+            sourcePlatform: "bilibili",
+            sourceURL: URL(string: "https://www.bilibili.com/video/BV128bX6eExV/")!,
+            sourceVideoID: "BV128bX6eExV",
+            sourceTitle: "哑铃侧平举动作讲解",
+            clipStartSeconds: 132,
+            clipEndSeconds: 151,
+            playbackStartSeconds: 0,
+            playbackEndSeconds: 19,
+            playbackURL: URL(string: "fitgenius-development:///tan-dumbbell-lateral-raise.mp4"),
+            posterURL: nil,
+            cameraView: "front",
+            framingNoteZh: "模仿画面中的正面全身构图",
+            framingNoteEn: "Match the front full-body framing",
+            rightsStatus: .developmentOnly
+        )
+        require(
+            developmentAssetClip.developmentAssetFileName == "tan-dumbbell-lateral-raise.mp4",
+            "a development URL should expose its bundled filename"
+        )
+        require(
+            developmentAssetClip.playbackRange == 0...19,
+            "a trimmed playback asset should keep a range separate from the original source timestamps"
+        )
+
         let candidates = [
             ExerciseTemplateResolver.Candidate(
                 id: "bench",
@@ -77,7 +105,81 @@ struct ExerciseTutorialCatalogTests {
             "an ambiguous partial match must be rejected"
         )
 
+        requirePlannedExerciseLearningSurface()
+        requireTutorialAndComparisonSurfaces()
+        requireBilingualLearningCopy()
+
         print("exercise-tutorial-catalog-tests: PASS")
+    }
+
+    private static func requirePlannedExerciseLearningSurface() {
+        let path = "FitGenius/Views/Plan/PlannedExerciseDetailView.swift"
+        guard let source = try? String(contentsOfFile: path, encoding: .utf8) else {
+            fatalError("FAIL: planned exercise detail source is missing")
+        }
+        for marker in [
+            "planned_exercise_prescription",
+            "AnimatedGIFView",
+            "exercise_detail_instructions",
+            "planned_exercise_watch_tutorial",
+            "planned_exercise_unmatched_title",
+            "FormAnalysisView"
+        ] where !source.contains(marker) {
+            fatalError("FAIL: planned exercise detail is missing \(marker)")
+        }
+    }
+
+    private static func requireTutorialAndComparisonSurfaces() {
+        let requirements: [String: [String]] = [
+            "FitGenius/Views/Plan/ExerciseTutorialView.swift": [
+                "planned_exercise_source",
+                "planned_exercise_compare_video",
+                "PhotosPicker"
+            ],
+            "FitGenius/Views/Plan/ExerciseVideoComparisonView.swift": [
+                "ControlledVideoPlayer",
+                "comparison_reference",
+                "comparison_yours",
+                "VideoComparisonTimeline"
+            ],
+            "FitGenius/Views/Components/ControlledVideoPlayer.swift": [
+                "AVPlayerLayer",
+                "UIViewRepresentable"
+            ]
+        ]
+
+        for (path, markers) in requirements {
+            guard let source = try? String(contentsOfFile: path, encoding: .utf8) else {
+                fatalError("FAIL: required video surface is missing at \(path)")
+            }
+            for marker in markers where !source.contains(marker) {
+                fatalError("FAIL: \(path) is missing \(marker)")
+            }
+        }
+    }
+
+    private static func requireBilingualLearningCopy() {
+        let keys = [
+            "planned_exercise_prescription",
+            "planned_exercise_standard_demo",
+            "planned_exercise_watch_tutorial",
+            "planned_exercise_compare_video",
+            "comparison_reference",
+            "comparison_yours",
+            "comparison_manual_alignment_note"
+        ]
+
+        for path in [
+            "FitGenius/en.lproj/Localizable.strings",
+            "FitGenius/zh-Hans.lproj/Localizable.strings"
+        ] {
+            guard let source = try? String(contentsOfFile: path, encoding: .utf8) else {
+                fatalError("FAIL: localization file is missing at \(path)")
+            }
+            for key in keys where !source.contains("\"\(key)\"") {
+                fatalError("FAIL: \(path) is missing \(key)")
+            }
+        }
     }
 
     private static func require(_ condition: @autoclosure () -> Bool, _ message: String) {

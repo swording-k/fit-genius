@@ -1,4 +1,24 @@
 {
   "schemaVersion": 1,
-  "clips": []
+  "clips": [
+    {
+      "id": "tan-dumbbell-lateral-raise-bv128-132-151",
+      "exerciseTemplateIDs": ["0334"],
+      "creatorName": "谭成义",
+      "sourcePlatform": "bilibili",
+      "sourceURL": "https://www.bilibili.com/video/BV128bX6eExV/",
+      "sourceVideoID": "BV128bX6eExV",
+      "sourceTitle": "哑铃侧平举动作讲解，希望对大家有所帮助！！",
+      "clipStartSeconds": 132,
+      "clipEndSeconds": 151,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 19,
+      "playbackURL": "fitgenius-development:///tan-dumbbell-lateral-raise.mp4",
+      "posterURL": null,
+      "cameraView": "front",
+      "framingNoteZh": "手机竖屏固定在正面，保持从头到脚全身入镜，模仿示范中的距离和高度。",
+      "framingNoteEn": "Fix the phone vertically in front of you, keep your full body in frame, and match the reference distance and height.",
+      "rightsStatus": "developmentOnly"
+    }
+  ]
 }

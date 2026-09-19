@@ -642,6 +642,35 @@
 "search_library" = "Search library";
 "selected_from_library" = "Selected from library";
 
+// MARK: - Planned Exercise Learning and Video Comparison
+"planned_exercise_prescription" = "Today's Prescription";
+"planned_exercise_standard_demo" = "Exercise Library Demo";
+"planned_exercise_library_match" = "Matched Standard Exercise";
+"planned_exercise_real_person_tutorial" = "Tan Sir Video Tutorial";
+"planned_exercise_watch_tutorial" = "Watch Tutorial Video";
+"planned_exercise_tutorial_unavailable" = "A real-person tutorial is still being added. Use the animation and instructions for now.";
+"planned_exercise_unmatched_title" = "Standard Exercise Not Matched Yet";
+"planned_exercise_unmatched_message" = "Your programmed sets, reps, and notes are preserved. Library teaching content can be added later.";
+"planned_exercise_form_analysis" = "Analyze My Form";
+"planned_exercise_source" = "View Original Video and Source";
+"planned_exercise_match_camera" = "Match This Camera View";
+"planned_exercise_choose_your_video" = "Choose My Exercise Video";
+"planned_exercise_choose_another_video" = "Choose Another Video";
+"planned_exercise_loading_your_video" = "Preparing your video…";
+"planned_exercise_compare_video" = "Start Side-by-Side Comparison";
+"planned_exercise_tutorial_external_only" = "Tutorial Source Saved";
+"planned_exercise_tutorial_external_only_message" = "For now, watch it on the original platform. Side-by-side comparison becomes available when an approved playback asset is added.";
+"comparison_reference" = "Tan Sir Reference";
+"comparison_yours" = "My Form";
+"comparison_preparing" = "Preparing both videos…";
+"comparison_unavailable" = "Comparison Unavailable";
+"comparison_play" = "Play Together";
+"comparison_pause" = "Pause";
+"comparison_speed" = "Playback Speed";
+"comparison_reference_start" = "Reference Start";
+"comparison_your_start" = "My Start";
+"comparison_manual_alignment_note" = "Adjust each start point so both sides begin at the same repetition. This first version does not automatically verify the camera angle or align movement phases.";
+
 /* AI Service / Backend config */
 "ai_service" = "AI Service";
 "ai_direct_mode" = "Direct AI (your own key)";

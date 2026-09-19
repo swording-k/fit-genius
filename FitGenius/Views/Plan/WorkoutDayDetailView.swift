@@ -93,37 +93,42 @@ struct ExerciseRowView: View {
                 }
                 .buttonStyle(.plain)
                 
-                // 动作信息
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(exercise.localizedDisplayName)
-                        .font(.headline)
-                        .strikethrough(exercise.isCompleted)
-                        .foregroundColor(exercise.isCompleted ? .secondary : .primary)
-                    
-                    HStack(spacing: 16) {
-                        Label("\(exercise.sets) " + "sets".localized, systemImage: "repeat")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                // 动作信息是学习入口；完成勾选和右侧编辑按钮仍独立。
+                NavigationLink {
+                    PlannedExerciseDetailView(exercise: exercise)
+                } label: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(exercise.localizedDisplayName)
+                            .font(.headline)
+                            .strikethrough(exercise.isCompleted)
+                            .foregroundColor(exercise.isCompleted ? .secondary : .primary)
 
-                        Label(exercise.reps, systemImage: "number")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-
-                        if exercise.weight > 0 {
-                            Label("\(String(format: "%.1f", exercise.weight)) " + "kg".localized, systemImage: "scalemass")
+                        HStack(spacing: 16) {
+                            Label("\(exercise.sets) " + "sets".localized, systemImage: "repeat")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
+
+                            Label(exercise.reps, systemImage: "number")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+
+                            if exercise.weight > 0 {
+                                Label("\(String(format: "%.1f", exercise.weight)) " + "kg".localized, systemImage: "scalemass")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+
+                        if !exercise.notes.isEmpty {
+                            Text(exercise.notes)
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                                .lineLimit(1)
                         }
                     }
-                    
-                    if !exercise.notes.isEmpty {
-                        Text(exercise.notes)
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                            .lineLimit(1)
-                    }
                 }
-                
+                .buttonStyle(.plain)
+
                 Spacer()
 
                 // 触发按钮

@@ -642,6 +642,35 @@
 "search_library" = "从动作库搜索";
 "selected_from_library" = "已选动作库动作";
 
+// MARK: - 计划动作学习与视频对比
+"planned_exercise_prescription" = "今日训练安排";
+"planned_exercise_standard_demo" = "动作库动图演示";
+"planned_exercise_library_match" = "对应标准动作";
+"planned_exercise_real_person_tutorial" = "谭师真人教学";
+"planned_exercise_watch_tutorial" = "观看教学视频";
+"planned_exercise_tutorial_unavailable" = "这个动作的真人教学正在补充，可先按照动图和文字练习。";
+"planned_exercise_unmatched_title" = "尚未匹配标准动作";
+"planned_exercise_unmatched_message" = "已保留训练计划中的组数、次数和备注，后续补充动作库内容。";
+"planned_exercise_form_analysis" = "分析我的动作";
+"planned_exercise_source" = "查看原视频与来源";
+"planned_exercise_match_camera" = "拍摄时模仿这个机位";
+"planned_exercise_choose_your_video" = "选择我的动作视频";
+"planned_exercise_choose_another_video" = "重新选择我的视频";
+"planned_exercise_loading_your_video" = "正在准备你的视频…";
+"planned_exercise_compare_video" = "开始同屏对比";
+"planned_exercise_tutorial_external_only" = "教学原链接已收录";
+"planned_exercise_tutorial_external_only_message" = "当前只能前往原平台观看，获得播放素材后才会开放同屏对比。";
+"comparison_reference" = "谭师示范";
+"comparison_yours" = "我的动作";
+"comparison_preparing" = "正在准备双视频…";
+"comparison_unavailable" = "暂时无法对比";
+"comparison_play" = "同步播放";
+"comparison_pause" = "暂停";
+"comparison_speed" = "播放速度";
+"comparison_reference_start" = "示范起点";
+"comparison_your_start" = "我的起点";
+"comparison_manual_alignment_note" = "请分别调整起点，让两边从同一次动作开始；第一版暂不会自动判断机位或对齐动作阶段。";
+
 /* AI 服务 / 后端配置 */
 "ai_service" = "AI 服务";
 "ai_direct_mode" = "国内直连 AI（用自己的 Key）";

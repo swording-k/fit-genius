@@ -63,3 +63,8 @@ scripts/__pycache__/
 
 # Deprecated Cloud Run experiment (kept locally only)
 cloudrun/
+
+# Local-only creator tutorial source media and transcoded development clips
+video/tutorial-source/
+video/tutorial-clips/
+FitGenius/Resources/ExerciseTutorials/DevelopmentMedia/
