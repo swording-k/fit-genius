@@ -91,6 +91,7 @@ struct BasicInfoView: View {
 
             // 下一步按钮
             Button(action: {
+                focusedField = nil
                 viewModel.nextStep()
             }) {
                 Text("next")

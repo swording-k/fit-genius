@@ -4,7 +4,12 @@ import SwiftData
 // MARK: - Onboarding 主容器视图
 struct OnboardingView: View {
     @StateObject private var viewModel = OnboardingViewModel()
-    @AppStorage("hasOnboarded") private var hasOnboarded = false
+    @Environment(\.dismiss) private var dismiss
+    let onCompleted: (() -> Void)?
+
+    init(onCompleted: (() -> Void)? = nil) {
+        self.onCompleted = onCompleted
+    }
     
     var body: some View {
         ZStack {
@@ -34,15 +39,40 @@ struct OnboardingView: View {
                     EquipmentSelectionView(viewModel: viewModel)
                         .tag(OnboardingStep.equipment)
                     
-                    NotesView(viewModel: viewModel)
+                    NotesView(viewModel: viewModel, onCompleted: finish)
                         .tag(OnboardingStep.notes)
                     
-                    GeneratingView(viewModel: viewModel, hasOnboarded: $hasOnboarded)
+                    GeneratingView(viewModel: viewModel, onCompleted: finish)
                         .tag(OnboardingStep.generating)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(.easeInOut, value: viewModel.currentStep)
             }
+
+            VStack {
+                HStack {
+                    Spacer()
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title2)
+                            .symbolRenderingMode(.hierarchical)
+                            .foregroundStyle(.secondary)
+                    }
+                    .accessibilityLabel("cancel")
+                }
+                .padding()
+                Spacer()
+            }
+        }
+    }
+
+    private func finish() {
+        if let onCompleted {
+            onCompleted()
+        } else {
+            dismiss()
         }
     }
 }

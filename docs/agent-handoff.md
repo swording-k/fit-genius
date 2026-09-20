@@ -1,6 +1,6 @@
 # FitGenius Agent Handoff
 
-Last updated: 2026-06-23 Asia/Shanghai
+Last updated: 2026-09-21 Asia/Shanghai
 
 ## Read First
 
@@ -10,6 +10,252 @@ Last updated: 2026-06-23 Asia/Shanghai
 4. `docs/agent-handoff.md`
 
 ## Current Status
+
+### 2026-09-21: Progressive entry and AI plan proposal flow
+
+- First launch now enters the main product directly. If no plan exists, the
+  current-plan store creates one standalone empty workout plan without
+  inventing a user profile.
+- The dashboard, exercise-library add flow, Widget, cloud snapshot selection,
+  reminders, and AI Assistant share the same current-plan policy: newest
+  profile-linked plan first, otherwise newest standalone plan.
+- The empty dashboard is a usable state with separate personalized-generation
+  and manual-create actions. Resetting all data recreates an empty draft instead
+  of returning to a mandatory onboarding gate.
+- Profile setup no longer deletes existing profiles or manual plans. Existing
+  training content is passed into regeneration context, and the generated plan
+  is reviewed before it replaces the current plan.
+- General AI text questions now work without Profile data. Available Profile,
+  plan, conversation, and opted-in health context are added progressively.
+- Local exercise edits and full plan replacements are pending proposals. They
+  pass deterministic local validation and show a preview before an explicit
+  apply action. Cancellation and invalid proposals do not write SwiftData.
+- Removed local keyword/regex routing for plan rewrites. The model returns a
+  structured regenerate-plan intent; the app generates a complete candidate,
+  validates it, and previews it.
+- Exercise catalog prompt entries now use stable ID, canonical English name,
+  and Chinese name instead of locale-dependent display names.
+
+### 2026-09-20: Unified exercise-library learning entry
+
+- Corrected the learning architecture after physical-device review: tutorial
+  content no longer exists only behind a workout-plan row. Both the exercise
+  library and a template-backed plan exercise now compose the same
+  `ExerciseLearningContent` keyed by `ExerciseTemplate.externalId`.
+- The exercise library now has a permanently visible search field above its
+  body-part and equipment filters. Search still matches English and Chinese
+  names, body part, target muscle, and focus, and now also matches localized
+  equipment names.
+- `ExerciseTutorialView` no longer requires an `Exercise` instance; a library
+  template with a mapped clip can open playback, Photos selection, and manual
+  side-by-side comparison without first being added to a plan.
+- Plan exercises retain their prescription. A resolved template shows the
+  shared library learning content; an unresolved/custom plan action safely
+  remains on the compact unmatched explanation.
+- Current media storage remains development-only: the reviewed lateral-raise
+  MP4 is bundled only into Debug builds on the device, while tutorial metadata
+  is bundled JSON. Production should store authorized video binaries in
+  CloudBase Storage/CDN and keep only template IDs, URLs, source and rights
+  metadata in the catalog/database.
+
+### 2026-09-19: Exercise learning and same-angle comparison vertical slice
+
+- Every planned exercise row can now open a dedicated learning detail while
+  its completion checkbox and overflow menu remain independent controls.
+- The detail resolves generated plan names to the canonical exercise library,
+  then shows the existing GIF, prescription, equipment, muscle/difficulty
+  metadata, instructions, and the existing form-analysis entry when supported.
+- A data-driven tutorial catalog now maps library template IDs to source and
+  playback metadata. Missing or unavailable clips fail softly instead of
+  blocking the exercise detail.
+- Tutorial playback supports a local development asset or a future hosted URL.
+  The first reviewed development excerpt maps dumbbell lateral raise (`0334`)
+  to 00:02:12-00:02:31 of the source video. The downloaded source and excerpt
+  are intentionally gitignored.
+- Users can select their own video from Photos and compare it with the tutorial
+  side by side. Both players share play/pause, scrub, and speed controls, with
+  independent manual offsets for same-angle phase matching. Automatic angle or
+  repetition alignment remains out of scope for this version.
+- The initial Tan Sir source inventory is recorded in
+  `docs/exercise-tutorial-inventory.csv`; unreviewed or unmatched exercises are
+  intentionally allowed to remain empty.
+
+### 2026-08-03: Release security gate
+
+- Release preflight found that the tracked `cloudbaserc.json` contained a real
+  MiniMax provider key and CloudBase session-signing secret. Both values were
+  removed from the working tree; deployable-file secret scan now passes.
+- **Do not deploy or submit this release until the owner rotates both values**:
+  revoke/create a MiniMax API key, then set the new `MINIMAX_API_KEY` and a new
+  random `SESSION_SECRET` in the CloudBase `fitgenius-api` production function
+  environment. Rotating `SESSION_SECRET` will intentionally require existing
+  users to sign in with Apple again. The old values appeared in Git history, so
+  rotation is mandatory even if the repository history is cleaned later.
+- Verification after removal: backend tests 26/26 passed, iOS form-analysis
+  suite passed, localization and `git diff --check` passed, deployable-file
+  secret scan passed, and a clean-directory unsigned Release iOS build passed.
+  This is a build-quality result, not a confirmation of the CloudBase runtime
+  environment or real Apple Watch HealthKit data.
+
+### 2026-08-02: Health-report trust hardening and onboarding polish
+
+- Daily readiness no longer treats missing training history as a neutral
+  72-point load signal. Training load only contributes when FitGenius has real
+  completed-exercise history, so sleep-only data remains explicitly
+  `insufficientData` instead of claiming a confident ready-to-train state.
+- Daily readiness now records a 0-100 data-coverage percentage based on the
+  scoring signals actually available for that day. The Stats card exposes this
+  as a transparency cue and explicitly says it is coverage of FitGenius
+  signals, not medical accuracy. The field is optional in cloud snapshots so
+  existing account backups continue to decode safely.
+- Weekly reporting now uses a reusable Monday-to-Monday half-open range:
+  `[Monday 00:00, next Monday 00:00)`. Sunday daytime exercise logs are
+  included; next Monday is excluded. The report record still displays Sunday
+  as the human-readable end date.
+- Onboarding dismisses the basic-info keyboard before moving to the goal step.
+  The Notes page no longer registers a second keyboard toolbar while alive in
+  the onboarding `TabView`, removing the duplicate Done controls observed in
+  the Simulator.
+- Added `scripts/recovery-insight-engine-tests.swift` coverage for the
+  sleep-only confidence regression and
+  `scripts/health-report-week-range-tests.swift` for the Sunday/Monday range
+  boundary. The recovery test also asserts 35% coverage for a sleep-only
+  report and 100% coverage when every weighted signal is present.
+- Missing overnight sleep is represented as unavailable, not a visible 50%
+  sleep-recovery value. It receives zero score weight when HealthKit has no
+  sleep sample, and the AI context receives an explicit unavailable value.
+
+### 2026-08-03: AI Assistant conversation sessions
+
+- Fitness AI Assistant and Diet AI Assistant no longer open the entire
+  topic-wide transcript as one endless conversation. New messages receive a
+  local `conversationID`; each assistant starts with a clean current session,
+  offers New Conversation and Chat History controls, and sends recent context
+  only from the active session.
+- Existing `ChatMessage` rows keep a nil `conversationID` and remain readable
+  under one localized Earlier Conversation entry. This is intentionally an
+  additive SwiftData migration: old chats are not deleted, and no CloudBase
+  endpoint or AI request contract changes.
+- Chat history is derived from local messages rather than a second SwiftData
+  table. A user can select or delete one session; the existing destructive
+  Clear All History control remains available in the overflow menu.
+- Added `ChatSessionPolicy` plus
+  `scripts/chat-session-policy-tests.swift` for title fallback/truncation and
+  active-session ordering. This checks the user-visible session behavior
+  without coupling the test to a SwiftData store.
+
+### 2026-08-03: Health-AI context activation and assistant chrome
+
+- Root cause from physical-iPhone feedback: `AIService.chat` has always
+  serialized and sent the current training plan, but health context is
+  intentionally opt-in and `HealthContextBuilder` can only inject stored local
+  summaries. The Profile authorization button previously requested HealthKit
+  access without immediately refreshing those summaries, making a newly
+  authorized user appear to have no health-aware AI.
+- Profile now refreshes `HealthInsightViewModel` immediately after HealthKit
+  authorization. The Fitness AI Assistant displays whether it will use only
+  the plan, needs a report refresh, or can use authorized health summaries;
+  its setup action takes the user directly to Profile. This is a transparency
+  improvement, not permission bypassing: AI health use remains off until the
+  user explicitly enables it.
+- Product correction from physical-iPhone feedback: the global Diet / Training
+  switch is required navigation and remains available. Both AI pages instead
+  omit their redundant navigation title (the tab bar already identifies the
+  assistant), preventing overlap without removing the switch.
+- Added `AssistantHealthContextStatus` and
+  `scripts/assistant-health-context-tests.swift` for the three privacy/data
+  states plus a static regression check that both AI pages keep the global
+  mode switch and omit only their duplicate titles.
+
+### 2026-08-03: Watch live-workout authority
+
+- The Watch app already had a real `HKWorkoutSession` and
+  `HKLiveWorkoutBuilder`, but its start control was only a small icon and the
+  iPhone completion path could also save a basic post-hoc workout. The Watch UI
+  now presents a full-width Start Workout / End Workout control.
+- A successful Watch start and end are sent to the iPhone via
+  `WatchConnectivity`. While a same-day Watch session is active, completing the
+  plan suppresses the iPhone fallback workout, letting the Apple Watch record
+  remain authoritative for real heart-rate and active-energy collection. A
+  stale session flag expires automatically on a new day.
+- Added `WorkoutHealthSavePolicy` plus
+  `scripts/workout-health-save-policy-tests.swift` for the duplicate-prevention
+  contract. iOS Simulator and watchOS Simulator builds passed; the Watch app
+  was installed and launched on an Apple Watch Series 11 (46mm) simulator.
+  Physical Watch acceptance must still confirm the Health permission prompt,
+  live heart rate, active energy, and Fitness-ring behavior.
+
+Health Intelligence milestone started on 2026-07-29:
+
+- 2026-08-03 nutrition-sync pass: Profile now has a separate opt-in setting
+  to write the user's confirmed daily calories, protein, carbohydrates, and
+  fat totals to Apple Health. `HealthKitNutritionService` replaces only the
+  four FitGenius-tagged samples for that day after meal analysis, manual edits,
+  or deletion; meal photos, meal descriptions, and per-meal detail remain local.
+  `HealthKitWorkoutService` still writes only a completed strength-workout type
+  and duration. It does not claim live heart rate, active energy, rings, or
+  location because a post-hoc iPhone record cannot legitimately collect them.
+- Validation: `health-nutrition-sync-policy-tests`,
+  `recovery-insight-engine-tests`, `scripts/check-localization.sh`, plist
+  lint, privacy-policy copy parity, `git diff --check`, and iPhone 17 Pro
+  Simulator build/install/launch passed. Real-device acceptance is still
+  required for the Apple Health authorization prompt and the four written
+  nutrition quantities.
+
+- Added the first iOS-side Health Intelligence layer: SwiftData models for
+  daily HealthKit summaries, daily readiness reports, weekly health reports,
+  and report preferences; a HealthKit reader for activity, workouts, heart
+  rate, resting heart rate, HRV, sleep, advanced vitals, and body metrics; a
+  deterministic recovery engine; and an AI health-context builder.
+- Stats now has a top-level "Today's Body Status" card. It connects Apple
+  Health, refreshes today's readiness, shows score/evidence/training advice,
+  and keeps the copy scoped to training recovery rather than medical diagnosis.
+- Profile now includes Apple Health & Body Reports settings for AI health
+  context, advanced vitals, body metrics, and report-data authorization.
+- Fitness AI Assistant now injects health context only when the user enables
+  it, and includes quick health questions such as "Am I ready to train today?"
+  and "Generate this week's body report."
+- Cloud account snapshots now include bounded health summary/report records
+  as schemaVersion 2 optional fields, preserving old snapshot compatibility and
+  avoiding raw HealthKit sample sync.
+- Privacy policy and HealthKit permission copy were updated to disclose Apple
+  Health usage and AI summary upload boundaries.
+- 2026-07-31 report-depth pass: the Stats entry is no longer only a compact
+  score card. `HealthReadinessCard` now links to a full Body Report view with
+  Today / This Week tabs, daily metric modules for sleep, HRV, resting heart
+  rate, activity, sleep recovery, and training advice, an evidence section,
+  Apple Watch signal modules when sleep stages / HRV / SpO2 / VO2 Max data
+  exists, a basic-data hint when those signals are unavailable, weekly report
+  summary/advice cards, and a 7-day trend strip.
+- `RecoveryInsightEngine` daily reports now keep up to 5 evidence reasons
+  instead of hiding available nutrition/training context behind a 3-item cap.
+- 2026-07-30 compile incident: Xcode initially failed because
+  `HealthInsightViewModel` used `ObservableObject`/`@Published` without
+  importing Combine. Fixed by adding `import Combine` and removing the
+  `HealthDataService.shared` default-argument concurrency warning.
+- Latest validation after the fix:
+  - iOS simulator build passed with
+    `xcodebuild -quiet -project FitGenius.xcodeproj -scheme FitGenius
+    -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.1'
+    CODE_SIGNING_ALLOWED=NO build`.
+  - Physical-iPhone architecture build passed with
+    `xcodebuild -quiet -project FitGenius.xcodeproj -scheme FitGenius
+    -destination 'platform=iOS,name=宝剑的iPhone'
+    CODE_SIGNING_ALLOWED=NO build`.
+  - `recovery-insight-engine-tests`: PASS.
+  - 2026-07-31: `recovery-insight-engine-tests` adds assertions that daily and
+    weekly reports expose multi-factor evidence when data is available; PASS.
+  - `plutil -lint FitGenius/Info.plist FitGenius/PrivacyInfo.xcprivacy`: OK.
+  - `plutil -lint FitGenius/zh-Hans.lproj/Localizable.strings
+    FitGenius/en.lproj/Localizable.strings`: OK.
+  - `scripts/check-localization.sh`: PASS.
+  - 2026-07-31 simulator smoke test installed and launched
+    `/tmp/FitGeniusDerivedData/Build/Products/Debug-iphonesimulator/FitGenius.app`
+    on iPhone 17 Pro simulator; launch returned process id 37749.
+  - Remaining warning is pre-existing/older code:
+    `HealthKitWorkoutService` uses deprecated `HKWorkout(...)` initializer;
+    it does not block compilation and was not changed in this pass to avoid
+    destabilizing workout saving before release.
 
 MiniMax provider migration is deployed and verified:
 
@@ -364,6 +610,89 @@ new reconnect prompt once to receive a new FitGenius cloud session.
 
 ## Latest Validation
 
+### 2026-09-21: progressive entry and plan proposals
+
+- Current-plan policy tests pass for linked-plan priority, newest standalone
+  fallback, and empty-store behavior.
+- Plan proposal tests pass for valid edits, set ranges, rest-day protection,
+  missing/ambiguous targets, replacement continuity, and replacement rest-day
+  checks.
+- The full unsigned iOS Simulator build succeeds with Xcode 27 / iOS 27 SDK.
+- Source audit finds no root onboarding gate and no local regex intent
+  classifier. Plan changes are written only from explicit apply actions after
+  proposal validation.
+
+### 2026-09-20: unified exercise-learning entry
+
+- The updated `exercise-tutorial-catalog-tests` first failed because the
+  library had no persistent `TextField`; after the shared-entry correction it
+  passes and also guards against reintroducing a plan-only tutorial dependency.
+- `video-comparison-timeline-tests`, `tutorial-catalog-audit-tests`, catalog
+  audit, localization checks, and `git diff --check` pass.
+- Xcode 27 iOS Simulator build passes. The resulting Debug app contains both
+  `tutorial_clips.json` and `tan-dumbbell-lateral-raise.mp4`.
+- Xcode 27 signed physical-device build for iOS 27 passes. Version 1.5.1
+  (build 20260804) was installed on `宝剑的iPhone`; automated launch was
+  denied only because the phone had returned to the lock screen, so the final
+  on-screen interaction check still requires an unlocked device.
+
+### 2026-09-19: exercise-learning vertical slice
+
+- `exercise-tutorial-catalog-tests`: PASS.
+- `video-comparison-timeline-tests`: PASS.
+- `tutorial-catalog-audit-tests`: PASS.
+- Catalog audit: PASS for one mapped clip, one template, and no missing local
+  playback reference in the development workspace.
+- Both localization files pass `plutil -lint`; the project localization check
+  passes.
+- A whole-target `swiftc -typecheck` against the generated FitGenius source
+  list passes. The only warning is the existing deprecated HealthKit workout
+  initializer.
+- Full `xcodebuild` is currently blocked on this Mac because the matching iOS
+  Simulator/platform runtime is not installed. This is an environment gate,
+  so the feature still needs an installed-runtime/physical-iPhone visual and
+  playback acceptance pass.
+
+### 2026-08-03: conversation-session pass
+
+- `chat-session-policy-tests`: PASS.
+- `scripts/check-localization.sh`: PASS; both `Localizable.strings` files pass
+  `plutil -lint`.
+- iPhone 17 Pro (iOS 26.1) Simulator build passed with
+  `CODE_SIGNING_ALLOWED=NO`.
+- The newly built app installed and launched on the existing Simulator data
+  store without a SwiftData migration error. A delayed screenshot reached the
+  normal training home. Computer-use automation disconnected before it could
+  tap the AI-history controls, so visible button interactions still require a
+  manual Simulator or physical-iPhone acceptance pass.
+- `git diff --check`: clean.
+
+### 2026-08-03: health-AI activation and layout pass
+
+- `assistant-health-context-tests`: PASS.
+- `scripts/check-localization.sh`: PASS; both localization files pass
+  `plutil -lint`.
+- iPhone 17 Pro (iOS 26.1) Simulator build passed with
+  `CODE_SIGNING_ALLOWED=NO`. The non-blocking Xcode DVT build-number warning
+  remains unchanged.
+- Physical-iPhone acceptance still needs to confirm the actual Apple Health
+  prompt and the resulting banner state with the user's data.
+
+- 2026-08-02 health-report hardening:
+  - `recovery-insight-engine-tests: PASS`, including the new sleep-only
+    insufficient-data regression.
+  - `health-report-week-range-tests: PASS`, proving Sunday noon is in the
+    current week and next Monday midnight is excluded.
+  - `scripts/check-localization.sh`: PASS; both localization files pass
+    `plutil -lint`.
+  - iPhone 17 Pro iOS 26.1 Simulator build passed with
+    `CODE_SIGNING_ALLOWED=NO`; only the pre-existing Xcode DVT build-number
+    warning remains.
+  - `git diff --check`: clean.
+  - Simulator retained prior onboarding state after reinstall, so the duplicate
+    keyboard-toolbar visual fix is build-verified but still needs one clean
+    install / physical-iPhone visual acceptance pass.
+
 - 2026-06-22 MiniMax migration validation so far:
   - `npm run test:backend` passed: 26 tests, including provider selection,
     legacy/new model alias mapping, multimodal passthrough, streaming EOF,
@@ -549,6 +878,13 @@ new reconnect prompt once to receive a new FitGenius cloud session.
 
 On a physical iPhone build:
 
+- In the exercise library, confirm the search field is visible without a
+  pull-down gesture. Search `哑铃侧平举`, open the result directly, and confirm
+  the Tan Sir tutorial can play and reach the user-video comparison picker.
+- Open one template-backed plan exercise and confirm it shows the same learning
+  content plus prescription; open a custom/unmatched action and confirm it
+  remains on the compact fallback.
+
 0. Accept the latest Apple Developer Program License Agreement, then enable
    HealthKit for the iPhone and Watch App IDs/provisioning profiles if Xcode
    still reports that the capability is missing.
@@ -570,25 +906,62 @@ cannot be fully accepted in Simulator.
 
 ## Next Recommended Work
 
-1. Reconnect Apple login on a physical device and test Diet image recognition
+Progressive-entry / plan-copilot acceptance:
+
+- On a clean physical-device install, verify the empty dashboard, manual
+  day/action creation, and general AI text questions without a Profile.
+- Generate a personalized candidate after adding a manual action; cancel once
+  and confirm the old plan is unchanged, then regenerate and explicitly apply.
+- With real provider responses, verify one local action edit and one full split
+  change both show previews, and malformed responses leave SwiftData untouched.
+
+Exercise-learning next slice:
+
+- Install the matching iOS runtime or use a physical iPhone, then verify row
+  navigation, GIF rendering, Photos permission, local tutorial playback,
+  synchronized scrubbing, manual offsets, rotation, and background pausing.
+- Review the queued Tan Sir inventory, cut one clean 10-20 second teaching
+  segment per matched exercise, and record the exact template ID and timestamps.
+- Before distribution, obtain permission and move approved clips to object
+  storage/CDN; replace development-only URLs with hosted licensed assets.
+
+1. On a clean iPhone install, complete onboarding with a numeric keyboard and
+   confirm exactly one Done control is visible and the keyboard dismisses when
+   Next is tapped.
+2. In both AI Assistant modes, verify New Conversation opens a clean welcome
+   thread, Chat History can reopen the earlier thread, individual swipe-delete
+   deletes only that thread, and a new message does not receive context from a
+   different conversation.
+3. In Fitness AI, use the context banner to open Profile, enable AI health
+   summaries, authorize Body Report data, then return and confirm the banner
+   changes to the ready state after refresh.
+4. Authorize Apple Health with a Watch user and verify the new insufficient-data
+   state first, then verify that sleep + HRV/resting-heart-rate + training data
+   produces a transparent recommendation with evidence. Do not market the
+   score as medical or clinically validated.
+5. Advanced vitals are currently displayed but not used in the score. Do not
+   market the readiness score as clinical or medical guidance.
+6. Reconnect Apple login on a physical device and test Diet image recognition
    with 5-10 real meals: mixed Chinese meal, rice/noodles, meat + vegetables,
    drink/snack, and a deliberately poor photo. Confirm per-meal calories and
    macros are written back and that notes explain the estimate.
-2. Test AI Assistant form coaching on physical device with at least 3 clips per
+7. Test AI Assistant form coaching on physical device with at least 3 clips per
    supported lift: clean rep, obvious mistake, and poor filming/angle. Confirm
    the selected skeleton frame belongs to the lift, not platform intro/outro
    frames, and that AI cues do not contradict local score/issues.
-3. Build a small labeled validation set before expanding beyond squat,
+8. Build a small labeled validation set before expanding beyond squat,
    deadlift, bench press, and standing overhead press. Threshold tuning needs
    real examples, not synthetic fixtures.
-4. Run authenticated cloud-snapshot GET/PUT acceptance from the app.
-5. Complete the remaining bilingual UX audit and prepare a TestFlight release
+9. Run authenticated cloud-snapshot GET/PUT acceptance from the app.
+10. Complete the remaining bilingual UX audit and prepare a TestFlight release
    candidate only after real-device Diet image and form-coach acceptance pass.
 
 ## Risks
 
 - Do not reset or overwrite work that is not understood.
-- Do not rotate or print production secrets. They exist only in Vercel.
+- Do not rotate or print production secrets. The current production backend is
+  Tencent CloudBase; older Vercel files in the repo are historical and are not
+  the source of truth for production behavior.
 - Do not reintroduce an AI provider key into the iOS app or GitHub.
 - Do not treat a successful build as proof of Apple login or Vision on a
   physical device.

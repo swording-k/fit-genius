@@ -13,6 +13,7 @@ struct DietAIAssistantView: View {
     @AppStorage("hasAcceptedMedicalDisclaimer") private var hasAcceptedDisclaimer = false
     @State private var showDisclaimerAlert = false
     @State private var showLoginSheet = false
+    @State private var showConversationHistory = false
 
     init(modelContext: ModelContext) {
         _viewModel = StateObject(wrappedValue: DietAssistantViewModel(modelContext: modelContext))
@@ -129,6 +130,22 @@ struct DietAIAssistantView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
+                        viewModel.startNewConversation()
+                    } label: {
+                        Image(systemName: "square.and.pencil")
+                    }
+                    .accessibilityLabel("chat_start_new_conversation")
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showConversationHistory = true
+                    } label: {
+                        Image(systemName: "clock.arrow.circlepath")
+                    }
+                    .accessibilityLabel("chat_history")
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
                         showClearAlert = true
                     } label: {
                         Image(systemName: "trash")
@@ -136,8 +153,6 @@ struct DietAIAssistantView: View {
                 }
             }
         }
-        .navigationTitle("diet_ai_assistant")
-        .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showCamera) {
             CameraPicker(selectedImage: $capturedImage)
         }
@@ -146,6 +161,15 @@ struct DietAIAssistantView: View {
         }
         .sheet(isPresented: $showLoginSheet) {
             LoginView()
+        }
+        .sheet(isPresented: $showConversationHistory) {
+            ChatConversationHistorySheet(
+                conversations: viewModel.conversationHistory,
+                activeConversationID: viewModel.activeConversationID,
+                onStartNew: { viewModel.startNewConversation() },
+                onSelect: { viewModel.selectConversation(id: $0) },
+                onDelete: { viewModel.deleteConversation(id: $0) }
+            )
         }
         .onChange(of: capturedImage) { _, newImage in
             if let image = newImage, let data = image.jpegData(compressionQuality: 0.8) {

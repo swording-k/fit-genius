@@ -39,9 +39,12 @@ class OnboardingViewModel: ObservableObject {
     @Published var isGenerating = false
     @Published var generationProgress: String = "准备生成训练计划..."
     @Published var errorMessage: String?
+    @Published private(set) var pendingGeneratedPlan: WorkoutPlan?
+    @Published private(set) var pendingGeneratedPlanErrors: [String] = []
     
     // MARK: - Services
     private let aiService = AIService()
+    private var pendingGeneratedProfile: UserProfile?
     
     // MARK: - 常见器械列表
     let commonEquipment = [
@@ -112,107 +115,79 @@ class OnboardingViewModel: ObservableObject {
         
         Task {
             do {
-                // 🔧 修复：删除所有旧 profile，总是创建新的
-                print("🗑️ [Onboarding] 删除所有旧 profile...")
                 let descriptor = FetchDescriptor<UserProfile>()
-                let existing = try? context.fetch(descriptor)
-                existing?.forEach { oldProfile in
-                    print("🗑️ [Onboarding] 删除旧 profile: \(oldProfile.name)")
-                    context.delete(oldProfile)
-                }
-                
-                // 创建新 profile
-                print("✨ [Onboarding] 创建新 profile...")
-                let profile = UserProfile(
-                    name: name,
-                    age: ageInt,
-                    height: heightDouble,
-                    weight: weightDouble,
-                    goal: selectedGoals.first ?? .generalHealth,
-                    environment: selectedEnvironment,
-                    availableEquipment: Array(selectedEquipment),
-                    injuries: notes
-                )
+                let existingProfiles = try context.fetch(descriptor)
+                let currentPlan = try CurrentWorkoutPlanStore.ensureCurrentPlan(in: context)
+                let profile = existingProfiles.first(where: { $0.workoutPlan === currentPlan })
+                    ?? existingProfiles.first
+                    ?? UserProfile(
+                        name: name,
+                        age: ageInt,
+                        height: heightDouble,
+                        weight: weightDouble,
+                        goal: selectedGoals.first ?? .generalHealth,
+                        environment: selectedEnvironment,
+                        availableEquipment: Array(selectedEquipment),
+                        injuries: notes
+                    )
+
+                profile.name = name
+                profile.age = ageInt
+                profile.height = heightDouble
+                profile.weight = weightDouble
+                profile.goal = selectedGoals.first ?? .generalHealth
+                profile.environment = selectedEnvironment
+                profile.availableEquipment = Array(selectedEquipment)
+                profile.injuries = notes
                 // v1.5 能力基线字段（纯加法，兼容旧单值 goal）
                 profile.goals = selectedGoals
                 profile.biologicalSex = selectedBiologicalSex
                 profile.experienceLevel = selectedExperienceLevel
-                context.insert(profile)
-                print("✅ [Onboarding] Profile 已插入到 context")
-                print("🔍 [Onboarding] ModelContext: \(context)")
-                print("🔍 [Onboarding] ModelContainer: \(context.container)")
-                if let url = context.container.configurations.first?.url {
-                    print("🔍 [Onboarding] Container URL: \(url.path)")
-                } else {
-                    print("🔍 [Onboarding] Container URL: nil")
+                if !existingProfiles.contains(where: { $0 === profile }) {
+                    context.insert(profile)
                 }
-                
-                
+
+                // 先把真实资料与现有草稿关联并保存。AI 失败也绝不能删除手动计划。
+                currentPlan.userProfile = profile
+                profile.workoutPlan = currentPlan
+                try context.save()
+
                 // 更新进度
                 await MainActor.run {
                     generationProgress = "正在向 AI 发送请求..."
                 }
-                
+
                 print("🔍 [Onboarding] 开始调用 AI 生成计划...")
                 
                 // 按用户环境/器械筛选动作库，供 AI 生成计划时同源取用
                 let catalog = ExerciseTemplate.catalog(for: profile, in: context)
                 print("📚 [Onboarding] 注入动作库候选 \(catalog.count) 个")
                 
-                // 调用 AI 服务
-                let plan = try await aiService.generateInitialPlan(profile: profile, catalog: catalog)
-                
-                print("✅ [Onboarding] AI 返回计划：\(plan.name)，共 \((plan.days ?? []).count) 天")
-                
-                // 更新进度
-                await MainActor.run {
-                    generationProgress = "正在保存训练计划..."
-                }
-                
-                print("💾 [Onboarding] 开始保存计划到 SwiftData...")
-                
-                // 保存到 SwiftData（建立关系并插入计划）
-                plan.userProfile = profile
-                profile.workoutPlan = plan
-                context.insert(plan)
-                print("💾 [Onboarding] 计划已插入，准备保存...")
-                
-                try context.save()
-                
-                print("✅ [Onboarding] SwiftData 保存成功！")
-                
-                // 🔍 立即验证数据是否真的保存了
-                print("🔍 [Onboarding] 开始验证数据...")
-                let verifyDescriptor = FetchDescriptor<UserProfile>()
-                let savedProfiles = try context.fetch(verifyDescriptor)
-                print("🔍 [Onboarding] 查询到 \(savedProfiles.count) 个 profile")
-                
-                if let savedProfile = savedProfiles.first {
-                    print("🔍 [Onboarding] Profile: \(savedProfile.name)")
-                    print("🔍 [Onboarding] 有计划: \(savedProfile.workoutPlan != nil)")
-                    if let savedPlan = savedProfile.workoutPlan {
-                        print("🔍 [Onboarding] 计划名称: \(savedPlan.name)")
-                        print("🔍 [Onboarding] 计划天数: \((savedPlan.days ?? []).count)")
-                    } else {
-                        print("❌ [Onboarding] 警告：Profile 存在但没有关联计划！")
-                    }
+                // 已有手动内容时，必须把它作为重构上下文；空草稿才从资料生成。
+                let plan: WorkoutPlan
+                if !(currentPlan.days ?? []).isEmpty {
+                    plan = try await aiService.regeneratePlan(
+                        profile: profile,
+                        userRequest: "请根据最新用户资料优化计划，同时保留仍适用的手动训练日和动作。",
+                        catalog: catalog
+                    )
                 } else {
-                    print("❌ [Onboarding] 严重错误：保存后立即查询不到 Profile！")
+                    plan = try await aiService.generateInitialPlan(profile: profile, catalog: catalog)
                 }
-                
-                // 打印计划详情
-                print("📊 [Onboarding] 计划详情：")
-                print("   - 计划名称：\(plan.name)")
-                print("   - 训练天数：\(plan.days?.count ?? 0)") // This line was not part of the instruction, keeping original logic
-                for day in plan.days ?? [] { // This line was not part of the instruction, keeping original logic
-                    print("   - Day \(day.dayNumber): \(day.focus.localizedName), 动作数：\((day.exercises ?? []).count), 休息日：\(day.isRestDay)")
-                }
-                
-                // 完成
+
+                print("✅ [Onboarding] AI 返回计划：\(plan.name)，共 \((plan.days ?? []).count) 天")
+
+                let validation = validateGeneratedPlan(plan)
+                pendingGeneratedPlan = plan
+                pendingGeneratedProfile = profile
+                pendingGeneratedPlanErrors = validation.errors
+
                 await MainActor.run {
-                    generationProgress = "完成！"
+                    generationProgress = validation.isValid
+                        ? "plan_replacement_proposal_ready".localized
+                        : "plan_edit_proposal_invalid".localized
                     isGenerating = false
-                    completion((plan.days ?? []).count > 0)
+                    completion(validation.isValid)
                 }
                 
             } catch {
@@ -227,5 +202,63 @@ class OnboardingViewModel: ObservableObject {
                 }
             }
         }
+    }
+
+    func applyGeneratedPlan(context: ModelContext) throws {
+        guard let plan = pendingGeneratedPlan,
+              let profile = pendingGeneratedProfile else {
+            throw NSError(
+                domain: "Onboarding",
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "plan_edit_proposal_invalid".localized]
+            )
+        }
+        let validation = validateGeneratedPlan(plan)
+        pendingGeneratedPlanErrors = validation.errors
+        guard validation.isValid else {
+            throw NSError(
+                domain: "Onboarding",
+                code: -2,
+                userInfo: [NSLocalizedDescriptionKey: "plan_edit_proposal_invalid".localized]
+            )
+        }
+
+        context.insert(plan)
+        plan.userProfile = profile
+        profile.workoutPlan = plan
+        try context.save()
+        pendingGeneratedPlan = nil
+        pendingGeneratedProfile = nil
+        pendingGeneratedPlanErrors = []
+    }
+
+    func discardGeneratedPlan() {
+        pendingGeneratedPlan = nil
+        pendingGeneratedProfile = nil
+        pendingGeneratedPlanErrors = []
+        currentStep = .notes
+    }
+
+    private func validateGeneratedPlan(_ plan: WorkoutPlan) -> PlanEditValidationResult {
+        let snapshot = PlanEditSnapshot(days: (plan.days ?? []).map { day in
+            .init(
+                dayNumber: day.dayNumber,
+                isRestDay: day.isRestDay,
+                exerciseNames: (day.exercises ?? []).map(\.name)
+            )
+        })
+        var errors = PlanEditValidationPolicy.validateReplacement(snapshot).errors
+        for exercise in (plan.days ?? []).flatMap({ $0.exercises ?? [] }) {
+            if !(1...20).contains(exercise.sets) {
+                errors.append("plan_edit_error_sets_range")
+            }
+            if exercise.weight < 0 {
+                errors.append("plan_edit_error_weight_negative")
+            }
+            if exercise.reps.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                errors.append("plan_edit_error_reps_empty")
+            }
+        }
+        return PlanEditValidationResult(errors: errors)
     }
 }

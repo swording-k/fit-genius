@@ -9,11 +9,16 @@ struct AIAssistantView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var auth: AuthViewModel
     @Query private var profiles: [UserProfile]
+    @Query private var plans: [WorkoutPlan]
+    @Query private var healthPreferences: [HealthInsightPreference]
+    @Query private var healthDailySummaries: [HealthDailySummary]
+    @Query private var readinessReports: [DailyReadinessReportRecord]
     @StateObject private var viewModel: AIAssistantViewModel
     @FocusState private var isInputFocused: Bool
     @AppStorage("hasAcceptedMedicalDisclaimer") private var hasAcceptedDisclaimer = false
     @State private var showDisclaimerAlert = false
     @State private var showLoginSheet = false
+    @State private var showConversationHistory = false
     private let bottomAnchorID = "assistant-bottom-anchor"
     
     init(modelContext: ModelContext) {
@@ -21,11 +26,19 @@ struct AIAssistantView: View {
     }
     
     var profile: UserProfile? {
-        profiles.reversed().first
+        guard let plan else { return profiles.reversed().first }
+        return profiles.first { $0.workoutPlan === plan }
     }
     
     var plan: WorkoutPlan? {
-        profile?.workoutPlan
+        CurrentWorkoutPlanStore.resolve(profiles: profiles, plans: plans)
+    }
+
+    private var healthContextStatus: AssistantHealthContextStatus {
+        AssistantHealthContextStatus.resolve(
+            aiAccessEnabled: healthPreferences.first?.aiHealthContextEnabled == true,
+            hasStoredHealthSummary: !healthDailySummaries.isEmpty || !readinessReports.isEmpty
+        )
     }
     
     var body: some View {
@@ -52,79 +65,11 @@ struct AIAssistantView: View {
                 .padding(.top, 8)
             }
 
-            if profile == nil || plan == nil {
-                // 空状态
-                VStack(spacing: 20) {
-                    Image(systemName: "bubble.left.and.bubble.right")
-                        .font(.system(size: 60))
-                        .foregroundColor(.gray)
+            HealthAIContextBanner(status: healthContextStatus)
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
 
-                    Text("no_plan_for_assistant")
-                        .font(.title3)
-                        .foregroundColor(.secondary)
-
-                    Text("complete_profile_first")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                    
-                    if profile != nil {
-                        VStack(spacing: 4) {
-                            if viewModel.pendingMediaData != nil || viewModel.isPreparingMedia {
-                                HStack(spacing: 8) {
-                                    ZStack {
-                                        if let thumb = viewModel.pendingThumbnail {
-                                            Image(uiImage: thumb)
-                                                .resizable()
-                                                .scaledToFill()
-                                                .frame(width: 64, height: 64)
-                                                .clipped()
-                                                .cornerRadius(8)
-                                        } else {
-                                            Rectangle()
-                                                .fill(Color.gray.opacity(0.2))
-                                                .frame(width: 64, height: 64)
-                                                .cornerRadius(8)
-                                        }
-                                        if viewModel.isPreparingMedia {
-                                            ProgressView()
-                                                .controlSize(.small)
-                                        }
-                                        if viewModel.pendingMediaType == "video" {
-                                            Image(systemName: "play.circle.fill")
-                                                .font(.title)
-                                                .foregroundColor(.white)
-                                        }
-                                    }
-                                    Button {
-                                        viewModel.clearPendingMedia()
-                                    } label: {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .font(.title3)
-                                            .foregroundColor(.secondary)
-                                    }
-                                }
-                                .padding(.horizontal)
-                            }
-                            EnhancedInputControlsView(
-                                configuration: .fitnessAssistant,
-                                inputText: $viewModel.inputText,
-                                isFocused: $isInputFocused,
-                                isLoading: viewModel.isLoading,
-                                isPreparingMedia: viewModel.isPreparingMedia,
-                                canSendEmpty: viewModel.pendingMediaData != nil,
-                                onSend: sendSuggestionOnly,
-                                onCameraCapture: nil,
-                                onPhotoSelected: { item in
-                                    viewModel.handleMediaSelection(item: item)
-                                }
-                            )
-                        }
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                // 消息列表
+            // 通用问答始终可用；资料和计划只作为渐进增强的上下文。
                 ScrollViewReader { proxy in
                     ScrollView {
                         LazyVStack(spacing: 16) {
@@ -174,6 +119,13 @@ struct AIAssistantView: View {
                 Divider()
 
                 VStack(spacing: 4) {
+                    HealthQuickQuestionsView { question in
+                        viewModel.inputText = question
+                        sendMessage()
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 6)
+
                     if viewModel.pendingMediaData != nil || viewModel.isPreparingMedia {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack(spacing: 8) {
@@ -241,10 +193,7 @@ struct AIAssistantView: View {
                         }
                     )
                 }
-            }
         }
-        .navigationTitle("ai_assistant")
-        .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             #if DEBUG
             viewModel.loadDebugLaunchVideoIfNeeded()
@@ -255,6 +204,48 @@ struct AIAssistantView: View {
         }
         .sheet(isPresented: $showLoginSheet) {
             LoginView()
+        }
+        .sheet(isPresented: $showConversationHistory) {
+            ChatConversationHistorySheet(
+                conversations: viewModel.conversationHistory,
+                activeConversationID: viewModel.activeConversationID,
+                onStartNew: { viewModel.startNewConversation() },
+                onSelect: { viewModel.selectConversation(id: $0) },
+                onDelete: { viewModel.deleteConversation(id: $0) }
+            )
+        }
+        .sheet(isPresented: Binding(
+            get: { viewModel.pendingPlanCommand != nil },
+            set: { if !$0 { viewModel.discardPendingPlanCommand() } }
+        )) {
+            if let command = viewModel.pendingPlanCommand {
+                PlanChangePreviewSheet(
+                    command: command,
+                    validationErrors: viewModel.pendingPlanValidationErrors,
+                    onCancel: { viewModel.discardPendingPlanCommand() },
+                    onApply: {
+                        if let plan {
+                            viewModel.applyPendingPlanCommand(to: plan)
+                        }
+                    }
+                )
+            }
+        }
+        .sheet(isPresented: Binding(
+            get: { viewModel.pendingReplacementPlan != nil },
+            set: { if !$0 { viewModel.discardPendingReplacement() } }
+        )) {
+            if let replacement = viewModel.pendingReplacementPlan,
+               let currentPlan = plan,
+               let profile {
+                PlanReplacementPreviewSheet(
+                    currentPlan: currentPlan,
+                    replacement: replacement,
+                    validationErrors: viewModel.pendingReplacementValidationErrors,
+                    onCancel: { viewModel.discardPendingReplacement() },
+                    onApply: { viewModel.applyPendingReplacement(to: profile) }
+                )
+            }
         }
         .alert(
             "media_image_error_title",
@@ -268,6 +259,22 @@ struct AIAssistantView: View {
             Text(viewModel.mediaErrorMessage ?? "")
         }
         .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    viewModel.startNewConversation()
+                } label: {
+                    Image(systemName: "square.and.pencil")
+                }
+                .accessibilityLabel("chat_start_new_conversation")
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showConversationHistory = true
+                } label: {
+                    Image(systemName: "clock.arrow.circlepath")
+                }
+                .accessibilityLabel("chat_history")
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     Button(role: .destructive) {
@@ -302,26 +309,10 @@ struct AIAssistantView: View {
         } message: {
             Text("clear_chat_history_confirm")
         }
-        .alert("regenerate_plan", isPresented: $viewModel.showPlanRegenerationAlert) {
-            Button("cancel", role: .cancel) {
-                // 取消操作
-            }
-            Button("confirm", role: .destructive) {
-                // 确认重新生成
-                if let profile = profile {
-                    Task {
-                        await viewModel.regeneratePlan(profile: profile)
-                    }
-                }
-            }
-        } message: {
-            Text("regenerate_plan_confirm")
-        }
     }
     
     // 发送消息的辅助方法
     private func sendMessage() {
-        guard let profile = profile, let plan = plan else { return }
         let isLocalVideoAnalysis = viewModel.pendingMediaType == "video"
         guard isLocalVideoAnalysis || auth.hasBackendSession else {
             showLoginSheet = true
@@ -329,7 +320,9 @@ struct AIAssistantView: View {
         }
         isInputFocused = false  // 发送后收起键盘
         Task {
-            if let mediaData = viewModel.pendingMediaData, let type = viewModel.pendingMediaType {
+            if let mediaData = viewModel.pendingMediaData,
+               let type = viewModel.pendingMediaType,
+               let profile {
                 await viewModel.sendMediaMessage(
                     profile: profile,
                     plan: plan,
@@ -373,6 +366,74 @@ struct AIAssistantView: View {
             Task {
                 await viewModel.provideSuggestionOnly(userMessage: viewModel.inputText, profile: profile, plan: WorkoutPlan(name: "temporary_plan".localized))
                 viewModel.inputText = ""
+            }
+        }
+    }
+}
+
+private struct HealthAIContextBanner: View {
+    let status: AssistantHealthContextStatus
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: status == .ready ? "heart.text.square.fill" : "heart.text.square")
+                .foregroundStyle(status == .ready ? .green : .secondary)
+            Text(status.messageKey)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 8)
+            if status != .ready {
+                Button("health_ai_context_manage") {
+                    NotificationCenter.default.post(name: .openProfileFromAssistant, object: nil)
+                }
+                .font(.caption.weight(.semibold))
+            }
+        }
+        .padding(10)
+        .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+private extension AssistantHealthContextStatus {
+    var messageKey: String {
+        switch self {
+        case .disabled: return "health_ai_context_status_disabled"
+        case .needsRefresh: return "health_ai_context_status_needs_refresh"
+        case .ready: return "health_ai_context_status_ready"
+        }
+    }
+}
+
+private struct HealthQuickQuestionsView: View {
+    let onSelect: (String) -> Void
+
+    private var questions: [String] {
+        [
+            "health_quick_today_train".localized,
+            "health_quick_adjust_week".localized,
+            "health_quick_recovery_bad".localized,
+            "health_quick_weekly_report".localized
+        ]
+    }
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(questions, id: \.self) { question in
+                    Button {
+                        onSelect(question)
+                    } label: {
+                        Text(question)
+                            .font(.caption.weight(.medium))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color.blue.opacity(0.10))
+                            .foregroundStyle(.blue)
+                            .cornerRadius(16)
+                    }
+                    .buttonStyle(.plain)
+                }
             }
         }
     }

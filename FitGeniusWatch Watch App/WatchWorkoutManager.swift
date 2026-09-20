@@ -13,29 +13,29 @@ final class WatchWorkoutManager: NSObject, ObservableObject {
     private var builder: HKLiveWorkoutBuilder?
     private var restTask: Task<Void, Never>?
 
-    func start() {
-        Task {
-            guard HKHealthStore.isHealthDataAvailable(),
-                  let heartRate = HKObjectType.quantityType(forIdentifier: .heartRate) else { return }
-            do {
-                try await store.requestAuthorization(toShare: [HKObjectType.workoutType()], read: [heartRate])
-                let configuration = HKWorkoutConfiguration()
-                configuration.activityType = .traditionalStrengthTraining
-                configuration.locationType = .indoor
-                let session = try HKWorkoutSession(healthStore: store, configuration: configuration)
-                let builder = session.associatedWorkoutBuilder()
-                builder.dataSource = HKLiveWorkoutDataSource(healthStore: store, workoutConfiguration: configuration)
-                session.delegate = self
-                builder.delegate = self
-                self.session = session
-                self.builder = builder
-                let now = Date()
-                session.startActivity(with: now)
-                try await builder.beginCollection(at: now)
-                isActive = true
-            } catch {
-                isActive = false
-            }
+    func start() async -> Bool {
+        guard HKHealthStore.isHealthDataAvailable(),
+              let heartRate = HKObjectType.quantityType(forIdentifier: .heartRate) else { return false }
+        do {
+            try await store.requestAuthorization(toShare: [HKObjectType.workoutType()], read: [heartRate])
+            let configuration = HKWorkoutConfiguration()
+            configuration.activityType = .traditionalStrengthTraining
+            configuration.locationType = .indoor
+            let session = try HKWorkoutSession(healthStore: store, configuration: configuration)
+            let builder = session.associatedWorkoutBuilder()
+            builder.dataSource = HKLiveWorkoutDataSource(healthStore: store, workoutConfiguration: configuration)
+            session.delegate = self
+            builder.delegate = self
+            self.session = session
+            self.builder = builder
+            let now = Date()
+            session.startActivity(with: now)
+            try await builder.beginCollection(at: now)
+            isActive = true
+            return true
+        } catch {
+            isActive = false
+            return false
         }
     }
 

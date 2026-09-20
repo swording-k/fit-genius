@@ -13,6 +13,8 @@ class DietAssistantViewModel: ObservableObject {
     @Published var loadingText: String = "assistant_thinking".localized
 	@Published var errorMessage: String?
     @Published var mediaErrorMessage: String?
+    @Published private(set) var conversationHistory: [ChatConversationSummary] = []
+    @Published private(set) var activeConversationID: UUID?
 
     // 待发送的媒体
     @Published var pendingMediaData: Data?
@@ -22,6 +24,7 @@ class DietAssistantViewModel: ObservableObject {
 
     private let modelContext: ModelContext
     private let service = AIService()
+    private let activeConversationDefaultsKey = "dietAssistantActiveConversationID"
 
 	init(modelContext: ModelContext) {
 		self.modelContext = modelContext
@@ -29,24 +32,105 @@ class DietAssistantViewModel: ObservableObject {
 	}
     
     func loadHistory() {
+        let storedID = UserDefaults.standard.string(forKey: activeConversationDefaultsKey)
+            .flatMap(UUID.init(uuidString:))
+        if let storedID, conversationExists(id: storedID) {
+            selectConversation(id: storedID)
+        } else {
+            startNewConversation()
+        }
+    }
+
+    private func conversationExists(id: UUID) -> Bool {
         let descriptor = FetchDescriptor<ChatMessage>(
             predicate: #Predicate { $0.topic == "diet" },
             sortBy: [SortDescriptor(\.timestamp)]
         )
-        do {
-            messages = try modelContext.fetch(descriptor)
-            if messages.isEmpty {
-                addWelcomeMessage()
-            }
-        } catch {
-            print("Failed to load diet chat history: \(error)")
+        return (try? modelContext.fetch(descriptor))?.contains { $0.conversationID == id } == true
+    }
+
+    func startNewConversation() {
+        activeConversationID = UUID()
+        setStoredActiveConversation(activeConversationID)
+        inputText = ""
+        clearPendingMedia()
+        messages = []
+        appendMessage(content: "diet_assistant_welcome".localized, isUser: false)
+        refreshConversationHistory()
+    }
+
+    func selectConversation(id: UUID?) {
+        activeConversationID = id
+        setStoredActiveConversation(id)
+        let descriptor = FetchDescriptor<ChatMessage>(
+            predicate: #Predicate { $0.topic == "diet" },
+            sortBy: [SortDescriptor(\.timestamp)]
+        )
+        messages = ((try? modelContext.fetch(descriptor)) ?? []).filter { $0.conversationID == id }
+        refreshConversationHistory()
+    }
+
+    func deleteConversation(id: UUID?) {
+        let descriptor = FetchDescriptor<ChatMessage>(predicate: #Predicate { $0.topic == "diet" })
+        for message in ((try? modelContext.fetch(descriptor)) ?? []) where message.conversationID == id {
+            modelContext.delete(message)
+        }
+        try? modelContext.save()
+        if activeConversationID == id {
+            startNewConversation()
+        } else {
+            refreshConversationHistory()
         }
     }
-    
-    private func addWelcomeMessage() {
-        let welcome = ChatMessage(content: "diet_assistant_welcome".localized, isUser: false, topic: "diet")
-        modelContext.insert(welcome)
-        messages.append(welcome)
+
+    private func setStoredActiveConversation(_ id: UUID?) {
+        UserDefaults.standard.set(id?.uuidString ?? "legacy", forKey: activeConversationDefaultsKey)
+    }
+
+    private func refreshConversationHistory() {
+        let descriptor = FetchDescriptor<ChatMessage>(
+            predicate: #Predicate { $0.topic == "diet" },
+            sortBy: [SortDescriptor(\.timestamp)]
+        )
+        let grouped = Dictionary(grouping: (try? modelContext.fetch(descriptor)) ?? [], by: \.conversationID)
+        let summaries = grouped.map { id, entries in
+            ChatConversationSummary(
+                sessionID: id,
+                title: ChatSessionPolicy.title(
+                    firstUserMessage: entries.first(where: \.isUser)?.content,
+                    fallback: id == nil ? "chat_earlier_conversation".localized : "chat_new_conversation".localized
+                ),
+                updatedAt: entries.map(\.timestamp).max() ?? .distantPast
+            )
+        }
+        let orderedIDs = ChatSessionPolicy.orderedSessionIDs(
+            entries: summaries.map { .init(id: $0.sessionID, latestTimestamp: $0.updatedAt) },
+            activeID: activeConversationID
+        )
+        conversationHistory = orderedIDs.compactMap { id in summaries.first { $0.sessionID == id } }
+    }
+
+    @discardableResult
+    private func appendMessage(
+        content: String,
+        isUser: Bool,
+        isSystemAction: Bool = false,
+        mediaData: Data? = nil,
+        mediaType: String? = nil
+    ) -> ChatMessage {
+        let message = ChatMessage(
+            content: content,
+            isUser: isUser,
+            isSystemAction: isSystemAction,
+            mediaData: mediaData,
+            mediaType: mediaType,
+            topic: "diet",
+            conversationID: activeConversationID
+        )
+        modelContext.insert(message)
+        messages.append(message)
+        refreshConversationHistory()
+        return message
     }
 
     func sendMessage() async {
@@ -70,9 +154,7 @@ class DietAssistantViewModel: ObservableObject {
             // content += "（已附加图片）" // 视觉上不需要在文本里加这个，MessageBubble 会显示图片
         }
         
-        let userMsg = ChatMessage(content: content, isUser: true, mediaData: currentMedia, mediaType: currentMediaType, topic: "diet")
-        modelContext.insert(userMsg)
-        messages.append(userMsg)
+        appendMessage(content: content, isUser: true, mediaData: currentMedia, mediaType: currentMediaType)
         
 		isLoading = true
         errorMessage = nil
@@ -88,14 +170,10 @@ class DietAssistantViewModel: ObservableObject {
                 reply = try await service.dietChat(userMessage: messageWithRecentDietContext(currentText))
             }
             
-			let aiMsg = ChatMessage(content: AIResponseFormatter.displayText(from: reply), isUser: false, topic: "diet")
-            modelContext.insert(aiMsg)
-			messages.append(aiMsg)
+            appendMessage(content: AIResponseFormatter.displayText(from: reply), isUser: false)
         } catch {
             errorMessage = error.localizedDescription
-            let errMsg = ChatMessage(content: "assistant_error_format".localized(with: error.localizedDescription), isUser: false, topic: "diet")
-            modelContext.insert(errMsg)
-            messages.append(errMsg)
+            appendMessage(content: "assistant_error_format".localized(with: error.localizedDescription), isUser: false)
 		}
 		isLoading = false
 	}
@@ -144,7 +222,10 @@ class DietAssistantViewModel: ObservableObject {
                 modelContext.delete(item)
             }
             messages.removeAll()
-            addWelcomeMessage()
+            activeConversationID = UUID()
+            setStoredActiveConversation(activeConversationID)
+            appendMessage(content: "diet_assistant_welcome".localized, isUser: false)
+            refreshConversationHistory()
         } catch {
             print("Failed to clear history: \(error)")
         }

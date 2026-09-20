@@ -95,6 +95,13 @@ struct MainView: View {
             appMode = "training"
             selectedTrainingTab = 0
         }
+        .onReceive(NotificationCenter.default.publisher(for: .openProfileFromAssistant)) { _ in
+            if appMode == "training" {
+                selectedTrainingTab = 4
+            } else {
+                selectedDietTab = 3
+            }
+        }
         .onPreferenceChange(HideModeToggleKey.self) { hide in
             hideModeToggle = hide
         }

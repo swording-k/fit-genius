@@ -4,6 +4,18 @@ Last updated: 2026-06-05
 
 ## Product Vision
 
+### Progressive entry and plan copilot (2026-09-21)
+
+FitGenius no longer treats personal data entry as an admission gate. A new
+user enters the product with an empty, editable local plan and can manually add
+days and exercises before sharing any profile data. Profile setup is invoked
+only when the user asks for personalization.
+
+AI plan work follows a proposal contract: general questions never require a
+Profile; existing manual plan content is first-class context; local edits and
+full replacements are validated and previewed before the user applies them.
+The assistant must not directly mutate a plan from an unreviewed model output.
+
 FitGenius should become a personalized strength-training coach, not just a workout-plan generator. The long-term product loop is:
 
 1. Generate a personalized training plan.
@@ -44,6 +56,15 @@ generic fat-loss or bodybuilding templates.
 Training plans and Stats support this loop. The first Watch workout companion
 is now implemented, while Android/Huawei and broad exercise expansion remain
 paused until this experience is useful.
+
+Next product layer (2026-07-29): FitGenius Health Intelligence should connect
+Apple Health / Apple Watch recovery signals to the coaching loop. The first
+implementation reads authorized activity, workout, heart-rate, HRV, sleep,
+advanced vitals, and body-metric summaries; combines them with FitGenius
+training, nutrition, and form-analysis history; generates daily readiness and
+weekly recovery reports; and lets AI Assistant answer recovery/programming
+questions from the user's health summary. This is explicitly training-recovery
+guidance, not diagnosis or treatment.
 
 TestFlight feedback from 2026-06-05 tightened the MVP bar: annotated form
 feedback must never select social-media intro/outro frames or tiny creator
@@ -199,6 +220,12 @@ Local vertical-slice status (2026-09-19): the detail, tutorial, video picker,
 and two-player comparison flow are implemented. One reviewed lateral-raise
 excerpt validates the development pipeline; the remaining catalog is tracked
 in `docs/exercise-tutorial-inventory.csv` and can be filled incrementally.
+
+Entry-point correction (2026-09-20): `ExerciseTemplate` is the canonical
+learning-detail source. The exercise library and matched plan exercises now
+reuse the same GIF, instructions, optional tutorial, and comparison entry.
+The library keeps search visibly pinned above its filters; unmatched plan
+exercises intentionally degrade to their prescription and short explanation.
 
 ### Phase 4: Android and Huawei Expansion
 

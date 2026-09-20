@@ -22,9 +22,9 @@
 	<key>NSCameraUsageDescription</key>
 	<string>FitGenius需要使用相机来拍摄您的餐食照片，以便进行饮食记录和分析。</string>
 	<key>NSHealthShareUsageDescription</key>
-	<string>FitGenius读取已授权的训练数据，以保持训练记录一致。</string>
+	<string>FitGenius读取你授权的活动、训练、心率、睡眠、HRV和身体指标，用于生成训练恢复和身体状态报告。</string>
 	<key>NSHealthUpdateUsageDescription</key>
-	<string>FitGenius将完成的力量训练保存到苹果健康。</string>
+	<string>FitGenius 将完成的力量训练和您确认的每日营养汇总保存到苹果健康。</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>FitGenius需要访问您的麦克风以实现语音转文字功能。</string>
 	<key>NSPhotoLibraryUsageDescription</key>

@@ -5,16 +5,21 @@ import SwiftData
 struct PlanDashboardView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var profiles: [UserProfile]
-    @AppStorage("hasOnboarded") private var hasOnboarded = false
+    @Query private var plans: [WorkoutPlan]
     @StateObject private var viewModel: PlanDashboardViewModel
     
     @State private var selectedDayIndex = 0
-    @State private var showResetAlert = false
     @State private var showAddDaySheet = false
     @State private var showDeleteDayAlert = false
+    @State private var showPersonalization = false
     
     var workoutPlan: WorkoutPlan? {
-        return profiles.first?.workoutPlan
+        CurrentWorkoutPlanStore.resolve(profiles: profiles, plans: plans)
+    }
+
+    var currentProfile: UserProfile? {
+        guard let workoutPlan else { return nil }
+        return profiles.first { $0.workoutPlan === workoutPlan }
     }
     
     var sortedDays: [WorkoutDay] {
@@ -37,7 +42,7 @@ struct PlanDashboardView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                if let plan = workoutPlan, !sortedDays.isEmpty, let profile = profiles.first {
+                if let plan = workoutPlan, !sortedDays.isEmpty {
                     // 顶部计划信息
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
@@ -54,7 +59,7 @@ struct PlanDashboardView: View {
                             Spacer()
                             
                             // 坚持天数
-                            if profile.streakDays > 0 {
+                            if let profile = currentProfile, profile.streakDays > 0 {
                                 HStack(spacing: 4) {
                                     Text("🔥")
                                         .font(.title2)
@@ -106,28 +111,36 @@ struct PlanDashboardView: View {
                             .font(.system(size: 60))
                             .foregroundColor(.gray)
 
-                        Text("no_workout_plan")
+                        Text("empty_workout_plan_title")
                             .font(.title3)
-                            .foregroundColor(.secondary)
+                            .fontWeight(.semibold)
 
-                        Text("complete_profile_setup")
+                        Text("empty_workout_plan_detail")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
 
-                        // 重置按钮
                         Button(action: {
-                            showResetAlert = true
+                            showPersonalization = true
                         }) {
-                            Text("reset_settings")
+                            Text("generate_personalized_plan")
                                 .font(.headline)
                                 .foregroundColor(.white)
+                                .frame(maxWidth: 280)
                                 .padding(.horizontal, 32)
                                 .padding(.vertical, 12)
                                 .background(Color.blue)
                                 .cornerRadius(10)
                         }
-                        .padding(.top, 20)
+
+                        Button(action: {
+                            showAddDaySheet = true
+                        }) {
+                            Label("create_plan_manually", systemImage: "plus.circle")
+                                .font(.headline)
+                        }
                     }
+                    .padding(.horizontal, 32)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
@@ -142,26 +155,19 @@ struct PlanDashboardView: View {
                         Button(role: .destructive, action: { showDeleteDayAlert = true }) {
                             Label("delete_current_day", systemImage: "trash")
                         }
+                        .disabled(sortedDays.isEmpty)
                         Divider()
                         Button(action: { startNewCycle() }) {
                             Label("start_new_cycle", systemImage: "calendar.badge.plus")
                         }
                         Divider()
-                        Button(action: { showResetAlert = true }) {
-                            Label("reset_all_data", systemImage: "arrow.clockwise.circle")
+                        Button(action: { showPersonalization = true }) {
+                            Label("generate_personalized_plan", systemImage: "sparkles")
                         }
                     } label: {
                         Image(systemName: "ellipsis.circle")
                     }
                 }
-            }
-            .alert("reset_settings", isPresented: $showResetAlert) {
-                Button("cancel", role: .cancel) { }
-                Button("confirm", role: .destructive) {
-                    resetOnboarding()
-                }
-            } message: {
-                Text("reset_warning_message")
             }
             .alert("delete_current_day", isPresented: $showDeleteDayAlert) {
                 Button("cancel", role: .cancel) { }
@@ -176,18 +182,23 @@ struct PlanDashboardView: View {
                     selectedDayIndex = viewModel.addDay(plan: workoutPlan, focus: focus, isRestDay: isRest)
                 }
             }
+            .fullScreenCover(isPresented: $showPersonalization) {
+                OnboardingView {
+                    showPersonalization = false
+                }
+            }
             .onAppear {
                 // 自动定位到今天的训练
                 selectedDayIndex = todayDayIndex
                 
                 // 更新坚持天数
-                if let profile = profiles.first {
+                if let profile = currentProfile {
                     profile.updateStreakDays(workoutPlan: workoutPlan)
                 }
             }
             .onChange(of: (workoutPlan?.days ?? []).flatMap { $0.exercises ?? [] }.map { $0.isCompleted }) { _, _ in
                 // 当任何训练完成状态改变时，更新坚持天数
-                if let profile = profiles.first {
+                if let profile = currentProfile {
                     profile.updateStreakDays(workoutPlan: workoutPlan)
                 }
             }
@@ -198,10 +209,6 @@ struct PlanDashboardView: View {
         viewModel.startNewCycle(plan: workoutPlan)
     }
     
-    private func resetOnboarding() {
-        viewModel.resetOnboarding(profiles: profiles, hasOnboarded: &hasOnboarded)
-    }
-
     init(modelContext: ModelContext) {
         _viewModel = StateObject(wrappedValue: PlanDashboardViewModel(modelContext: modelContext))
     }

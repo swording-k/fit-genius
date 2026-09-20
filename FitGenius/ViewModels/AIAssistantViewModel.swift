@@ -14,10 +14,15 @@ class AIAssistantViewModel: ObservableObject {
     @Published var loadingText: String = "assistant_thinking".localized
     @Published var errorMessage: String?
     @Published var mediaErrorMessage: String?
-    @Published var showPlanRegenerationAlert: Bool = false
     @Published var showClearHistoryAlert: Bool = false
+    @Published private(set) var conversationHistory: [ChatConversationSummary] = []
+    @Published private(set) var activeConversationID: UUID?
     @Published var pendingUserMessage: String = ""
     @Published var suggestionOnly: Bool = false
+    @Published private(set) var pendingPlanCommand: AIActionCommand?
+    @Published private(set) var pendingPlanValidationErrors: [String] = []
+    @Published private(set) var pendingReplacementPlan: WorkoutPlan?
+    @Published private(set) var pendingReplacementValidationErrors: [String] = []
     
     // 待发送的媒体
     @Published var pendingMediaData: Data?
@@ -29,25 +34,114 @@ class AIAssistantViewModel: ObservableObject {
     private let aiService = AIService()
     private let modelContext: ModelContext
     private var languagePolicy: AppLanguagePolicy { AppLanguagePolicy.current }
+    private let activeConversationDefaultsKey = "fitnessAssistantActiveConversationID"
+    private var pendingPlanCatalog: [ExerciseTemplate] = []
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
-        // 只加载健身相关的聊天记录
+        loadInitialConversation()
+    }
+
+    private func loadInitialConversation() {
+        let storedID = UserDefaults.standard.string(forKey: activeConversationDefaultsKey)
+            .flatMap(UUID.init(uuidString:))
+        if let storedID, conversationExists(id: storedID) {
+            selectConversation(id: storedID)
+        } else {
+            startNewConversation()
+        }
+    }
+
+    private func conversationExists(id: UUID) -> Bool {
         let descriptor = FetchDescriptor<ChatMessage>(
             predicate: #Predicate { $0.topic == "fitness" },
             sortBy: [SortDescriptor(\.timestamp)]
         )
-        if let stored = try? modelContext.fetch(descriptor), !stored.isEmpty {
-            messages = stored
-        } else {
-            let welcomeMessage = ChatMessage(
-                content: "fitness_assistant_welcome".localized,
-                isUser: false,
-                topic: "fitness"
-            )
-            modelContext.insert(welcomeMessage)
-            messages.append(welcomeMessage)
+        return (try? modelContext.fetch(descriptor))?.contains { $0.conversationID == id } == true
+    }
+
+    func startNewConversation() {
+        activeConversationID = UUID()
+        setStoredActiveConversation(activeConversationID)
+        inputText = ""
+        clearPendingMedia()
+        messages = []
+        appendMessage(content: "fitness_assistant_welcome".localized, isUser: false)
+        refreshConversationHistory()
+    }
+
+    func selectConversation(id: UUID?) {
+        activeConversationID = id
+        setStoredActiveConversation(id)
+        let descriptor = FetchDescriptor<ChatMessage>(
+            predicate: #Predicate { $0.topic == "fitness" },
+            sortBy: [SortDescriptor(\.timestamp)]
+        )
+        messages = ((try? modelContext.fetch(descriptor)) ?? []).filter { $0.conversationID == id }
+        refreshConversationHistory()
+    }
+
+    func deleteConversation(id: UUID?) {
+        let descriptor = FetchDescriptor<ChatMessage>(predicate: #Predicate { $0.topic == "fitness" })
+        for message in ((try? modelContext.fetch(descriptor)) ?? []) where message.conversationID == id {
+            modelContext.delete(message)
         }
+        try? modelContext.save()
+        if activeConversationID == id {
+            startNewConversation()
+        } else {
+            refreshConversationHistory()
+        }
+    }
+
+    private func setStoredActiveConversation(_ id: UUID?) {
+        UserDefaults.standard.set(id?.uuidString ?? "legacy", forKey: activeConversationDefaultsKey)
+    }
+
+    private func refreshConversationHistory() {
+        let descriptor = FetchDescriptor<ChatMessage>(
+            predicate: #Predicate { $0.topic == "fitness" },
+            sortBy: [SortDescriptor(\.timestamp)]
+        )
+        let grouped = Dictionary(grouping: (try? modelContext.fetch(descriptor)) ?? [], by: \.conversationID)
+        let summaries = grouped.map { id, entries in
+            ChatConversationSummary(
+                sessionID: id,
+                title: ChatSessionPolicy.title(
+                    firstUserMessage: entries.first(where: \.isUser)?.content,
+                    fallback: id == nil ? "chat_earlier_conversation".localized : "chat_new_conversation".localized
+                ),
+                updatedAt: entries.map(\.timestamp).max() ?? .distantPast
+            )
+        }
+        let orderedIDs = ChatSessionPolicy.orderedSessionIDs(
+            entries: summaries.map { .init(id: $0.sessionID, latestTimestamp: $0.updatedAt) },
+            activeID: activeConversationID
+        )
+        conversationHistory = orderedIDs.compactMap { id in summaries.first { $0.sessionID == id } }
+    }
+
+    @discardableResult
+    private func appendMessage(
+        content: String,
+        isUser: Bool,
+        isSystemAction: Bool = false,
+        mediaData: Data? = nil,
+        mediaType: String? = nil
+    ) -> ChatMessage {
+        let message = ChatMessage(
+            content: content,
+            isUser: isUser,
+            isSystemAction: isSystemAction,
+            mediaData: mediaData,
+            mediaType: mediaType,
+            topic: "fitness",
+            conversationID: activeConversationID
+        )
+        modelContext.insert(message)
+        messages.append(message)
+        refreshConversationHistory()
+        return message
     }
     
     // MARK: - 清空历史记录
@@ -61,33 +155,13 @@ class AIAssistantViewModel: ObservableObject {
             messages.removeAll()
             
             // 重新添加欢迎语
-            let welcomeMessage = ChatMessage(
-                content: "fitness_assistant_welcome_short".localized,
-                isUser: false,
-                topic: "fitness"
-            )
-            modelContext.insert(welcomeMessage)
-            messages.append(welcomeMessage)
+            activeConversationID = UUID()
+            setStoredActiveConversation(activeConversationID)
+            appendMessage(content: "fitness_assistant_welcome_short".localized, isUser: false)
+            refreshConversationHistory()
         } catch {
             print("Failed to clear fitness chat history: \(error)")
         }
-    }
-    
-    // MARK: - 检测修改类型
-    private func detectModificationType(userMessage: String) -> Bool {
-        // 计划级别修改的关键词
-        let planLevelKeywords = [
-            "分化", "循环", "天数", "改为.*天", "删除.*天", "增加.*天",
-            "变成.*天", "调整.*天", ".*分化.*改.*分化"
-        ]
-        
-        for keyword in planLevelKeywords {
-            if userMessage.range(of: keyword, options: .regularExpression) != nil {
-                return true
-            }
-        }
-        
-        return false
     }
     
     // MARK: - 媒体处理
@@ -158,10 +232,14 @@ class AIAssistantViewModel: ObservableObject {
     #endif
 
     // MARK: - 发送消息
-    func sendMessage(profile: UserProfile, plan: WorkoutPlan) async {
+    func sendMessage(profile: UserProfile?, plan: WorkoutPlan?) async {
         // 1. 检查是否有待发送的媒体
         if let mediaData = pendingMediaData, let type = pendingMediaType {
             let isVideo = (type == "video")
+            guard let profile else {
+                appendMessage(content: "assistant_profile_needed_for_media".localized, isUser: false)
+                return
+            }
             await sendMediaMessage(profile: profile, plan: plan, mediaData: mediaData, isVideo: isVideo, userText: inputText)
             clearPendingMedia()
             return
@@ -172,26 +250,50 @@ class AIAssistantViewModel: ObservableObject {
         let userMessage = inputText
         inputText = ""
         
-		let userChatMessage = ChatMessage(content: userMessage, isUser: true)
-		modelContext.insert(userChatMessage)
-		messages.append(userChatMessage)
+        appendMessage(content: userMessage, isUser: true)
+
+        guard let profile, let plan else {
+            await processGeneralQuestion(userMessage: userMessage, profile: profile, plan: plan)
+            return
+        }
         
-        // 检测是否是计划级别修改
-        if detectModificationType(userMessage: userMessage) {
-            if suggestionOnly {
-                // 建议模式：提供文字建议，不进行计划改动
-                await provideSuggestionOnly(userMessage: userMessage, profile: profile, plan: plan)
-                return
-            } else {
-                // 编辑模式：显示确认对话框并可能重生成
-                pendingUserMessage = userMessage
-                showPlanRegenerationAlert = true
-                return
-            }
+        if suggestionOnly {
+            await provideSuggestionOnly(userMessage: userMessage, profile: profile, plan: plan)
+            return
         }
         
         // 动作级别修改
         await processExerciseLevelModification(userMessage: userMessage, profile: profile, plan: plan)
+    }
+
+    private func processGeneralQuestion(
+        userMessage: String,
+        profile: UserProfile?,
+        plan: WorkoutPlan?
+    ) async {
+        isLoading = true
+        errorMessage = nil
+        do {
+            let (response, _) = try await aiService.chat(
+                userMessage: messageWithRecentFormContext(
+                    messageWithHealthContext(messageWithRecentConversationContext(userMessage))
+                ),
+                profile: profile,
+                plan: plan
+            )
+            appendMessage(content: AIResponseFormatter.displayText(from: response), isUser: false)
+        } catch {
+            errorMessage = error.localizedDescription
+            appendMessage(
+                content: localizedFailure(
+                    prefixChinese: "抱歉，暂时无法回答",
+                    prefixEnglish: "Sorry, I couldn't answer that",
+                    error: error
+                ),
+                isUser: false
+            )
+        }
+        isLoading = false
     }
     
     // MARK: - 建议模式：仅提供文字建议
@@ -202,26 +304,20 @@ class AIAssistantViewModel: ObservableObject {
 		do {
 			let (response, _) = try await aiService.chat(
                 userMessage: messageWithRecentFormContext(
-                    messageWithRecentConversationContext(suggestionOnlyPromptPrefix + userMessage)
+                    messageWithHealthContext(messageWithRecentConversationContext(suggestionOnlyPromptPrefix + userMessage))
                 ),
                 profile: profile,
                 plan: plan
             )
-			let tip = ChatMessage(content: suggestionOnlyEnabledMessage, isUser: false, isSystemAction: true)
-			modelContext.insert(tip)
-			messages.append(tip)
+			appendMessage(content: suggestionOnlyEnabledMessage, isUser: false, isSystemAction: true)
 			if !response.isEmpty {
-				let aiMessage = ChatMessage(content: AIResponseFormatter.displayText(from: response), isUser: false)
-				modelContext.insert(aiMessage)
-				messages.append(aiMessage)
+                appendMessage(content: AIResponseFormatter.displayText(from: response), isUser: false)
             }
             isLoading = false
 		} catch {
 			isLoading = false
 			errorMessage = error.localizedDescription
-			let errMsg = ChatMessage(content: localizedFailure(prefixChinese: "抱歉，生成建议失败", prefixEnglish: "Sorry, generating advice failed", error: error), isUser: false)
-			modelContext.insert(errMsg)
-			messages.append(errMsg)
+            appendMessage(content: localizedFailure(prefixChinese: "抱歉，生成建议失败", prefixEnglish: "Sorry, generating advice failed", error: error), isUser: false)
 		}
     }
 
@@ -246,16 +342,7 @@ class AIAssistantViewModel: ObservableObject {
             ? pendingThumbnail?.jpegData(compressionQuality: 0.7)
             : mediaData
         let storedMediaType = isVideo ? "image" : mediaType
-		let userMessage = ChatMessage(
-            content: contentText,
-            isUser: true,
-            isSystemAction: false,
-            mediaData: storedMediaData,
-            mediaType: storedMediaType,
-            topic: "fitness"
-        )
-		modelContext.insert(userMessage)
-		messages.append(userMessage)
+        appendMessage(content: contentText, isUser: true, mediaData: storedMediaData, mediaType: storedMediaType)
         inputText = ""
 
         if isVideo {
@@ -280,18 +367,14 @@ class AIAssistantViewModel: ObservableObject {
                 images: isVideo ? [] : [mediaData],
                 videos: isVideo ? [mediaData] : []
             )
-			let aiMessage = ChatMessage(content: AIResponseFormatter.displayText(from: response), isUser: false)
-			modelContext.insert(aiMessage)
-			messages.append(aiMessage)
+            appendMessage(content: AIResponseFormatter.displayText(from: response), isUser: false)
             isLoading = false
             loadingText = "assistant_thinking".localized
 		} catch {
 			isLoading = false
             loadingText = "assistant_thinking".localized
 			errorMessage = error.localizedDescription
-			let errMsg = ChatMessage(content: localizedFailure(prefixChinese: "抱歉，分析失败", prefixEnglish: "Sorry, analysis failed", error: error), isUser: false)
-			modelContext.insert(errMsg)
-			messages.append(errMsg)
+            appendMessage(content: localizedFailure(prefixChinese: "抱歉，分析失败", prefixEnglish: "Sorry, analysis failed", error: error), isUser: false)
 		}
 	}
 
@@ -311,18 +394,15 @@ class AIAssistantViewModel: ObservableObject {
                 preferredExercise: preferredExercise
             )
             let content = formAnalysisMessage(for: artifact)
-            let response = ChatMessage(
+            appendMessage(
                 content: content,
                 isUser: false,
                 mediaData: FormAnalysisChatPresentation.primaryFeedbackImageData(
                     localFrameImageData: artifact.feedbackImageData,
                     enrichmentAnnotatedImageData: artifact.enrichment?.annotatedImageData ?? []
                 ),
-                mediaType: "image",
-                topic: "fitness"
+                mediaType: "image"
             )
-            modelContext.insert(response)
-            messages.append(response)
 
             let record = FormAnalysisRecord(
                 exerciseName: artifact.summary.exerciseType.displayName,
@@ -343,15 +423,13 @@ class AIAssistantViewModel: ObservableObject {
             )
         } catch {
             errorMessage = error.localizedDescription
-            let message = ChatMessage(
+            appendMessage(
                 content: String(
                     format: NSLocalizedString("assistant_form_analysis_failed", comment: ""),
                     error.localizedDescription
                 ),
                 isUser: false
             )
-            modelContext.insert(message)
-            messages.append(message)
         }
 
         isLoading = false
@@ -411,29 +489,35 @@ class AIAssistantViewModel: ObservableObject {
         do {
             // 调用 AI 服务
             let (response, command) = try await aiService.chat(
-                userMessage: messageWithRecentFormContext(messageWithRecentConversationContext(userMessage)),
+                userMessage: messageWithRecentFormContext(
+                    messageWithHealthContext(messageWithRecentConversationContext(userMessage))
+                ),
                 profile: profile,
                 plan: plan,
                 catalog: catalog
             )
             
-            // 如果有操作指令，执行它
+            // AI 只生成待确认提案，不直接写入训练计划。
             if let command = command {
-                let feedbackMessage = try executeCommand(command, plan: plan, catalog: catalog)
-
-                // 添加系统反馈消息
-                let systemMessage = ChatMessage(
-                    content: feedbackMessage,
+                if command.type == "regenerate_plan" {
+                    pendingUserMessage = messageWithHealthContext(userMessage)
+                    await regeneratePlan(profile: profile)
+                    return
+                }
+                let validation = validate(command: command, against: plan)
+                pendingPlanValidationErrors = validation.errors
+                pendingPlanCatalog = catalog
+                pendingPlanCommand = command
+                appendMessage(
+                    content: validation.isValid
+                        ? "plan_edit_proposal_ready".localized
+                        : "plan_edit_proposal_invalid".localized,
                     isUser: false,
                     isSystemAction: true
                 )
-                modelContext.insert(systemMessage)
-                messages.append(systemMessage)
             } else if !response.isEmpty {
                 // 普通文本回复
-                let aiMessage = ChatMessage(content: AIResponseFormatter.displayText(from: response), isUser: false)
-                modelContext.insert(aiMessage)
-                messages.append(aiMessage)
+                appendMessage(content: AIResponseFormatter.displayText(from: response), isUser: false)
             } else {
                 // 既没有可执行的指令，也没有可显示的文本（通常是 AI 返回了空内容或
                 // 无法解析为动作指令）。给一句明确的中文/英文引导，而不是什么都不显示，
@@ -441,9 +525,7 @@ class AIAssistantViewModel: ObservableObject {
                 let hint = languagePolicy.prefersSimplifiedChinese
                     ? "我没有理解成具体的动作修改。请更明确一些，例如：\n• 把第1天的杠铃卧推换成哑铃飞鸟\n• 第2天加一个高位下拉\n• 把第1天的卧推改成5组\n• 删除第3天的绳索下压"
                     : "I couldn't interpret that as a specific plan edit. Try being explicit, e.g.:\n• Replace barbell bench press with dumbbell fly on day 1\n• Add lat pulldown to day 2\n• Change day 1 bench press to 5 sets\n• Remove cable pushdown from day 3"
-                let hintMessage = ChatMessage(content: hint, isUser: false, isSystemAction: true)
-                modelContext.insert(hintMessage)
-                messages.append(hintMessage)
+                appendMessage(content: hint, isUser: false, isSystemAction: true)
             }
             
             isLoading = false
@@ -462,10 +544,78 @@ class AIAssistantViewModel: ObservableObject {
                 message = localizedFailure(prefixChinese: "抱歉，出现了错误", prefixEnglish: "Sorry, something went wrong", error: error)
             }
 
-            let errorChatMessage = ChatMessage(content: message, isUser: false)
-            modelContext.insert(errorChatMessage)
-            messages.append(errorChatMessage)
+            appendMessage(content: message, isUser: false)
         }
+    }
+
+    func discardPendingPlanCommand() {
+        pendingPlanCommand = nil
+        pendingPlanValidationErrors = []
+        pendingPlanCatalog = []
+    }
+
+    func applyPendingPlanCommand(to plan: WorkoutPlan) {
+        guard let command = pendingPlanCommand else { return }
+        let validation = validate(command: command, against: plan)
+        pendingPlanValidationErrors = validation.errors
+        guard validation.isValid else { return }
+
+        do {
+            let feedback = try executeCommand(command, plan: plan, catalog: pendingPlanCatalog)
+            appendMessage(content: feedback, isUser: false, isSystemAction: true)
+            discardPendingPlanCommand()
+        } catch {
+            modelContext.rollback()
+            errorMessage = error.localizedDescription
+            appendMessage(
+                content: localizedFailure(
+                    prefixChinese: "应用修改失败，原计划未改变",
+                    prefixEnglish: "Applying the edit failed; your plan was not changed",
+                    error: error
+                ),
+                isUser: false
+            )
+        }
+    }
+
+    private func validate(
+        command: AIActionCommand,
+        against plan: WorkoutPlan
+    ) -> PlanEditValidationResult {
+        let snapshot = PlanEditSnapshot(days: (plan.days ?? []).map { day in
+            .init(
+                dayNumber: day.dayNumber,
+                isRestDay: day.isRestDay,
+                exerciseNames: (day.exercises ?? []).map(\.name)
+            )
+        })
+
+        let kind: PlanEditRequest.Kind?
+        switch command.type {
+        case "update_plan": kind = .update
+        case "add_exercise": kind = .add
+        case "remove_exercise": kind = .remove
+        default: kind = nil
+        }
+        guard let kind else {
+            return PlanEditValidationResult(errors: ["plan_edit_error_unknown_operation"])
+        }
+
+        let results = command.actions.map { action in
+            PlanEditValidationPolicy.validate(
+                PlanEditRequest(
+                    kind: kind,
+                    dayNumber: action.day,
+                    targetName: action.oldExercise ?? action.exerciseName,
+                    replacementName: action.newExercise ?? action.exerciseName,
+                    sets: action.sets,
+                    reps: action.reps,
+                    weight: action.weight
+                ),
+                against: snapshot
+            )
+        }
+        return PlanEditValidationResult(errors: results.flatMap(\.errors))
     }
 
     private func messageWithRecentFormContext(_ userMessage: String) -> String {
@@ -499,6 +649,31 @@ class AIAssistantViewModel: ObservableObject {
         Detected issues:
         \(issues)
         Recommendation: \(record.recommendation)
+
+        User message:
+        \(userMessage)
+        """
+    }
+
+    private func messageWithHealthContext(_ userMessage: String) -> String {
+        guard let healthContext = HealthContextBuilder(modelContext: modelContext).aiContextIfEnabled(),
+              !healthContext.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return userMessage
+        }
+
+        if languagePolicy.prefersSimplifiedChinese {
+            return """
+            FitGenius 健康数据上下文（用户已开启 AI 使用健康摘要；只用于训练恢复、饮食执行和训练调整建议。不要做医疗诊断，不要声称用户患病）：
+            \(healthContext)
+
+            用户消息：
+            \(userMessage)
+            """
+        }
+
+        return """
+        FitGenius health-data context. The user enabled AI access to health summaries. Use it only for training recovery, nutrition adherence, and programming advice. Do not diagnose medical conditions.
+        \(healthContext)
 
         User message:
         \(userMessage)
@@ -545,9 +720,7 @@ class AIAssistantViewModel: ObservableObject {
         if messages.last?.isUser == true && messages.last?.content == trimmed {
             return
         }
-        let userChatMessage = ChatMessage(content: trimmed, isUser: true)
-        modelContext.insert(userChatMessage)
-        messages.append(userChatMessage)
+        appendMessage(content: trimmed, isUser: true)
     }
     
     // MARK: - 重新生成计划
@@ -565,27 +738,16 @@ class AIAssistantViewModel: ObservableObject {
                 catalog: catalog
             )
             
-            // 先持久化新计划，不改变现有链接，避免空状态闪断
-            modelContext.insert(newPlan)
-            try modelContext.save()
-            
-            // 验证新计划有效后再切换链接
-            guard !(newPlan.days ?? []).isEmpty else {
-                throw NSError(domain: "AIAssistant", code: -1, userInfo: [NSLocalizedDescriptionKey: emptyPlanMessage])
-            }
-            profile.workoutPlan = newPlan
-            try modelContext.save()
-            
-            // 不删除旧计划，保留为备份
-            
-            // 添加成功消息
-            let successMessage = ChatMessage(
-                content: planRegeneratedMessage,
+            let validation = validateReplacement(newPlan)
+            pendingReplacementValidationErrors = validation.errors
+            pendingReplacementPlan = newPlan
+            appendMessage(
+                content: validation.isValid
+                    ? "plan_replacement_proposal_ready".localized
+                    : "plan_edit_proposal_invalid".localized,
                 isUser: false,
                 isSystemAction: true
             )
-            modelContext.insert(successMessage)
-            messages.append(successMessage)
             
             isLoading = false
             
@@ -593,13 +755,63 @@ class AIAssistantViewModel: ObservableObject {
             isLoading = false
             errorMessage = error.localizedDescription
             
-            let errorChatMessage = ChatMessage(
-                content: localizedFailure(prefixChinese: "抱歉，重新生成计划失败", prefixEnglish: "Sorry, regenerating the plan failed", error: error),
+            appendMessage(content: localizedFailure(prefixChinese: "抱歉，重新生成计划失败", prefixEnglish: "Sorry, regenerating the plan failed", error: error), isUser: false)
+        }
+    }
+
+    func discardPendingReplacement() {
+        pendingReplacementPlan = nil
+        pendingReplacementValidationErrors = []
+    }
+
+    func applyPendingReplacement(to profile: UserProfile) {
+        guard let replacement = pendingReplacementPlan else { return }
+        let validation = validateReplacement(replacement)
+        pendingReplacementValidationErrors = validation.errors
+        guard validation.isValid else { return }
+
+        do {
+            modelContext.insert(replacement)
+            replacement.userProfile = profile
+            profile.workoutPlan = replacement
+            try modelContext.save()
+            appendMessage(content: planRegeneratedMessage, isUser: false, isSystemAction: true)
+            discardPendingReplacement()
+        } catch {
+            modelContext.rollback()
+            errorMessage = error.localizedDescription
+            appendMessage(
+                content: localizedFailure(
+                    prefixChinese: "应用新计划失败，原计划未改变",
+                    prefixEnglish: "Applying the new plan failed; your old plan was not changed",
+                    error: error
+                ),
                 isUser: false
             )
-            modelContext.insert(errorChatMessage)
-            messages.append(errorChatMessage)
         }
+    }
+
+    private func validateReplacement(_ plan: WorkoutPlan) -> PlanEditValidationResult {
+        let snapshot = PlanEditSnapshot(days: (plan.days ?? []).map { day in
+            .init(
+                dayNumber: day.dayNumber,
+                isRestDay: day.isRestDay,
+                exerciseNames: (day.exercises ?? []).map(\.name)
+            )
+        })
+        var errors = PlanEditValidationPolicy.validateReplacement(snapshot).errors
+        for exercise in (plan.days ?? []).flatMap({ $0.exercises ?? [] }) {
+            if !(1...20).contains(exercise.sets) {
+                errors.append("plan_edit_error_sets_range")
+            }
+            if exercise.weight < 0 {
+                errors.append("plan_edit_error_weight_negative")
+            }
+            if exercise.reps.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                errors.append("plan_edit_error_reps_empty")
+            }
+        }
+        return PlanEditValidationResult(errors: errors)
     }
     
     // MARK: - 执行 AI 操作指令

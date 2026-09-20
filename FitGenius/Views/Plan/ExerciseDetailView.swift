@@ -49,6 +49,7 @@ private struct AddExerciseToPlanSheet: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Query private var profiles: [UserProfile]
+    @Query private var plans: [WorkoutPlan]
 
     @State private var selectedDay: WorkoutDay?
     @State private var sets: Int = 3
@@ -56,9 +57,10 @@ private struct AddExerciseToPlanSheet: View {
     @State private var weight: Double = 0
     @State private var showSuccess = false
 
-    /// 用户当前计划（与计划页 `profiles.first?.workoutPlan` 一致），
-    /// 避免 `plans.first` 盲选到错误计划导致"加进去了却看不到"。
-    private var plan: WorkoutPlan? { profiles.first?.workoutPlan }
+    /// 与首页共用同一当前计划规则，独立草稿也可以接收动作。
+    private var plan: WorkoutPlan? {
+        CurrentWorkoutPlanStore.resolve(profiles: profiles, plans: plans)
+    }
 
     private var days: [WorkoutDay] {
         (plan?.days ?? [])

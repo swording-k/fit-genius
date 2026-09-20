@@ -25,6 +25,8 @@ final class WatchSyncService: NSObject, ObservableObject {
 
     @Published private(set) var preparationState: WatchPreparationState = .unsupported
     private weak var modelContext: ModelContext?
+    private let activeWatchWorkoutKey = "fitgeniusActiveWatchWorkout"
+    private let activeWatchWorkoutStartedAtKey = "fitgeniusActiveWatchWorkoutStartedAt"
 
     override private init() {
         super.init()
@@ -102,6 +104,29 @@ final class WatchSyncService: NSObject, ObservableObject {
         try? WCSession.default.updateApplicationContext([:])
     }
 
+    func shouldSaveFallbackHealthWorkout(wasDayComplete: Bool, isDayComplete: Bool) -> Bool {
+        WorkoutHealthSavePolicy.shouldSaveFallbackWorkout(
+            wasDayComplete: wasDayComplete,
+            isDayComplete: isDayComplete,
+            hasActiveWatchWorkout: hasActiveWatchWorkout
+        )
+    }
+
+    private var hasActiveWatchWorkout: Bool {
+        guard UserDefaults.standard.bool(forKey: activeWatchWorkoutKey) else { return false }
+        guard let startedAt = UserDefaults.standard.object(forKey: activeWatchWorkoutStartedAtKey) as? Date,
+              Calendar.current.isDateInToday(startedAt) else {
+            clearActiveWatchWorkout()
+            return false
+        }
+        return true
+    }
+
+    private func clearActiveWatchWorkout() {
+        UserDefaults.standard.set(false, forKey: activeWatchWorkoutKey)
+        UserDefaults.standard.removeObject(forKey: activeWatchWorkoutStartedAtKey)
+    }
+
     private func completeExercise(id: String) {
         guard let context = modelContext,
               let profile = try? context.fetch(FetchDescriptor<UserProfile>()).first,
@@ -116,7 +141,7 @@ final class WatchSyncService: NSObject, ObservableObject {
         try? context.save()
         WidgetDataManager.updateWorkoutData(modelContext: context)
         syncToday(context: context)
-        if WorkoutCompletionPolicy.shouldSaveHealthWorkout(
+        if shouldSaveFallbackHealthWorkout(
             wasDayComplete: wasDayComplete,
             isDayComplete: day.isComplete
         ) {
@@ -163,8 +188,18 @@ extension WatchSyncService: WCSessionDelegate {
     }
 
     nonisolated private func receive(_ message: [String: Any]) {
-        guard message["action"] as? String == "completeExercise",
-              let id = message["exerciseId"] as? String else { return }
-        Task { @MainActor in self.completeExercise(id: id) }
+        switch message["action"] as? String {
+        case "completeExercise":
+            guard let id = message["exerciseId"] as? String else { return }
+            Task { @MainActor in self.completeExercise(id: id) }
+        case "watchWorkoutSessionStarted":
+            UserDefaults.standard.set(true, forKey: "fitgeniusActiveWatchWorkout")
+            UserDefaults.standard.set(Date(), forKey: "fitgeniusActiveWatchWorkoutStartedAt")
+        case "watchWorkoutSessionEnded":
+            UserDefaults.standard.set(false, forKey: "fitgeniusActiveWatchWorkout")
+            UserDefaults.standard.removeObject(forKey: "fitgeniusActiveWatchWorkoutStartedAt")
+        default:
+            return
+        }
     }
 }

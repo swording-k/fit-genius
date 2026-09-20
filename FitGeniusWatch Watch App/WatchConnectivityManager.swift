@@ -23,6 +23,17 @@ final class WatchConnectivityManager: NSObject, ObservableObject {
         complete(exercise)
     }
 
+    func sendWorkoutSessionState(isActive: Bool) {
+        let message: [String: Any] = [
+            "action": isActive ? "watchWorkoutSessionStarted" : "watchWorkoutSessionEnded"
+        ]
+        if WCSession.default.isReachable {
+            WCSession.default.sendMessage(message, replyHandler: nil)
+        } else {
+            WCSession.default.transferUserInfo(message)
+        }
+    }
+
     func completedSetCount(for exercise: WatchExercise) -> Int {
         completedSets[exercise.id] ?? 0
     }

@@ -6,14 +6,21 @@ struct ProfileView: View {
     @EnvironmentObject var auth: AuthViewModel
     @Environment(\.modelContext) private var modelContext
     @Query private var profiles: [UserProfile]
+    @Query private var plans: [WorkoutPlan]
     @State private var showLoginSheet = false
     @AppStorage("notificationsEnabled") private var notificationsEnabled = false
     @AppStorage("healthKitWorkoutSyncEnabled") private var healthKitWorkoutSyncEnabled = false
+    @AppStorage("healthKitNutritionSyncEnabled") private var healthKitNutritionSyncEnabled = false
     @State private var showProfileEditor = false
     @State private var showSourcesInfo = false
     @State private var showResetConfirmation = false
     @State private var showDeleteAccountConfirmation = false
     @State private var showDeleteAccountError = false
+    @State private var aiHealthContextEnabled = false
+    @State private var advancedVitalsEnabled = false
+    @State private var bodyMetricsEnabled = false
+    @State private var healthPermissionStatus: String?
+    @State private var requestingHealthPermission = false
     @ObservedObject private var watchSync = WatchSyncService.shared
 
     // MARK: - 后端服务连接状态（只读，终端用户无需配置 Key）
@@ -23,6 +30,10 @@ struct ProfileView: View {
 
     var currentProfile: UserProfile? {
         profiles.first
+    }
+
+    var currentPlan: WorkoutPlan? {
+        CurrentWorkoutPlanStore.resolve(profiles: profiles, plans: plans)
     }
 
     var body: some View {
@@ -138,7 +149,7 @@ struct ProfileView: View {
                         if newValue {
                             Task {
                                 let granted = await NotificationService.requestAuthorization()
-                                if granted, let plan = profiles.first?.workoutPlan {
+                                if granted, let plan = currentPlan {
                                     NotificationService.scheduleTrainingReminders(plan: plan, hour: 19)
                                 } else {
                                     notificationsEnabled = false
@@ -167,6 +178,64 @@ struct ProfileView: View {
                     Text("health_workout_sync_detail")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+
+                    Toggle(isOn: $healthKitNutritionSyncEnabled) {
+                        Label("health_nutrition_sync", systemImage: "fork.knife")
+                    }
+                    .onChange(of: healthKitNutritionSyncEnabled) { _, enabled in
+                        guard enabled else { return }
+                        Task {
+                            let authorized = await HealthKitNutritionService.shared.requestAuthorization()
+                            if !authorized {
+                                healthKitNutritionSyncEnabled = false
+                            }
+                        }
+                    }
+
+                    Text("health_nutrition_sync_detail")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        Label("health_report_settings_title", systemImage: "waveform.path.ecg")
+                            .font(.subheadline.weight(.semibold))
+                        Text("health_report_settings_detail")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        Toggle("health_ai_context_enabled", isOn: $aiHealthContextEnabled)
+                            .onChange(of: aiHealthContextEnabled) { _, value in
+                                updateHealthPreference { $0.aiHealthContextEnabled = value }
+                            }
+                        Toggle("health_advanced_vitals_enabled", isOn: $advancedVitalsEnabled)
+                            .onChange(of: advancedVitalsEnabled) { _, value in
+                                updateHealthPreference { $0.advancedVitalsEnabled = value }
+                            }
+                        Toggle("health_body_metrics_enabled", isOn: $bodyMetricsEnabled)
+                            .onChange(of: bodyMetricsEnabled) { _, value in
+                                updateHealthPreference { $0.bodyMetricsEnabled = value }
+                            }
+
+                        Button {
+                            Task { await requestHealthReportAuthorization() }
+                        } label: {
+                            HStack {
+                                if requestingHealthPermission {
+                                    ProgressView()
+                                }
+                                Text("health_authorize_report_data")
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                            }
+                        }
+                        if let healthPermissionStatus {
+                            Text(healthPermissionStatus)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 6)
                 }
 
                 if watchSync.preparationState != .unsupported && watchSync.preparationState != .notPaired {
@@ -238,6 +307,7 @@ struct ProfileView: View {
             .navigationTitle("profile")
             .onAppear {
                 watchSync.refreshState()
+                loadHealthPreferenceState()
             }
             .sheet(isPresented: $showLoginSheet) {
                 LoginView()
@@ -340,17 +410,62 @@ struct ProfileView: View {
             MealEntry.self,
             NutritionSummary.self,
             ChatMessage.self,
-            FormAnalysisRecord.self
+            FormAnalysisRecord.self,
+            HealthDailySummary.self,
+            DailyReadinessReportRecord.self,
+            WeeklyHealthReportRecord.self,
+            HealthInsightPreference.self
         ]
         for modelType in modelsToDelete {
             try? modelContext.delete(model: modelType)
         }
         try? modelContext.save()
-        UserDefaults.standard.set(false, forKey: "hasOnboarded")
+        _ = try? CurrentWorkoutPlanStore.ensureCurrentPlan(in: modelContext)
         CloudSnapshotCoordinator.shared.resetLocalOwnership()
         WatchSyncService.shared.syncToday(context: modelContext)
         WidgetDataManager.updateWorkoutData(modelContext: modelContext)
         WidgetDataManager.updateDietData(modelContext: modelContext)
+    }
+
+    private func healthPreference() -> HealthInsightPreference {
+        if let existing = try? modelContext.fetch(FetchDescriptor<HealthInsightPreference>()).first {
+            return existing
+        }
+        let created = HealthInsightPreference()
+        modelContext.insert(created)
+        try? modelContext.save()
+        return created
+    }
+
+    private func loadHealthPreferenceState() {
+        let pref = healthPreference()
+        aiHealthContextEnabled = pref.aiHealthContextEnabled
+        advancedVitalsEnabled = pref.advancedVitalsEnabled
+        bodyMetricsEnabled = pref.bodyMetricsEnabled
+    }
+
+    private func updateHealthPreference(_ update: (HealthInsightPreference) -> Void) {
+        let pref = healthPreference()
+        update(pref)
+        try? modelContext.save()
+    }
+
+    private func requestHealthReportAuthorization() async {
+        requestingHealthPermission = true
+        defer { requestingHealthPermission = false }
+        let scope = HealthAuthorizationScope(
+            includeAdvancedVitals: advancedVitalsEnabled,
+            includeBodyMetrics: bodyMetricsEnabled
+        )
+        let granted = await HealthDataService.shared.requestAuthorization(scope: scope)
+        guard granted else {
+            healthPermissionStatus = "health_permission_denied".localized
+            return
+        }
+
+        let insights = HealthInsightViewModel(modelContext: modelContext)
+        await insights.refresh(profile: currentProfile)
+        healthPermissionStatus = insights.errorMessage ?? "health_permission_granted".localized
     }
 }
 

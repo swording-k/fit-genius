@@ -127,11 +127,26 @@ struct EquipmentSelectionView: View {
 struct GeneratingView: View {
     @ObservedObject var viewModel: OnboardingViewModel
     @Environment(\.modelContext) private var modelContext
-    @Binding var hasOnboarded: Bool
+    let onCompleted: () -> Void
     @State private var spin = false
 
     var body: some View {
-        VStack(spacing: 32) {
+        if let plan = viewModel.pendingGeneratedPlan {
+            GeneratedPlanReview(
+                plan: plan,
+                validationErrors: viewModel.pendingGeneratedPlanErrors,
+                onBack: { viewModel.discardGeneratedPlan() },
+                onApply: {
+                    do {
+                        try viewModel.applyGeneratedPlan(context: modelContext)
+                        onCompleted()
+                    } catch {
+                        viewModel.errorMessage = error.localizedDescription
+                    }
+                }
+            )
+        } else {
+            VStack(spacing: 32) {
             Spacer()
 
             // 动画图标
@@ -198,20 +213,77 @@ struct GeneratingView: View {
             }
 
             Spacer()
+            }
+            .padding()
         }
-        .padding()
 
         // 生成流程由按钮触发，保留重试按钮使用
     }
 
     private func startGeneration() {
         viewModel.generatePlan(context: modelContext) { success in
-            if success {
-                // 延迟 2 秒确保 SwiftData 完全刷新
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                    hasOnboarded = true
+            // 成功后留在本页预览；只有用户点击“使用新计划”才完成。
+        }
+    }
+}
+
+private struct GeneratedPlanReview: View {
+    let plan: WorkoutPlan
+    let validationErrors: [String]
+    let onBack: () -> Void
+    let onApply: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("plan_replacement_preview_title")
+                    .font(.title2.bold())
+                Text("plan_edit_preview_detail")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+
+            List {
+                Section(plan.name) {
+                    ForEach((plan.days ?? []).sorted { $0.dayNumber < $1.dayNumber }) { day in
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text("plan_edit_day".localized(with: day.dayNumber) + " · " + day.focus.localizedName)
+                                .font(.body.weight(.semibold))
+                            if day.isRestDay {
+                                Text("rest")
+                                    .foregroundStyle(.secondary)
+                            } else {
+                                ForEach((day.exercises ?? []).sorted { $0.orderIndex < $1.orderIndex }) { exercise in
+                                    Text("• \(exercise.localizedDisplayName) · \(exercise.sets) × \(exercise.reps)")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    }
+                }
+                if !validationErrors.isEmpty {
+                    Section("plan_edit_preview_cannot_apply") {
+                        ForEach(validationErrors, id: \.self) { key in
+                            Label(key.localized, systemImage: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.red)
+                        }
+                    }
                 }
             }
+
+            HStack(spacing: 12) {
+                Button("previous", action: onBack)
+                    .buttonStyle(.bordered)
+                    .frame(maxWidth: .infinity)
+                Button("plan_replacement_apply", action: onApply)
+                    .buttonStyle(.borderedProminent)
+                    .disabled(!validationErrors.isEmpty)
+                    .frame(maxWidth: .infinity)
+            }
+            .padding()
         }
     }
 }
@@ -219,8 +291,8 @@ struct GeneratingView: View {
 // MARK: - 备注输入页面（与器械选择拆分）
 struct NotesView: View {
     @ObservedObject var viewModel: OnboardingViewModel
+    let onCompleted: () -> Void
     @Environment(\.modelContext) private var modelContext
-    @AppStorage("hasOnboarded") private var hasOnboarded = false
     @FocusState private var notesFocused: Bool
 
     var body: some View {
@@ -252,7 +324,7 @@ struct NotesView: View {
                     notesFocused = false
                     viewModel.nextStep()
                     viewModel.generatePlan(context: modelContext) { success in
-                        if success { hasOnboarded = true }
+                        // 候选生成后在下一页预览，确认后才调用 onCompleted。
                     }
                 }) {
                     Text("generate_plan")
@@ -266,12 +338,6 @@ struct NotesView: View {
             }
         }
         .padding()
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("done") { notesFocused = false }
-            }
-        }
     }
 }
 
@@ -283,6 +349,6 @@ struct NotesView: View {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: UserProfile.self, WorkoutPlan.self, configurations: config)
     
-    GeneratingView(viewModel: OnboardingViewModel(), hasOnboarded: .constant(false))
+    GeneratingView(viewModel: OnboardingViewModel(), onCompleted: {})
         .modelContainer(container)
 }

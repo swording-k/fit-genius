@@ -2,23 +2,39 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @AppStorage("hasOnboarded") private var hasOnboarded = false
     @EnvironmentObject var auth: AuthViewModel
     @Environment(\.modelContext) private var modelContext
+    @State private var planBootstrapError: String?
 
     var body: some View {
-        Group {
-            if hasOnboarded {
-                MainView()
-                    .onAppear {
-                        // 确保Widget数据已更新
-                        WidgetDataManager.updateWorkoutData(modelContext: modelContext)
-                        WidgetDataManager.updateDietData(modelContext: modelContext)
-                    }
-            } else {
-                OnboardingView()
+        MainView()
+            .task {
+                do {
+                    try CurrentWorkoutPlanStore.ensureCurrentPlan(in: modelContext)
+                    WidgetDataManager.updateWorkoutData(modelContext: modelContext)
+                    WidgetDataManager.updateDietData(modelContext: modelContext)
+                } catch {
+                    planBootstrapError = error.localizedDescription
+                }
             }
-        }
+            .alert("plan_bootstrap_failed", isPresented: Binding(
+                get: { planBootstrapError != nil },
+                set: { if !$0 { planBootstrapError = nil } }
+            )) {
+                Button("retry") {
+                    Task {
+                        do {
+                            try CurrentWorkoutPlanStore.ensureCurrentPlan(in: modelContext)
+                            planBootstrapError = nil
+                        } catch {
+                            planBootstrapError = error.localizedDescription
+                        }
+                    }
+                }
+                Button("cancel", role: .cancel) { planBootstrapError = nil }
+            } message: {
+                Text(planBootstrapError ?? "")
+            }
     }
 }
 

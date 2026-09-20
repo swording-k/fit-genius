@@ -86,6 +86,7 @@ class DietViewModel: ObservableObject {
             refreshSummaryFromEntries()
             try? modelContext.save()
             NotificationCenter.default.post(name: .dietSummaryUpdated, object: nil)
+            await syncNutritionToHealth()
         } catch {
             if case AIServiceError.missingSessionToken = error {
                 requiresBackendReconnect = true
@@ -119,6 +120,7 @@ class DietViewModel: ObservableObject {
         refreshSummaryFromEntries()
         try? modelContext.save()
         NotificationCenter.default.post(name: .dietSummaryUpdated, object: nil)
+        Task { await syncNutritionToHealth() }
         isPresentingEditSheet = false
         editingEntry = nil
     }
@@ -131,6 +133,7 @@ class DietViewModel: ObservableObject {
             refreshSummaryFromEntries()
             try? modelContext.save()
             NotificationCenter.default.post(name: .dietSummaryUpdated, object: nil)
+            Task { await syncNutritionToHealth() }
         }
     }
 
@@ -168,9 +171,11 @@ class DietViewModel: ObservableObject {
             summary.day = day
             day.summary = summary
             day.submitted = true
+            try? modelContext.save()
             submitAlertMessage = "diet_ai_analysis_success".localized
             showSubmitAlert = true
             NotificationCenter.default.post(name: .dietSummaryUpdated, object: nil)
+            await syncNutritionToHealth()
         } catch {
             let isMissingSession: Bool
             if case AIServiceError.missingSessionToken = error {
@@ -195,9 +200,11 @@ class DietViewModel: ObservableObject {
             summary.day = day
             day.summary = summary
             day.submitted = true
+            try? modelContext.save()
             submitAlertMessage = "diet_ai_fallback_summary".localized(with: error.localizedDescription)
             showSubmitAlert = true
             NotificationCenter.default.post(name: .dietSummaryUpdated, object: nil)
+            await syncNutritionToHealth()
         }
     }
 
@@ -229,5 +236,10 @@ class DietViewModel: ObservableObject {
         summary.fat = fat
         summary.day = day
         day.summary = summary
+    }
+
+    private func syncNutritionToHealth() async {
+        guard let day else { return }
+        await HealthKitNutritionService.shared.sync(day: day)
     }
 }

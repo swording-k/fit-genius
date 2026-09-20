@@ -12,8 +12,11 @@ final class ChatMessage {
     var mediaData: Data?
     var mediaType: String?
     var topic: String // "fitness" 或 "diet"
+    /// Nil is reserved for messages created before session support. They stay
+    /// readable as one archived conversation after an app upgrade.
+    var conversationID: UUID?
     
-    init(content: String, isUser: Bool, isSystemAction: Bool = false, mediaData: Data? = nil, mediaType: String? = nil, topic: String = "fitness") {
+    init(content: String, isUser: Bool, isSystemAction: Bool = false, mediaData: Data? = nil, mediaType: String? = nil, topic: String = "fitness", conversationID: UUID? = nil) {
         self.id = UUID()
         self.content = content
         self.isUser = isUser
@@ -22,6 +25,7 @@ final class ChatMessage {
         self.mediaData = mediaData
         self.mediaType = mediaType
         self.topic = topic
+        self.conversationID = conversationID
     }
 }
 

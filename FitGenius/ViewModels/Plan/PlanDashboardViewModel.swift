@@ -43,10 +43,4 @@ class PlanDashboardViewModel: ObservableObject {
         }
     }
 
-    func resetOnboarding(profiles: [UserProfile], hasOnboarded: inout Bool) {
-        for profile in profiles {
-            modelContext.delete(profile)
-        }
-        hasOnboarded = false
-    }
 }

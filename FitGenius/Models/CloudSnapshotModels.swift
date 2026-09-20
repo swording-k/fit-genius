@@ -6,21 +6,37 @@ struct CloudSnapshot: Codable, Equatable {
     let profile: CloudProfile?
     let workoutPlan: CloudWorkoutPlan?
     let mealDays: [CloudMealDay]
+    let healthDailySummaries: [CloudHealthDailySummary]?
+    let dailyReadinessReports: [CloudDailyReadinessReport]?
+    let weeklyHealthReports: [CloudWeeklyHealthReport]?
 
     var hasMeaningfulData: Bool {
-        profile != nil || workoutPlan != nil || mealDays.contains { !$0.entries.isEmpty || $0.submitted }
+        profile != nil
+        || workoutPlan != nil
+        || mealDays.contains { !$0.entries.isEmpty || $0.submitted }
+        || !(healthDailySummaries ?? []).isEmpty
+        || !(dailyReadinessReports ?? []).isEmpty
+        || !(weeklyHealthReports ?? []).isEmpty
     }
 
     @MainActor
     static func make(from context: ModelContext) -> CloudSnapshot {
-        let profile = try? context.fetch(FetchDescriptor<UserProfile>()).first
-        let plan = profile?.workoutPlan ?? (try? context.fetch(FetchDescriptor<WorkoutPlan>()).first)
+        let profiles = (try? context.fetch(FetchDescriptor<UserProfile>())) ?? []
+        let plans = (try? context.fetch(FetchDescriptor<WorkoutPlan>())) ?? []
+        let plan = CurrentWorkoutPlanStore.resolve(profiles: profiles, plans: plans)
+        let profile = profiles.first { $0.workoutPlan === plan } ?? profiles.first
         let mealDays = (try? context.fetch(FetchDescriptor<MealDay>())) ?? []
+        let healthSummaries = (try? context.fetch(FetchDescriptor<HealthDailySummary>())) ?? []
+        let dailyReports = (try? context.fetch(FetchDescriptor<DailyReadinessReportRecord>())) ?? []
+        let weeklyReports = (try? context.fetch(FetchDescriptor<WeeklyHealthReportRecord>())) ?? []
         return CloudSnapshot(
-            schemaVersion: 1,
+            schemaVersion: 2,
             profile: profile.map(CloudProfile.init),
             workoutPlan: plan.map(CloudWorkoutPlan.init),
-            mealDays: mealDays.sorted { $0.date < $1.date }.map(CloudMealDay.init)
+            mealDays: mealDays.sorted { $0.date < $1.date }.map(CloudMealDay.init),
+            healthDailySummaries: Array(healthSummaries.sorted { $0.date < $1.date }.suffix(30)).map(CloudHealthDailySummary.init),
+            dailyReadinessReports: Array(dailyReports.sorted { $0.date < $1.date }.suffix(14)).map(CloudDailyReadinessReport.init),
+            weeklyHealthReports: Array(weeklyReports.sorted { $0.weekStart < $1.weekStart }.suffix(8)).map(CloudWeeklyHealthReport.init)
         )
     }
 
@@ -34,6 +50,15 @@ struct CloudSnapshot: Codable, Equatable {
         }
         for day in try context.fetch(FetchDescriptor<MealDay>()) {
             context.delete(day)
+        }
+        for summary in try context.fetch(FetchDescriptor<HealthDailySummary>()) {
+            context.delete(summary)
+        }
+        for report in try context.fetch(FetchDescriptor<DailyReadinessReportRecord>()) {
+            context.delete(report)
+        }
+        for report in try context.fetch(FetchDescriptor<WeeklyHealthReportRecord>()) {
+            context.delete(report)
         }
 
         var restoredProfile: UserProfile?
@@ -52,6 +77,15 @@ struct CloudSnapshot: Codable, Equatable {
         }
         for day in mealDays {
             context.insert(day.makeModel())
+        }
+        for summary in healthDailySummaries ?? [] {
+            context.insert(summary.makeModel())
+        }
+        for report in dailyReadinessReports ?? [] {
+            context.insert(report.makeModel())
+        }
+        for report in weeklyHealthReports ?? [] {
+            context.insert(report.makeModel())
         }
         try context.save()
     }
@@ -305,5 +339,94 @@ struct CloudNutritionSummary: Codable, Equatable {
             fat: fat,
             notes: notes
         )
+    }
+}
+
+struct CloudHealthDailySummary: Codable, Equatable {
+    let dto: HealthDailySummaryDTO
+
+    @MainActor init(_ model: HealthDailySummary) {
+        dto = model.dto
+    }
+
+    @MainActor func makeModel() -> HealthDailySummary {
+        HealthDailySummary(dto: dto)
+    }
+}
+
+struct CloudDailyReadinessReport: Codable, Equatable {
+    let date: Date
+    let energyScore: Int
+    let sleepRecoveryPercent: Int
+    let dataCoveragePercent: Int?
+    let statusRaw: String
+    let recommendationRaw: String
+    let summary: String
+    let reasonsJSON: String
+    let generatedAt: Date
+
+    @MainActor init(_ model: DailyReadinessReportRecord) {
+        date = model.date
+        energyScore = model.energyScore
+        sleepRecoveryPercent = model.sleepRecoveryPercent
+        dataCoveragePercent = model.dataCoveragePercent
+        statusRaw = model.statusRaw
+        recommendationRaw = model.recommendationRaw
+        summary = model.summary
+        reasonsJSON = model.reasonsJSON
+        generatedAt = model.generatedAt
+    }
+
+    @MainActor func makeModel() -> DailyReadinessReportRecord {
+        let report = DailyReadinessReportRecord(
+            date: date,
+            energyScore: energyScore,
+            sleepRecoveryPercent: sleepRecoveryPercent,
+            dataCoveragePercent: dataCoveragePercent ?? 0,
+            status: HealthRecoveryStatus(rawValue: statusRaw) ?? .insufficientData,
+            recommendation: HealthTrainingRecommendation(rawValue: recommendationRaw) ?? .insufficientData,
+            summary: summary,
+            reasons: [],
+            generatedAt: generatedAt
+        )
+        report.reasonsJSON = reasonsJSON
+        return report
+    }
+}
+
+struct CloudWeeklyHealthReport: Codable, Equatable {
+    let weekStart: Date
+    let weekEnd: Date
+    let energyScore: Int
+    let trainingExecutionPercent: Int
+    let summary: String
+    let nextWeekAdvice: String
+    let reasonsJSON: String
+    let generatedAt: Date
+
+    @MainActor init(_ model: WeeklyHealthReportRecord) {
+        weekStart = model.weekStart
+        weekEnd = model.weekEnd
+        energyScore = model.energyScore
+        trainingExecutionPercent = model.trainingExecutionPercent
+        summary = model.summary
+        nextWeekAdvice = model.nextWeekAdvice
+        reasonsJSON = model.reasonsJSON
+        generatedAt = model.generatedAt
+    }
+
+    @MainActor func makeModel() -> WeeklyHealthReportRecord {
+        let report = WeeklyHealthReportRecord(
+            weekStart: weekStart,
+            weekEnd: weekEnd,
+            energyScore: energyScore,
+            trainingExecutionPercent: trainingExecutionPercent,
+            summary: summary,
+            nextWeekAdvice: nextWeekAdvice,
+            reasons: [],
+            generatedAt: generatedAt
+        )
+        report.reasonsJSON = reasonsJSON
+        return report
     }
 }

@@ -78,7 +78,7 @@ struct ExerciseRowView: View {
                     // 发送通知
                     NotificationCenter.default.post(name: .workoutCompleted, object: nil)
                     if let day,
-                       WorkoutCompletionPolicy.shouldSaveHealthWorkout(
+                       WatchSyncService.shared.shouldSaveFallbackHealthWorkout(
                         wasDayComplete: wasDayComplete,
                         isDayComplete: day.isComplete
                        ) {

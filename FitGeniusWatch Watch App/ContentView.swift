@@ -16,10 +16,13 @@ struct ContentView: View {
                 if let context = connectivity.workoutContext {
                     if context.isRestDay {
                         restDay
-                    } else if let exercise = context.exercises.first(where: { !$0.isCompleted }) {
+                    } else {
+                        workoutControl
+                    }
+                    if !context.isRestDay, let exercise = context.exercises.first(where: { !$0.isCompleted }) {
                         currentExercise(exercise)
                         exerciseProgress(context)
-                    } else {
+                    } else if !context.isRestDay {
                         completedWorkout
                     }
                 } else {
@@ -38,17 +41,30 @@ struct ContentView: View {
             )
             .font(.caption.bold())
             .foregroundStyle(workout.isActive ? .red : .green)
-            Spacer()
-            Button {
-                workout.isActive ? workout.end() : workout.start()
-            } label: {
-                Image(systemName: workout.isActive ? "stop.fill" : "play.fill")
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(
-                Text(LocalizedStringKey(workout.isActive ? "watch_end_workout" : "watch_start_workout"))
-            )
         }
+    }
+
+    private var workoutControl: some View {
+        Button {
+            if workout.isActive {
+                connectivity.sendWorkoutSessionState(isActive: false)
+                workout.end()
+            } else {
+                Task {
+                    if await workout.start() {
+                        connectivity.sendWorkoutSessionState(isActive: true)
+                    }
+                }
+            }
+        } label: {
+            Label(
+                workout.isActive ? "watch_end_workout" : "watch_start_workout",
+                systemImage: workout.isActive ? "stop.fill" : "play.fill"
+            )
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(workout.isActive ? .red : .green)
     }
 
     private func currentExercise(_ exercise: WatchExercise) -> some View {

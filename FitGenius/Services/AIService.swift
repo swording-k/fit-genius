@@ -375,24 +375,27 @@ class AIService {
 
     // MARK: - 动作库注入 & 匹配
 
-    /// 构造注入 system prompt 的动作清单段落。只放"名字"（控 token），
+    /// 使用稳定 ID + 英文规范名 + 中文名作为动作库合同，避免系统语言切换后失去映射。
     /// 数量上限 400 个，避免 prompt 过大。
     private func buildExerciseCatalogSection(_ catalog: [ExerciseTemplate], preferChinese: Bool) -> String {
-        let names = catalog.prefix(400).map { $0.displayName }
-        guard !names.isEmpty else { return "" }
-        let list = names.joined(separator: ", ")
+        let entries = catalog.prefix(400).map { template in
+            let chinese = template.chineseName ?? "-"
+            return "\(template.externalId) | \(template.nameEn) | \(chinese)"
+        }
+        guard !entries.isEmpty else { return "" }
+        let list = entries.joined(separator: "\n")
         if preferChinese {
             return """
 
 
-            可用动作库（你生成计划时必须优先从下面这份清单里挑选动作，并**原样使用清单中的英文动作名**填入 exercises[].name；只有当清单里确实没有合适动作时才允许自创）：
+            可用动作库（格式：稳定 ID | 英文规范名 | 中文名）。生成或修改计划时必须优先从清单选择，并把英文规范名原样填入动作名称；只有确实没有合适动作时才允许自定义：
             \(list)
             """
         }
         return """
 
 
-        Available exercise library (when building the plan you must prefer exercises from the list below and use the exact exercise name from the list for exercises[].name; only invent a new name if nothing suitable exists):
+        Available exercise library (format: stable ID | canonical English name | Chinese name). Prefer this catalog and copy the canonical English name exactly into exercise names. Only create a custom exercise when no suitable catalog entry exists:
         \(list)
         """
     }
@@ -412,9 +415,16 @@ class AIService {
     }
     
     // MARK: - AI 助手对话（支持计划修改）
-	func chat(userMessage: String, profile: UserProfile, plan: WorkoutPlan, catalog: [ExerciseTemplate] = []) async throws -> (response: String, command: AIActionCommand?) {
-		// 序列化当前计划为 JSON（简化版）
-        let planContext = serializePlanToContext(plan: plan, profile: profile)
+	func chat(userMessage: String, profile: UserProfile?, plan: WorkoutPlan?, catalog: [ExerciseTemplate] = []) async throws -> (response: String, command: AIActionCommand?) {
+        let profileContext = profile.map(localizedProfileSummary) ?? (languagePolicy.prefersSimplifiedChinese
+            ? "用户尚未填写个人资料。回答通用健身问题，不要虚构年龄、身体数据或目标。"
+            : "The user has not provided a profile. Answer general fitness questions without inventing age, body data, or goals.")
+        let planContext = plan.map { serializePlanToContext(plan: $0, profile: profile) }
+        let planSection = planContext.map {
+            (languagePolicy.prefersSimplifiedChinese ? "当前训练计划：\n" : "Current training plan:\n") + $0
+        } ?? (languagePolicy.prefersSimplifiedChinese
+            ? "当前没有可用的训练计划上下文。此时只提供问答和建议，不要声称已经修改计划。"
+            : "No workout-plan context is available. Provide advice only and do not claim to have edited a plan.")
 
         // 注入动作库清单：让 AI 在修改/新增动作时优先使用库内精确名称，
         // 这样解析后的动作能回连 ExerciseTemplate，打通 GIF 演示与详情。
@@ -428,14 +438,14 @@ class AIService {
         let systemMessage = """
         \(languagePolicy.chatSystemIntro)
 
-        \(localizedProfileSummary(profile))
+        \(profileContext)
 
-        \(languagePolicy.prefersSimplifiedChinese ? "当前训练计划：" : "Current training plan:")
-        \(planContext)
+        \(planSection)
 
         \(languagePolicy.prefersSimplifiedChinese ? "任务：" : "Tasks:")
         \(languagePolicy.prefersSimplifiedChinese ? "1. 如果用户只是普通聊天、咨询建议，直接返回文本回复。" : "1. If the user is asking for normal advice, return a normal text reply.")
-        \(languagePolicy.prefersSimplifiedChinese ? "2. 如果用户想修改训练计划，必须返回下面的 JSON 格式。" : "2. If the user wants to modify the training plan, return the JSON format below.")
+        \(languagePolicy.prefersSimplifiedChinese ? "2. 如果用户要局部增删改动作，返回下面的动作 JSON。" : "2. For a local exercise add/remove/update, return the action JSON below.")
+        \(languagePolicy.prefersSimplifiedChinese ? "3. 如果用户要改变计划整体结构、周期、分化或训练天数，只返回：{\"type\":\"regenerate_plan\",\"actions\":[]}。本地会用当前计划另行生成完整候选，不要在此回复里直接输出完整计划。" : "3. If the user wants to change the overall structure, cycle, split, or number of training days, return only: {\"type\":\"regenerate_plan\",\"actions\":[]}. The app will generate a complete candidate from the current plan separately; do not output the full plan here.")
 
         \(languagePolicy.actionJSONExample)
 
@@ -461,7 +471,7 @@ class AIService {
         let candidate = Self.extractJSONObject(from: content) ?? cleanMarkdownCodeBlock(content)
 
         // 尝试解析为 JSON 指令
-        if let command = try? parseActionCommand(from: candidate) {
+        if plan != nil, let command = try? parseActionCommand(from: candidate) {
             // 返回空字符串和指令（不显示 JSON 给用户）
             return ("", command)
         } else {
@@ -471,7 +481,7 @@ class AIService {
     }
     
     // MARK: - 序列化计划为 Context
-    private func serializePlanToContext(plan: WorkoutPlan, profile: UserProfile) -> String {
+    private func serializePlanToContext(plan: WorkoutPlan, profile: UserProfile? = nil) -> String {
         var context = languagePolicy.prefersSimplifiedChinese
             ? "计划名称：\(plan.name)\n"
             : "Plan name: \(plan.name)\n"
@@ -718,7 +728,6 @@ class AIService {
         
         // 创建 WorkoutPlan
         let workoutPlan = WorkoutPlan(name: planJSON.name)
-        workoutPlan.userProfile = profile
         
         // 创建 WorkoutDay 和 Exercise
         for dayJSON in planJSON.days {
@@ -773,7 +782,6 @@ class AIService {
 
     private func fallbackPlan(for profile: UserProfile) -> WorkoutPlan {
         let plan = WorkoutPlan(name: "fallback_plan_name".localized)
-        plan.userProfile = profile
         
         // Day 1: 胸部
         let day1 = WorkoutDay(dayNumber: 1, focus: .chest, isRestDay: false)

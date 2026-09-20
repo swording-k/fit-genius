@@ -8,14 +8,18 @@ struct StatsView: View {
     @Query private var profiles: [UserProfile]
     @Query(sort: \FormAnalysisRecord.date, order: .reverse) private var formRecords: [FormAnalysisRecord]
     @StateObject private var viewModel: StatsViewModel
+    @StateObject private var healthViewModel: HealthInsightViewModel
     
     init(modelContext: ModelContext) {
         _viewModel = StateObject(wrappedValue: StatsViewModel(modelContext: modelContext))
+        _healthViewModel = StateObject(wrappedValue: HealthInsightViewModel(modelContext: modelContext))
     }
     
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
+                HealthReadinessCard(viewModel: healthViewModel, profile: profiles.first)
+
                 if viewModel.allTrainingData.isEmpty && formRecords.isEmpty {
                     StatsEmptyState()
                 } else {

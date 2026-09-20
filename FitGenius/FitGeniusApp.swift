@@ -29,7 +29,11 @@ struct FitGeniusApp: App {
             MealEntry.self,
             MealDay.self,
             NutritionSummary.self,
-            FormAnalysisRecord.self
+            FormAnalysisRecord.self,
+            HealthDailySummary.self,
+            DailyReadinessReportRecord.self,
+            WeeklyHealthReportRecord.self,
+            HealthInsightPreference.self
         ])
         do {
             modelContainer = try Self.makePersistentContainer(schema: schema)
@@ -67,6 +71,7 @@ struct FitGeniusApp: App {
                         // Sync coordinator 内部有 isSyncing 守卫，可重入安全。
                         Task { @MainActor in
                             WatchSyncService.shared.syncToday(context: modelContainer.mainContext)
+                            await refreshHealthInsightsIfEnabled()
                             await FormAnalysisSyncCoordinator.shared.syncPendingRecords(
                                 context: modelContainer.mainContext,
                                 userId: auth.currentSessionUserId,
@@ -141,12 +146,24 @@ struct FitGeniusApp: App {
         }
         print("⚠️ [App] 已删除旧的 SwiftData 存储文件")
     }
+
+    @MainActor
+    private func refreshHealthInsightsIfEnabled() async {
+        let context = modelContainer.mainContext
+        guard let preference = try? context.fetch(FetchDescriptor<HealthInsightPreference>()).first,
+              preference.dailyReportEnabled || preference.weeklyReportEnabled || preference.aiHealthContextEnabled else {
+            return
+        }
+        let profile = try? context.fetch(FetchDescriptor<UserProfile>()).first
+        await HealthInsightViewModel(modelContext: context).refreshIfNeeded(profile: profile)
+    }
 }
 
 // MARK: - 通知名称
 extension Notification.Name {
     static let completeExerciseFromWidget = Notification.Name("completeExerciseFromWidget")
     static let openTodayPlanFromWidget = Notification.Name("openTodayPlanFromWidget")
+    static let openProfileFromAssistant = Notification.Name("openProfileFromAssistant")
 }
 
 // MARK: - Widget数据管理
@@ -157,14 +174,9 @@ struct WidgetDataManager {
     static func updateWorkoutData(modelContext: ModelContext) {
         let defaults = UserDefaults(suiteName: appGroupID)
 
-        let profileDescriptor = FetchDescriptor<UserProfile>()
-        guard let profile = try? modelContext.fetch(profileDescriptor).first else {
-            defaults?.removeObject(forKey: "widgetWorkout")
-            WidgetCenter.shared.reloadAllTimelines()
-            return
-        }
-
-        guard let plan = profile.workoutPlan else {
+        let profiles = (try? modelContext.fetch(FetchDescriptor<UserProfile>())) ?? []
+        let plans = (try? modelContext.fetch(FetchDescriptor<WorkoutPlan>())) ?? []
+        guard let plan = CurrentWorkoutPlanStore.resolve(profiles: profiles, plans: plans) else {
             defaults?.removeObject(forKey: "widgetWorkout")
             WidgetCenter.shared.reloadAllTimelines()
             return
