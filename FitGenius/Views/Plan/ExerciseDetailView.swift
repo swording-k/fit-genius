@@ -8,23 +8,9 @@ struct ExerciseDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var showAddSheet = false
 
-    private var preferChinese: Bool {
-        Locale.preferredLanguages.first?.hasPrefix("zh") ?? false
-    }
-
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                demoSection
-                metaSection
-                instructionsSection
-                if let attribution = template.attribution, !attribution.isEmpty {
-                    Text("exercise_detail_attribution_format".localized(with: attribution))
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-            }
-            .padding()
+        List {
+            ExerciseLearningContent(template: template)
         }
         .navigationTitle(template.displayName)
         .navigationBarTitleDisplayMode(.inline)
@@ -51,63 +37,6 @@ struct ExerciseDetailView: View {
         .hidesGlobalModeToggle()
     }
 
-    // MARK: - 演示
-
-    private var demoSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("exercise_detail_demo".localized)
-                .font(.headline)
-            AnimatedGIFView(urlString: template.gifUrl, cacheKey: template.mediaId ?? template.externalId)
-                .frame(height: 240)
-                .frame(maxWidth: .infinity)
-                .background(Color(.secondarySystemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 14))
-        }
-    }
-
-    // MARK: - 元信息
-
-    private var metaSection: some View {
-        VStack(spacing: 10) {
-            metaRow(label: "exercise_detail_body_part".localized, value: template.focus.localizedName)
-            metaRow(label: "exercise_detail_equipment".localized,
-                    value: (ExerciseEquipmentCategory(rawValue: template.equipmentCategory) ?? .other).localizedName)
-            metaRow(label: "exercise_detail_target".localized,
-                    value: template.localizedTarget(preferChinese: preferChinese))
-            if !template.secondaryMuscles.isEmpty {
-                metaRow(label: "exercise_detail_secondary".localized,
-                        value: template.localizedSecondaryMuscles(preferChinese: preferChinese).joined(separator: ", "))
-            }
-        }
-        .padding()
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-    }
-
-    private func metaRow(label: String, value: String) -> some View {
-        HStack(alignment: .top) {
-            Text(label)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-            Spacer()
-            Text(value)
-                .font(.subheadline)
-                .multilineTextAlignment(.trailing)
-        }
-    }
-
-    // MARK: - 说明
-
-    private var instructionsSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("exercise_detail_instructions".localized)
-                .font(.headline)
-            Text(template.localizedInstructions(preferChinese: preferChinese))
-                .font(.body)
-                .foregroundColor(.primary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
 }
 
 // MARK: - 加入计划 Sheet

@@ -4,7 +4,6 @@ import PhotosUI
 import SwiftUI
 
 struct ExerciseTutorialView: View {
-    let exercise: Exercise
     let template: ExerciseTemplate
     let clip: ExerciseTutorialClip
 
@@ -17,8 +16,7 @@ struct ExerciseTutorialView: View {
         Locale.preferredLanguages.first?.hasPrefix("zh") ?? false
     }
 
-    init(exercise: Exercise, template: ExerciseTemplate, clip: ExerciseTutorialClip) {
-        self.exercise = exercise
+    init(template: ExerciseTemplate, clip: ExerciseTutorialClip) {
         self.template = template
         self.clip = clip
         _playback = StateObject(wrappedValue: TutorialPlaybackController(clip: clip))

@@ -106,6 +106,7 @@ struct ExerciseTutorialCatalogTests {
         )
 
         requirePlannedExerciseLearningSurface()
+        requireUnifiedExerciseLearningEntry()
         requireTutorialAndComparisonSurfaces()
         requireBilingualLearningCopy()
 
@@ -113,20 +114,46 @@ struct ExerciseTutorialCatalogTests {
     }
 
     private static func requirePlannedExerciseLearningSurface() {
-        let path = "FitGenius/Views/Plan/PlannedExerciseDetailView.swift"
-        guard let source = try? String(contentsOfFile: path, encoding: .utf8) else {
-            fatalError("FAIL: planned exercise detail source is missing")
-        }
-        for marker in [
+        requireSource(
+            "FitGenius/Views/Plan/PlannedExerciseDetailView.swift",
+            contains: [
             "planned_exercise_prescription",
+            "planned_exercise_unmatched_title",
+            "ExerciseLearningContent"
+            ]
+        )
+        requireSource(
+            "FitGenius/Views/Plan/ExerciseLearningContent.swift",
+            contains: [
             "AnimatedGIFView",
             "exercise_detail_instructions",
             "planned_exercise_watch_tutorial",
-            "planned_exercise_unmatched_title",
             "FormAnalysisView"
-        ] where !source.contains(marker) {
-            fatalError("FAIL: planned exercise detail is missing \(marker)")
-        }
+            ]
+        )
+    }
+
+    private static func requireUnifiedExerciseLearningEntry() {
+        requireSource(
+            "FitGenius/Views/Plan/ExerciseLibraryView.swift",
+            contains: ["TextField", "exercise_library_search_placeholder"],
+            excludes: [".searchable(text:"]
+        )
+        requireSource(
+            "FitGenius/Views/Plan/ExerciseDetailView.swift",
+            contains: ["ExerciseLearningContent(template: template)"]
+        )
+        requireSource(
+            "FitGenius/Views/Plan/PlannedExerciseDetailView.swift",
+            contains: [
+                "ExerciseLearningContent(template: template, formAnalysisExercise: exercise)",
+                "planned_exercise_unmatched_title"
+            ]
+        )
+        requireSource(
+            "FitGenius/Views/Plan/ExerciseTutorialView.swift",
+            excludes: ["let exercise: Exercise", "exercise: Exercise"]
+        )
     }
 
     private static func requireTutorialAndComparisonSurfaces() {
@@ -179,6 +206,22 @@ struct ExerciseTutorialCatalogTests {
             for key in keys where !source.contains("\"\(key)\"") {
                 fatalError("FAIL: \(path) is missing \(key)")
             }
+        }
+    }
+
+    private static func requireSource(
+        _ path: String,
+        contains requiredMarkers: [String] = [],
+        excludes forbiddenMarkers: [String] = []
+    ) {
+        guard let source = try? String(contentsOfFile: path, encoding: .utf8) else {
+            fatalError("FAIL: required source is missing at \(path)")
+        }
+        for marker in requiredMarkers where !source.contains(marker) {
+            fatalError("FAIL: \(path) is missing \(marker)")
+        }
+        for marker in forbiddenMarkers where source.contains(marker) {
+            fatalError("FAIL: \(path) must not contain \(marker)")
         }
     }
 

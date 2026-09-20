@@ -24,9 +24,10 @@ struct ExerciseLibraryView: View {
             if !searchText.isEmpty {
                 let q = searchText.lowercased()
                 let preferZh = Locale.preferredLanguages.first?.hasPrefix("zh") ?? false
+                let equipment = (ExerciseEquipmentCategory(rawValue: t.equipmentCategory) ?? .other).localizedName
                 let hay = [t.nameEn, t.chineseName ?? "", t.bodyPart, t.target,
                            MuscleName.localized(t.target, preferChinese: preferZh),
-                           t.focusRaw]
+                           t.focusRaw, equipment]
                     .joined(separator: " ")
                     .lowercased()
                 if !hay.contains(q) { return false }
@@ -63,7 +64,6 @@ struct ExerciseLibraryView: View {
             }
             .navigationTitle("exercise_library_title".localized)
             .navigationBarTitleDisplayMode(.inline)
-            .searchable(text: $searchText, prompt: "exercise_library_search_placeholder".localized)
         }
     }
 
@@ -71,6 +71,31 @@ struct ExerciseLibraryView: View {
 
     private var filterBar: some View {
         VStack(spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.secondary)
+
+                TextField("exercise_library_search_placeholder".localized, text: $searchText)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+
+                if !searchText.isEmpty {
+                    Button {
+                        searchText = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("clear".localized)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(Color(.secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, 12)
+
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     FilterChip(title: "exercise_library_filter_all".localized,
