@@ -1,6 +1,6 @@
 # FitGenius Agent Handoff
 
-Last updated: 2026-09-21 Asia/Shanghai
+Last updated: 2026-10-03 Asia/Shanghai
 
 ## Read First
 
@@ -10,6 +10,35 @@ Last updated: 2026-09-21 Asia/Shanghai
 4. `docs/agent-handoff.md`
 
 ## Current Status
+
+### 2026-10-03: Cloud tutorial catalog and official Douyin research
+
+- Shared library/plan details now load the CloudBase `exercise-tutorials/catalog-v1.json`
+  catalog, keep an atomic last-good disk cache, and retain bundled fallback.
+  A shared observable store coalesces requests and refreshes successful loads after
+  six hours; failure does not block the exercise/GIF detail.
+- Uploaded two development excerpts: lateral raise (source 132–151s, 19 seconds,
+  template `0334`) and overhand wide pulldown (350–375s, 25 seconds, template
+  `0198`) to scoped CloudBase Hosting. They are `developmentOnly`, hidden
+  in Release. The stable legacy clip ID replaces the bundled sample when the
+  cloud catalog loads; source metadata now points to the verified Douyin original.
+- Published separate external-source links for both exercises. Link-only
+  entries are labelled as sources and do not offer in-App side-by-side playback.
+- `docs/tutorial-sources/douyin-tan.json` records 49 official-profile teaching
+  sources and 24 candidate template matches. Two complete originals are kept
+  under ignored `video/tutorial-source/douyin/`; RDL download timed out and is
+  not marked downloaded. Research is NOT complete: 1300 templates remain
+  unreviewed, and candidates are not published as reviewed tutorials.
+- CloudBase gateway GET with `Range: bytes=0-1023` returned the full MP4 (200),
+  while the direct private COS origin returned 403. No bucket permissions were
+  broadened. Added on-demand short-excerpt disk caching (20 MB per asset, 250 MB
+  oldest-first cache budget); playback/comparison share the cached file for seeking.
+  The first load shows progress and retry on failure; this is not progressive streaming.
+- Storage is now cloud-hosted metadata + HTTPS media, not video blobs inside
+  SwiftData or a bundled library. No NoSQL tutorial collection was created:
+  the current cloud catalog is versioned JSON, an explicit intermediate index.
+- Existing user Xcode scheme changes and the unrelated untracked Remotion
+  `video/` project were preserved. No branch merge or release submission.
 
 ### 2026-09-21: Progressive entry and AI plan proposal flow
 
@@ -610,6 +639,20 @@ new reconnect prompt once to receive a new FitGenius cloud session.
 
 ## Latest Validation
 
+### 2026-10-03: cloud tutorials
+
+- Remote repository regression tests pass: valid update/cache, bad JSON/schema/status,
+  insecure source rejection, last-good preservation, empty remote removal, and
+  Debug/Release filtering. Existing tutorial, comparison/catalog audit checks pass.
+- Unsigned iOS Simulator build passed with the remote store and shared detail.
+- CloudBase authorization refreshed by the owner; scoped Hosting deployment
+  succeeded. HTTPS catalog and development MP4 delivery were checked separately.
+- Tutorial video-cache tests pass for file reuse, MIME/signature and status
+  rejection; a real CloudBase MP4 was downloaded and its cached size verified.
+- New bilingual loading/failure strings pass the localization check. Final
+  unsigned simulator build includes the cache-based player and passes.
+- This does not prove physical-device playback or exhaustive source coverage.
+
 ### 2026-09-21: progressive entry and plan proposals
 
 - Current-plan policy tests pass for linked-plan priority, newest standalone
@@ -905,6 +948,20 @@ This is required because Apple authorization UI and real-device Vision behavior
 cannot be fully accepted in Simulator.
 
 ## Next Recommended Work
+
+Cloud tutorial research continuation:
+
+- Continue the official profile beyond the 49 recorded teaching sources; review
+  long private-training/follow-along videos for exercise-specific variants.
+- Use `node scripts/tutorial-source-coverage.mjs` for counts or `--json` for all
+  1324 exercise rows. A blank candidate list means unreviewed, never confirmed absent.
+- Review and cut the downloaded pulldown original by grip variant before
+  publishing; its visible chapters are recorded in the source inventory.
+- Verify cloud-loaded Debug playback and Photos comparison on the owner's iPhone.
+  Keep development media hidden from Release; approved production media may be
+  added with stable HTTPS URLs and `licensed` status without another App release
+  after this loader version has shipped. Migrate the cloud JSON index to a database
+  API when adding an editing/admin workflow; binary videos remain in object storage.
 
 Progressive-entry / plan-copilot acceptance:
 

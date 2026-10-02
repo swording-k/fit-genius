@@ -66,5 +66,6 @@ cloudrun/
 
 # Local-only creator tutorial source media and transcoded development clips
 video/tutorial-source/
+cloud-content/exercise-tutorials/development-media/
 video/tutorial-clips/
 FitGenius/Resources/ExerciseTutorials/DevelopmentMedia/

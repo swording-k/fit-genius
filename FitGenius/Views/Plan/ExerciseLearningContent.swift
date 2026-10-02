@@ -10,7 +10,7 @@ struct ExerciseLearningContent: View {
 
     @State private var showFormAnalysis = false
 
-    private let tutorialCatalog = ExerciseTutorialCatalog.loadBundled()
+    @ObservedObject private var tutorials = ExerciseTutorialStore.shared
 
     private var preferChinese: Bool {
         Locale.preferredLanguages.first?.hasPrefix("zh") ?? false
@@ -29,6 +29,7 @@ struct ExerciseLearningContent: View {
                 FormAnalysisView(exercise: formAnalysisExercise)
             }
         }
+        .task { await tutorials.refreshIfNeeded() }
     }
 
     private var standardDemoSection: some View {
@@ -78,7 +79,7 @@ struct ExerciseLearningContent: View {
 
     @ViewBuilder
     private var tutorialSection: some View {
-        let clips = tutorialCatalog.clips(for: template.externalId)
+        let clips = tutorials.catalog.clips(for: template.externalId)
         Section("planned_exercise_real_person_tutorial") {
             if clips.isEmpty {
                 Text("planned_exercise_tutorial_unavailable")
@@ -88,7 +89,11 @@ struct ExerciseLearningContent: View {
                     NavigationLink {
                         ExerciseTutorialView(template: template, clip: clip)
                     } label: {
-                        Label("planned_exercise_watch_tutorial", systemImage: "play.rectangle.fill")
+                        if clip.rightsStatus == .externalLinkOnly {
+                            Label("planned_exercise_source", systemImage: "arrow.up.right.square")
+                        } else {
+                            Label("planned_exercise_watch_tutorial", systemImage: "play.rectangle.fill")
+                        }
                     }
                 }
             }

@@ -221,6 +221,17 @@ and two-player comparison flow are implemented. One reviewed lateral-raise
 excerpt validates the development pipeline; the remaining catalog is tracked
 in `docs/exercise-tutorial-inventory.csv` and can be filled incrementally.
 
+Cloud catalog slice (2026-10-03): the shared learning entry now refreshes a
+CloudBase-hosted versioned JSON catalog and retains a last-good local cache.
+Video binaries load on demand from HTTPS cloud storage/Hosting and are cached
+for reliable manual seeking, never stored as database blob fields. Two
+development excerpts (19-second lateral raise and 25-second wide pulldown) are cloud-hosted and remain
+hidden in Release; 49 official Douyin teaching sources are recorded separately
+from published clips. Only 24 template candidates have been identified so far,
+not 1324 completed matches. Missing/unreviewed media still degrades to GIF and
+instructions. A future database-backed admin index can replace JSON without
+moving the video binaries into the database.
+
 Entry-point correction (2026-09-20): `ExerciseTemplate` is the canonical
 learning-detail source. The exercise library and matched plan exercises now
 reuse the same GIF, instructions, optional tutorial, and comparison entry.

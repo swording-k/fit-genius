@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "clips": [
+    {
+      "id": "tan-douyin-wide-pulldown-350-375",
+      "exerciseTemplateIDs": ["0198"],
+      "creatorName": "谭成义",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7662562022056718449",
+      "sourceVideoID": "7662562022056718449",
+      "sourceTitle": "高位下拉 · 正手宽握开发节选",
+      "clipStartSeconds": 350,
+      "clipEndSeconds": 375,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 25,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7662562022056718449-350-375.mp4",
+      "cameraView": "rear-oblique",
+      "framingNoteZh": "按照教学的背面斜角拍摄，保持头部、手臂、横杆和髋部入镜。不要将此示范当作反手、对握或颈后下拉。",
+      "framingNoteEn": "Match the rear-oblique view with your head, arms, bar and hips in frame. This is an overhand pulldown, not an underhand, neutral-grip or behind-neck variant.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
+      "id": "tan-douyin-wide-pulldown-source",
+      "exerciseTemplateIDs": ["0198"],
+      "creatorName": "谭成义",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7662562022056718449",
+      "sourceVideoID": "7662562022056718449",
+      "sourceTitle": "高位下拉动作讲解 · 正手宽握从 02:09 开始",
+      "clipStartSeconds": 129,
+      "clipEndSeconds": 535,
+      "rightsStatus": "externalLinkOnly"
+    },
+    {
+      "id": "tan-dumbbell-lateral-raise-bv128-132-151",
+      "exerciseTemplateIDs": ["0334"],
+      "creatorName": "谭成义",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7666644718105452666",
+      "sourceVideoID": "7666644718105452666",
+      "sourceTitle": "哑铃侧平举动作教学 · 开发节选",
+      "clipStartSeconds": 132,
+      "clipEndSeconds": 151,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 19,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7666644718105452666-132-151.mp4",
+      "cameraView": "front-oblique",
+      "framingNoteZh": "按照教学中的正面斜角拍摄，保持头部、双手和髋部完整入镜；这是手动对比，不是自动动作评分。",
+      "framingNoteEn": "Match the tutorial's front-oblique angle, keeping your head, hands and hips in frame. Comparison is manual, not automatic form scoring.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
+      "id": "tan-douyin-lateral-raise-source",
+      "exerciseTemplateIDs": ["0334"],
+      "creatorName": "谭成义",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7666644718105452666",
+      "sourceVideoID": "7666644718105452666",
+      "sourceTitle": "哑铃侧平举动作教学",
+      "clipStartSeconds": 0,
+      "clipEndSeconds": 478.366667,
+      "rightsStatus": "externalLinkOnly"
+    }
+  ]
+}

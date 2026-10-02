@@ -26,11 +26,20 @@ struct ExerciseTutorialView: View {
         let pickerTitle = selectedVideo.url == nil
             ? "planned_exercise_choose_your_video"
             : "planned_exercise_choose_another_video"
-        let resolvedPlaybackURL = clip.resolvedPlaybackURL()
+        let resolvedPlaybackURL = playback.localURL
 
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                if let player = playback.player {
+                if playback.isLoading {
+                    ProgressView("planned_exercise_loading_tutorial")
+                        .frame(maxWidth: .infinity, minHeight: 240)
+                } else if playback.loadFailed {
+                    VStack(spacing: 12) {
+                        Text("planned_exercise_tutorial_load_failed")
+                        Button("retry") { Task { await playback.load() } }
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 240)
+                } else if let player = playback.player {
                     ControlledVideoPlayer(player: player)
                         .frame(maxWidth: .infinity)
                         .aspectRatio(9.0 / 16.0, contentMode: .fit)
@@ -128,27 +137,44 @@ struct ExerciseTutorialView: View {
         .onDisappear {
             playback.pause()
         }
+        .task { await playback.load() }
         .hidesGlobalModeToggle()
     }
 }
 
 @MainActor
 private final class TutorialPlaybackController: ObservableObject {
-    let player: AVPlayer?
+    @Published private(set) var player: AVPlayer?
+    @Published private(set) var localURL: URL?
+    @Published private(set) var isLoading = false
+    @Published private(set) var loadFailed = false
     @Published private(set) var isPlaying = false
 
     private let clipStart: Double
     private let clipEnd: Double
-    private var boundaryObserver: Any?
+    private let observation = TutorialPlaybackObservation()
+    private let sourceURL: URL?
 
     init(clip: ExerciseTutorialClip) {
         clipStart = clip.playbackRange.lowerBound
         clipEnd = clip.playbackRange.upperBound
-        if let url = clip.resolvedPlaybackURL() {
+        sourceURL = clip.resolvedPlaybackURL()
+    }
+
+    func load() async {
+        guard player == nil, !isLoading, let sourceURL else { return }
+        isLoading = true
+        loadFailed = false
+        defer { isLoading = false }
+        do {
+            let url = try await TutorialVideoCache.shared.localURL(for: sourceURL)
+            guard !Task.isCancelled else { return }
+            localURL = url
             let player = AVPlayer(url: url)
             self.player = player
-            player.seek(to: CMTime(seconds: clipStart, preferredTimescale: 600))
-            boundaryObserver = player.addBoundaryTimeObserver(
+            _ = await player.seek(to: CMTime(seconds: clipStart, preferredTimescale: 600))
+            observation.player = player
+            observation.token = player.addBoundaryTimeObserver(
                 forTimes: [NSValue(time: CMTime(seconds: clipEnd, preferredTimescale: 600))],
                 queue: .main
             ) { [weak self] in
@@ -159,8 +185,8 @@ private final class TutorialPlaybackController: ObservableObject {
                     self.isPlaying = false
                 }
             }
-        } else {
-            player = nil
+        } catch {
+            loadFailed = true
         }
     }
 
@@ -182,10 +208,15 @@ private final class TutorialPlaybackController: ObservableObject {
         isPlaying = false
     }
 
+}
+
+/// Keeps the player/observer pair together without accessing @Published state
+/// from the controller's nonisolated deinitializer.
+private final class TutorialPlaybackObservation {
+    var player: AVPlayer?
+    var token: Any?
     deinit {
-        if let boundaryObserver, let player {
-            player.removeTimeObserver(boundaryObserver)
-        }
+        if let token, let player { player.removeTimeObserver(token) }
     }
 }
 
