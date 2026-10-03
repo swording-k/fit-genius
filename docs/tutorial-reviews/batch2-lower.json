@@ -1,0 +1,152 @@
+{
+  "reviewedAt": "2026-10-03",
+  "reviewMethod": "Source frames compared with actual canonical GIFs and English seed instructions; no equipment or stance substitution.",
+  "proposedClips": [
+    {
+      "templateID": "0381",
+      "sourceVideoID": "7616718842858024121",
+      "start": 485,
+      "end": 500,
+      "cameraView": "side",
+      "framingNoteZh": "按照示范侧面略偏前角度拍摄，双手哑铃、双膝和双脚全程留在画面内；每次向后迈一步，下蹲后收回后脚，再换另一侧。",
+      "framingNoteEn": "Match the slightly front-oblique side view. Keep both dumbbells, knees and feet visible. Step backward, lower into the lunge, return the rear foot to standing, then alternate sides.",
+      "visualEvidence": "Actual 0381 GIF shows a standing two-dumbbell reverse lunge, distinct from the forward stepping 0336 GIF and fixed-foot 2368 split squat. At 485–500 s Tan Sir holds one dumbbell in each hand, starts with feet together, steps backward at 487–488 s, lowers and returns to standing at 490 s, switches legs around 491–493 s, and completes another backward step/down/return cycle. English instructions independently require backward stepping and alternating sides. Final equipment put-down at 501 s is excluded.",
+      "confidence": "high",
+      "evidenceContactSheet": "/tmp/fitgenius-batch2-lower-home-rearlunge-exact.jpg"
+    },
+    {
+      "templateID": "0430",
+      "sourceVideoID": "7617450016814465785",
+      "start": 620,
+      "end": 635,
+      "cameraView": "rear_oblique",
+      "framingNoteZh": "按示范的侧后方角度拍摄，双手共同托住的一只哑铃、双肘、躯干及站立姿势保持可见；控制屈伸，避免过度向前顶腰。",
+      "framingNoteEn": "Match the rear-oblique view. Keep the single dumbbell supported by both hands, elbows, torso and standing posture visible. Control elbow bending and extension without excessive lower-back arching.",
+      "visualEvidence": "Actual 0430 GIF shows a standing bilateral, two-hands-on-one-dumbbell overhead triceps extension, despite erroneous one-hand English seed text. Source 620–635 s uses the identical two-hand grip under the upper dumbbell plate, bends both elbows to lower behind the head and extends upward for repeated complete cycles (623, 626–627, 631 s extended and 624–625, 628–630, 632–634 s flexed). Teaching states relatively upright posture and avoiding excessive arching; the earlier exaggerated arch cue at 617 s is excluded. This is not seated 2188 or one-arm 0423.",
+      "confidence": "high",
+      "canonicalGIFContactSheet": "/tmp/fitgenius-batch2-lower-0430.jpg",
+      "evidenceContactSheet": "/tmp/fitgenius-batch2-lower-extension-proposed.jpg",
+      "seedCorrectionZh": "双脚与肩同宽站立，双手共同托住一个哑铃的一端，将哑铃举到头顶。保持躯干稳定，上臂靠近头部。弯曲双肘，缓慢将哑铃下放到头后。伸直双肘，将哑铃举回起始位置，避免过度弓腰。重复所需次数。",
+      "seedCorrectionEn": "Stand with your feet shoulder-width apart and support one end of a single dumbbell with both hands overhead. Keep your torso stable and upper arms close to your head. Bend both elbows to lower the dumbbell slowly behind your head. Extend both elbows to return overhead without excessive back arching. Repeat for the desired repetitions."
+    },
+    {
+      "templateID": "0378",
+      "sourceVideoID": "7617450016814465785",
+      "start": 255,
+      "end": 266,
+      "cameraView": "side",
+      "framingNoteZh": "按示范侧面略偏前角度拍摄，将坐凳、双手哑铃、躯干和双脚纳入画面；采用坐姿俯身飞鸟，并控制下放，避免哑铃在地面上完全卸力。",
+      "framingNoteEn": "Match the slightly front-oblique side view. Include the seat, both dumbbells, torso and feet. Perform the seated bent-over fly and control the lowering without completely unloading the dumbbells on the floor.",
+      "visualEvidence": "Actual 0378 GIF is seated, unsupported bent-over rear fly. Source 255–266 s maintains seated hip hinge and cycles both dumbbells laterally without unloading them on the floor: raised at 255 s, lowered at 256–258 s, raised at 259–260 s, lowered at 261–262 s, raised at 263–264 s, and lowered at 265 s. The earlier narrated lost-tension example at 252–254 s and seated rest after 266 s are excluded. Chair versus bench does not add torso support or change the exercise. The erroneous standing seed instructions require the supplied bilingual correction; chest-supported 0383 is different.",
+      "confidence": "high",
+      "canonicalGIFContactSheet": "/tmp/fitgenius-batch2-lower-0378.jpg",
+      "evidenceContactSheet": "/tmp/fitgenius-batch2-lower-rearfly-exact.jpg",
+      "seedCorrectionZh": "坐在稳固的长凳上，双脚踩稳，双手各握一个哑铃。屈髋俯身，保持背部平直，让双臂自然下垂。肘部微屈，将哑铃向身体两侧抬起至上臂接近与地面平行。稍作停顿，再缓慢下放并保持控制。重复所需次数。",
+      "seedCorrectionEn": "Sit on a stable bench with your feet planted, holding a dumbbell in each hand. Hinge forward at the hips while keeping your back straight and let your arms hang down. With a slight bend in your elbows, raise the dumbbells out to the sides until your upper arms are approximately parallel to the floor. Pause briefly, then lower slowly with control. Repeat for the desired repetitions."
+    },
+    {
+      "templateID": "0285",
+      "sourceVideoID": "7617450016814465785",
+      "start": 588,
+      "end": 599,
+      "cameraView": "side",
+      "framingNoteZh": "按示范侧面略偏前角度拍摄，将双手哑铃、双肘、整个躯干和站立姿势纳入画面；交替屈肘弯举，保持上臂稳定，避免向后甩肘。",
+      "framingNoteEn": "Match the slightly front-oblique side view. Include both dumbbells, elbows, torso and standing posture. Alternate elbow curls while keeping the upper arms stable without swinging the elbows backward.",
+      "visualEvidence": "Actual 0285 GIF confirms standing alternating dumbbell curls with a supinated grip at the top. Source 588–599 s holds two dumbbells and alternates left/right elbow flexion under control. At 589 s first arm is flexed, 590–591 s lowered, 592 s other arm flexed, 593–594 s lowered, 595 s first arm flexed, 596 s lowered, 597–598 s other arm flexed. Earlier unwanted elbow-drift demo at 585–586 s and equipment put-down at 600 s are excluded. A complete clean 11-second sequence is valid under the clarified 10–30-second target.",
+      "confidence": "high",
+      "canonicalGIFContactSheet": "/tmp/fitgenius-batch2-lower-0285.jpg",
+      "evidenceContactSheet": "/tmp/fitgenius-batch2-lower-curl-exact.jpg"
+    },
+    {
+      "templateID": "0227",
+      "sourceVideoID": "7610712695184852603",
+      "start": 237,
+      "end": 251,
+      "cameraView": "front",
+      "framingNoteZh": "按示范正面略偏侧角度拍摄，双侧高位滑轮、手柄、双肘和躯干保持可见；从身体两侧向前下方合拢，控制回放。",
+      "framingNoteEn": "Match the slightly oblique front view. Keep both high pulleys, handles, elbows and torso visible. Bring the handles forward and downward from your sides and control the return.",
+      "visualEvidence": "Actual 0227 GIF is an upright high-to-low bilateral cable fly. Source high pulleys are above the shoulders, and both handles sweep down to the front of the thighs at 240, 243, 245, 250 s; opening positions at 237–239, 241–242, 244 and 247–249 s show repeated complete cycles. The unwanted relaxed/rounded chest example at 233–235 s is excluded. Do not map middle-height 0188, low-to-high 0179, lying 0158, or 1269 lower-mounted crossover.",
+      "confidence": "high",
+      "canonicalGIFContactSheet": "/tmp/fitgenius-batch2-lower-0227.jpg",
+      "evidenceContactSheet": "/tmp/fitgenius-batch2-lower-push-cable-positive.jpg"
+    },
+    {
+      "templateID": "1479",
+      "sourceVideoID": "7610712695184852603",
+      "start": 805,
+      "end": 820,
+      "cameraView": "side",
+      "framingNoteZh": "按示范侧面略偏前角度拍摄，上斜靠背、两侧推臂和手柄、双肘及躯干保持可见；背部贴住靠背，控制推起与回放。",
+      "framingNoteEn": "Match the slightly front-oblique side view. Include the inclined backrest, both press arms and handles, elbows and torso. Keep your back supported and control pressing and lowering.",
+      "visualEvidence": "Actual 1479 GIF shows a reclined incline lever chest press with plate-loaded independent press arms and pronated handles. The source uses the same reclined, supported plate-loaded pattern, unlike upright 1299. At 805 s handles are near chest; 806–812 s extension and coaching stabilization; 813–814 s controlled lowering; 815–817 s upward/downward repetition; 818–819 s further controlled return. Elbow flare and exaggerated back position examples after 821 s are excluded.",
+      "confidence": "high",
+      "canonicalGIFContactSheet": "/tmp/fitgenius-batch2-lower-1479.jpg",
+      "evidenceContactSheet": "/tmp/fitgenius-batch2-lower-push-machine-positive.jpg"
+    },
+    {
+      "templateID": "1456",
+      "sourceVideoID": "7610712695184852603",
+      "start": 991,
+      "end": 1003,
+      "cameraView": "side",
+      "framingNoteZh": "按示范侧面略偏前角度拍摄，整根杠铃、握距、双肘、躯干和双脚保持可见；使用示范较窄握距，杠铃从上胸附近向头顶推起，避免塌腕和腿部借力。",
+      "framingNoteEn": "Match the slightly front-oblique side view. Include the whole barbell, grip width, elbows, torso and feet. Use the demonstrated close grip, press from the upper chest overhead, and avoid wrist collapse or leg drive.",
+      "visualEvidence": "Actual 1456 GIF has a close grip around shoulder width, unlike widely abducted 1457. Source explicitly locates hands near the inner silver rings, keeps forearms vertical, and performs strict standing barbell presses with an unloaded Olympic bar (a real barbell, not a dowel). 991 s shoulder-level start; 992–994 s overhead; 995 s lowering; 996–998 s overhead return; 999 s lowering; 1000–1001 s overhead; 1002 s lowered. Wrist-collapse counterexample 923–925 s and wrong leaning/core demonstration around 960–979 s are excluded.",
+      "confidence": "high",
+      "canonicalGIFContactSheet": "/tmp/fitgenius-batch2-lower-1456.jpg",
+      "evidenceContactSheet": "/tmp/fitgenius-batch2-lower-push-barbell-positive.jpg"
+    },
+    {
+      "templateID": "0194",
+      "sourceVideoID": "7610712695184852603",
+      "start": 1088,
+      "end": 1103,
+      "cameraView": "front",
+      "framingNoteZh": "按示范正面略偏侧角度拍摄，将低位滑轮、绳索、双肘和整个躯干留在画面内；背对器械，保持躯干稳定，双肘屈伸让绳索从头后向上移动。",
+      "framingNoteEn": "Match the slightly oblique front view. Include the low pulley, rope, elbows and torso. Face away from the machine, keep the torso stable and extend both elbows to move the rope upward from behind the head.",
+      "visualEvidence": "Actual 0194 GIF uses a LOW pulley with upright torso and rope behind the head, despite erroneous high-pulley English seed. Source sets pulley to lowest position at 1080 s, uses both rope ends, stands upright facing away and repeatedly extends overhead: flexed 1088–1089 s, extended 1090 s, flexed 1091–1092 s, extended 1093–1094 s, flexed 1095 s, extended 1096 s, flexed 1097–1102 s while describing stable upper arms. This is not high-pulley hinged 1722/1724.",
+      "confidence": "high",
+      "canonicalGIFContactSheet": "/tmp/fitgenius-batch2-lower-0194.jpg",
+      "evidenceContactSheet": "/tmp/fitgenius-batch2-lower-push-rope-positive.jpg",
+      "seedCorrectionZh": "将绳索连接到拉力器的低位滑轮。背对器械站立，双脚与肩同宽，双手握住绳索两端，将双手放到头后。保持躯干稳定，上臂靠近头部。伸直双肘，将绳索向上推起。缓慢弯曲双肘，回到头后起始位置。重复所需次数。",
+      "seedCorrectionEn": "Attach a rope to a low cable pulley. Stand facing away from the machine with your feet shoulder-width apart, holding both rope ends behind your head. Keep your torso stable and upper arms close to your head. Extend both elbows to press the rope upward, then bend them slowly to return behind your head. Repeat for the desired repetitions."
+    }
+  ],
+  "rejected": [
+    {
+      "sourceVideoID": "7655982129109198321",
+      "templateIDs": [
+        "1373",
+        "1387",
+        "1490"
+      ],
+      "reason": "Re-reviewed 660–980 s contact sheet against all three actual GIFs. At 760–970 s calf teaching uses a staggered stance on a machine base plate, with the other foot remaining grounded. This does not establish 1373 bilateral parallel-foot raising, 1387 one-foot-raised single-leg floor calf raise, or 1490 bilateral step-edge suspended-heel calf raise. Preserve the blank mapping.",
+      "evidenceContactSheet": "/tmp/fitgenius-batch2-lower-calf.jpg"
+    },
+    {
+      "sourceVideoID": "7629718942222650670",
+      "templateIDs": [
+        "1757",
+        "1756",
+        "2805"
+      ],
+      "reason": "Seed catalogue has no unsupported two-dumbbell single-leg deadlift entry. Existing 1757 GIF and instructions use one dumbbell; 1756 uses barbell, and 2805 specifies stepbox support. The previously observed two-dumbbell working sets cannot increase exact template coverage. Existing bilateral dumbbell RDL 1459 and barbell RDL 0085 stay unchanged."
+    },
+    {
+      "sourceVideoID": "7610712695184852603",
+      "templateIDs": [
+        "0188",
+        "0158",
+        "0179",
+        "1299",
+        "1457",
+        "1722",
+        "1724"
+      ],
+      "reason": "Actual cable fly is high-to-low, machine press is reclined incline, strict barbell press uses close grip, and rope extension uses low pulley. Do not substitute middle/low/lying fly, upright incline press, wide military press or high-pulley leaned extension."
+    }
+  ],
+  "additionalCandidates": [],
+  "pendingSources": [],
+  "pendingShortClips": []
+}

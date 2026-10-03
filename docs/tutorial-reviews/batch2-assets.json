@@ -1,0 +1,91 @@
+{
+  "verifiedOn": "2026-10-03",
+  "newDistinctTemplates": 12,
+  "verification": "H.264/AAC, duration within 0.05s, under20MiB, HTTP200 complete cloud bytes equal local excerpt",
+  "assets": [
+    {
+      "templateID": "0025",
+      "durationSeconds": 18,
+      "sizeBytes": 5215721,
+      "sha256": "912baaf583f212a11c9f050b692f0d4ca78a0e4f7593b77427ce99bef04df030",
+      "cloudByteMatch": true
+    },
+    {
+      "templateID": "0194",
+      "durationSeconds": 15,
+      "sizeBytes": 2196015,
+      "sha256": "fb9c19c18e5345980d80d66df782a8c045aa223f46832a0ff0d9c1c7b5b86c04",
+      "cloudByteMatch": true
+    },
+    {
+      "templateID": "0227",
+      "durationSeconds": 14,
+      "sizeBytes": 2865498,
+      "sha256": "2f8cf9753da1551d01195573799d72fc959454e63586fed6768526d3cee819cb",
+      "cloudByteMatch": true
+    },
+    {
+      "templateID": "0285",
+      "durationSeconds": 11,
+      "sizeBytes": 1596232,
+      "sha256": "0e5f32bd601bfe8cf6ce64a3f70a189345ef16c14fafd3d38d0d6e4835b22331",
+      "cloudByteMatch": true
+    },
+    {
+      "templateID": "0293",
+      "durationSeconds": 15,
+      "sizeBytes": 2299184,
+      "sha256": "2eb64dd741ce32180f0b311a837c181727c7f5dab4459a2f90a7e37a6c38e9dd",
+      "cloudByteMatch": true
+    },
+    {
+      "templateID": "0315",
+      "durationSeconds": 20,
+      "sizeBytes": 3582052,
+      "sha256": "5c1fde1b2f2b8c00434efc4d97094273dfb9d41a6b86aba79e62d31f24742ce2",
+      "cloudByteMatch": true
+    },
+    {
+      "templateID": "0378",
+      "durationSeconds": 11,
+      "sizeBytes": 1753636,
+      "sha256": "ca5e655f4f3850c9e1fdaf2bbdcf53ec27018c6fec6c4af7247971546ab5cbcc",
+      "cloudByteMatch": true
+    },
+    {
+      "templateID": "0381",
+      "durationSeconds": 15,
+      "sizeBytes": 2298256,
+      "sha256": "83cf98a4a6dcc60a616bd17b5aa2c94cd4e9122807167b201741297cb47092b0",
+      "cloudByteMatch": true
+    },
+    {
+      "templateID": "0430",
+      "durationSeconds": 15,
+      "sizeBytes": 2125163,
+      "sha256": "a382a7a4827447025d441724c2a37fe71177940a0d6393ca6a9e227d0f68c63f",
+      "cloudByteMatch": true
+    },
+    {
+      "templateID": "0970",
+      "durationSeconds": 16,
+      "sizeBytes": 2703432,
+      "sha256": "3db9f323eabe7f959d69ffb1dde9fb1c43434e25bcda8bdf67b43bd10149dbe4",
+      "cloudByteMatch": true
+    },
+    {
+      "templateID": "1456",
+      "durationSeconds": 12,
+      "sizeBytes": 1515508,
+      "sha256": "e17118b9358e4e0d570720db7c9d9902e238f9792e206b557570637283f5a527",
+      "cloudByteMatch": true
+    },
+    {
+      "templateID": "1479",
+      "durationSeconds": 15,
+      "sizeBytes": 3508952,
+      "sha256": "a956bd1c4fdbf425a4981ef0801656348c9d3f2be4790ffc21fd9c14bb45f09f",
+      "cloudByteMatch": true
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "reviewedOn": "2026-10-03",
+  "reviewMethod": "Downloaded canonical GIFs compared with exact-second contact sheets from existing full original sources. Proposed clips are excluded from the first 24-template batch and require main-agent review before publication.",
+  "proposedClips": [
+    {
+      "templateID": "0025",
+      "sourceVideoID": "7625479021379194118",
+      "start": 578,
+      "end": 596,
+      "cameraView": "oblique",
+      "framingNoteZh": "这是谭师与凯圣王共创指导学员的片段。按照头端斜侧方拍摄，拍全平凳、杠铃、双肩和双脚；保留杠铃下降到胸部并推起的完整路径。",
+      "framingNoteEn": "This is coached trainee footage from the Tan Sir / Kai Sheng Wang collaboration. Film obliquely from the head end, including the flat bench, barbell, shoulders and feet, with the full lowering-to-chest and pressing path visible.",
+      "visualEvidence": "Canonical 0025 GIF shows an overhand flat barbell bench press. Source 578–596s shows the same loaded straight-bar, flat-bench press with repeated lowering/pressing cycles. The coach describes the elbow relationship and calls the movement stable at 582–586s. The subsequent rerack and seated discussion around 598–600s are excluded. Evidence: /tmp/fitgenius-batch2-upper-0025.jpg and /tmp/fitgenius-batch2-upper-bench-approved.jpg (578s start, 1-second steps; inspect only the selected first 18 seconds).",
+      "confidence": "high"
+    },
+    {
+      "templateID": "0315",
+      "sourceVideoID": "7648931004442846193",
+      "start": 1418,
+      "end": 1438,
+      "cameraView": "oblique",
+      "framingNoteZh": "谭师指导学员的上斜哑铃弯举。按示范斜侧方拍摄，拍到上斜凳、肩肘与两只哑铃；保持胸廓和肩部稳定，展示伸肘下降与弯举的完整循环。",
+      "framingNoteEn": "Tan Sir coaches a trainee performing incline dumbbell curls. Use the same oblique side view and include the incline bench, shoulders, elbows and both dumbbells. Keep the chest and shoulders stable and show complete lowering and curling cycles.",
+      "visualEvidence": "Canonical 0315 GIF is a bilateral supinated dumbbell curl on an incline bench, not flat-supine variants 0350/1661. Dense 1-second review of 1416–1442s identifies 1418–1438s as repeated controlled curling with visible palms-up grip and the coach's positive cue to maintain chest/shoulder stability. Unlike the rejected broader 1326–1568s span, this slice avoids the earlier forward-rolling error examples and later seated/rest changes. Coach briefly gestures near the far arm, but the near-side dumbbell and full elbow path remain visible. Evidence: /tmp/fitgenius-batch2-upper-0315.jpg and /tmp/fitgenius-batch2-upper-curl-dense.jpg (1416s start, 1-second steps).",
+      "confidence": "high"
+    },
+    {
+      "templateID": "0293",
+      "sourceVideoID": "7615846680018354609",
+      "start": 898,
+      "end": 913,
+      "cameraView": "oblique",
+      "framingNoteZh": "按照谭师示范的斜侧方拍摄，拍全头部、脊柱、髋膝和两只哑铃；保持俯身姿势，展示双臂同步划船与缓慢下降，不用挺胸起身借力。示范握把略有斜角。",
+      "framingNoteEn": "Use Tan Sir's oblique side view and include the head, spine, hips, knees and both dumbbells. Maintain the hinged torso while showing simultaneous rows and controlled lowering without standing up to assist the lift. The demonstrated handles are slightly angled.",
+      "visualEvidence": "Full original duration 1140.133008s, 86935761 bytes. Canonical 0293 GIF confirms a standing two-dumbbell bent-over row. Exact 898–913s contact sheet shows setup and repeated complete synchronized rowing cycles with the torso held hinged; knees and both feet remain visible. The later change of stance after 914s is excluded. Earlier explicit wrong examples of chest extension/back squeezing around 838–854s are excluded. Main agent approved this range. Evidence: /tmp/fitgenius-batch2-upper-0293.jpg and /tmp/fitgenius-batch2-upper-dbrow-approved.jpg (898s start, 1-second steps).",
+      "confidence": "high"
+    },
+    {
+      "templateID": "0285",
+      "sourceVideoID": "7615846680018354609",
+      "start": 1004,
+      "end": 1024,
+      "cameraView": "oblique",
+      "framingNoteZh": "按谭师斜侧方角度拍摄，拍到肩、肘和两只哑铃；双臂交替弯举，弯起时旋转至掌心朝前，下降时保持稳定，不用躯干甩动借力。",
+      "framingNoteEn": "Film from Tan Sir's oblique side angle with shoulders, elbows and both dumbbells visible. Alternate arms, rotate toward a palms-forward grip while curling and lower steadily without swinging the torso.",
+      "visualEvidence": "Canonical 0285 GIF shows alternating biceps curls with supination. Source captions explicitly describe rotating palms forward, and frame-by-frame review shows alternating complete curls. An initial tentative hammer-curl label was rejected after this exact grip check. Main agent already has another hosted 0285 source; this longer 20-second excerpt is a backup candidate only and must not increase distinct-template coverage. Evidence: /tmp/fitgenius-batch2-upper-0285.jpg and /tmp/fitgenius-batch2-upper-biceps-approved.jpg (1004s start, 1-second steps).",
+      "confidence": "high",
+      "duplicateTemplateBackup": true
+    },
+    {
+      "templateID": "0970",
+      "sourceVideoID": "7615846680018354609",
+      "start": 712,
+      "end": 728,
+      "cameraView": "rear",
+      "framingNoteZh": "从谭师示范的正后方拍摄，拍全双手、单杠、整个身体、弹力带和脚部。视频示范双脚踩带、用踏台进入，动图为套膝辅助变式；手动对比请按照视频的双脚踩带方式，不混用两种带位。这不是无辅助引体。",
+      "framingNoteEn": "Film directly from behind and include both hands, the bar, whole body, band and feet. The video demonstrates both feet in the band with platform entry; the GIF uses knee-loop assistance. For manual comparison, follow the video's two-foot band placement and do not mix the two placements. This is not an unassisted pull-up.",
+      "visualEvidence": "Source 712–719s explains stepping both feet into the band; 722–727s shows two visibly elevated pulls and controlled returns before exiting at 728s. Canonical 0970 GIF uses knee-loop assistance, while source uses foot-loop assistance and a small entry platform. Main agent checked the GIF, exact source frames and both seed instruction languages: the generic template is band-assisted pull-up, and the instructions explicitly say step onto the band. Approved as the same assisted movement with transparent band-placement variation, not an unassisted or different-grip match. Confidence remains medium for owner acceptance. Evidence: /tmp/fitgenius-batch2-upper-0970.jpg and /tmp/fitgenius-batch2-upper-bandpullup-precise.jpg (712s start, 1-second steps).",
+      "confidence": "medium"
+    }
+  ],
+  "knownTextIssues": [
+    {
+      "templateIDs": ["0313", "0312"],
+      "issue": "Both seed instruction languages tell users to rotate palms forward, but the hammer-curl canonical GIFs show neutral wrists. No seed edit made: main agent asked to record this separately because no tutorial was approved for these templates.",
+      "suggestedMinimalZh": "将旋转至掌心朝前改为：全程保持掌心相对，不旋转手腕。0313的GIF为交替弯举，0312为双臂同时弯举。",
+      "suggestedMinimalEn": "Replace rotating palms forward with: Keep a neutral, palms-facing-each-other grip throughout without rotating the wrists. The 0313 GIF alternates arms; 0312 curls both arms together."
+    }
+  ],
+  "rejected": [
+    {
+      "templateIDs": ["3563", "0193"],
+      "sourceVideoID": "7627846384783297834",
+      "start": 450,
+      "end": 1650,
+      "reason": "Source single-arm pulldown is seated facing an angled chest pad, with a flexed elbow and torso supported. Canonical 3563 GIF is an unsupported standing straight-arm cable pulldown; 0193 is kneeling high row. Source title alone is not sufficient. Evidence: /tmp/fitgenius-batch2-upper-3563.jpg and /tmp/fitgenius-batch2-upper-pulldown-survey.jpg (450s start, 60-second steps)."
+    },
+    {
+      "templateIDs": ["1313", "1356", "0571", "0588", "1350"],
+      "sourceVideoID": "7627846384783297834",
+      "start": 1960,
+      "end": 2060,
+      "reason": "Source is chest-supported seated one-arm horizontal neutral-grip lever rowing. 1313 GIF has one knee on a bench and torso hinged; 1356 is a seated overhead/downward high row; 1350 uses overhand grip. 0571 is the closest machine/posture/grip, but explicitly alternates left/right each repetition and holds the opposite handle stationary. Source performs repeated reps of one arm with the other hand free, not alternating. 0588 is bilateral simultaneous rowing. Do not re-label the unilateral source as any of these exact variants. Evidence: /tmp/fitgenius-batch2-upper-machine-dense.jpg (1960s start, 4-second steps) plus corresponding template GIF sheets."
+    },
+    {
+      "templateIDs": ["0197", "0818", "2616"],
+      "sourceVideoID": "7627846384783297834",
+      "start": 3450,
+      "end": 3470,
+      "reason": "Clean Tan Sir neutral-grip demonstration is available, but no exact canonical match confirmed: source uses a rigid medium-width bar with parallel end grips. 0197 close GIF shows an overhand curved wide bar and elbows abducted, unlike source parallel wrists and more forward elbows. 0818 GIF has two independent pulley handles. 2616 is a close V handle with elbows kept close. Candidate 0197 was withdrawn after enlarged grip review rather than publishing a title-based match. Evidence: /tmp/fitgenius-batch2-upper-0197-close.jpg, /tmp/fitgenius-batch2-upper-neutral-grip-close.jpg (3458s), /tmp/fitgenius-batch2-upper-neutral-approved.jpg (3450s start, 1-second steps), and 0818/2616 GIF sheets."
+    },
+    {
+      "templateIDs": ["0202", "0203", "0233", "3697"],
+      "sourceVideoID": "7627846384783297834",
+      "start": 4154,
+      "end": 4174,
+      "reason": "Source horizontal rear-delt elbow-opening row attaches yellow wrist cuffs to the cables; hands remain free, clearly visible in front view around 4250–4260s. 0202 GIF grips two stirrup/D handles, and rope variants use an actual rope. Though shoulder action is related, do not claim these exact attachment/grip variants. Evidence: /tmp/fitgenius-batch2-upper-0202.jpg, /tmp/fitgenius-batch2-upper-reardelt-tan.jpg (4110s start, 2-second steps), and /tmp/fitgenius-batch2-upper-reardelt-tan2.jpg (4250s start, 2-second steps)."
+    },
+    {
+      "templateIDs": ["0868", "1641", "1643", "1638"],
+      "sourceVideoID": "7627846384783297834",
+      "start": 4360,
+      "end": 4740,
+      "reason": "Chapter uses floor-seated forward high cable curling, with wrist cuffs in parts of the trainee sets. 0868 is standing low cable curling; 1641 is conventional seated low cable curl; 1643 has two separated high pulleys and abducted upper arms; 1638 is bench-seated overhead pulldown-curl. Same biceps muscle does not make these exact variants interchangeable. Evidence: /tmp/fitgenius-batch2-upper-reardelt-curl-survey.jpg (3730s start, 35-second steps), last two rows and canonical 0868 sheet."
+    }
+  ]
+}

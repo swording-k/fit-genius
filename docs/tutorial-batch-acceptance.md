@@ -1,6 +1,6 @@
 # 常见动作真人教学验证清单
 
-更新：2026-10-03。24 个可播放节选，对应 24 个不同动作模板。不是候选视频数量。
+更新：2026-10-03。36 个可播放节选，对应 36 个不同动作模板；本批新增 12 个。不是候选视频数量。
 
 ## 怎么验证
 
@@ -43,6 +43,25 @@
 | 哑铃前平举2 | 0309 | 20s | [2100–2120s](https://www.douyin.com/video/7651943506576442225) | [云端 MP4](https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7651943506576442225-2100-2120.mp4) |
 | 哑铃上斜卧推举 | 0314 | 20s | [2641–2661s](https://www.douyin.com/video/7625479021379194118) | [云端 MP4](https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7625479021379194118-2641-2661.mp4) |
 
+### 本批新增 12 个
+
+| 动作库名称 | ID | 时长 | 原视频节选 | 播放验证 |
+|---|---|---:|---|---|
+| 杠铃卧推 | 0025 | 18s | [578–596s](https://www.douyin.com/video/7625479021379194118) | [云端 MP4](https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7625479021379194118-578-596.mp4) |
+| 哑铃上斜二头肌弯举 | 0315 | 20s | [1418–1438s](https://www.douyin.com/video/7648931004442846193) | [云端 MP4](https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7648931004442846193-1418-1438.mp4) |
+| 哑铃后弓步 | 0381 | 15s | [485–500s](https://www.douyin.com/video/7616718842858024121) | [云端 MP4](https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7616718842858024121-485-500.mp4) |
+| 哑铃站姿三头肌臂屈伸 | 0430 | 15s | [620–635s](https://www.douyin.com/video/7617450016814465785) | [云端 MP4](https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7617450016814465785-620-635.mp4) |
+| 哑铃后飞鸟 | 0378 | 11s | [255–266s](https://www.douyin.com/video/7617450016814465785) | [云端 MP4](https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7617450016814465785-255-266.mp4) |
+| 哑铃交替二头肌弯举 | 0285 | 11s | [588–599s](https://www.douyin.com/video/7617450016814465785) | [云端 MP4](https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7617450016814465785-588-599.mp4) |
+| 哑铃俯身划船 | 0293 | 15s | [898–913s](https://www.douyin.com/video/7615846680018354609) | [云端 MP4](https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7615846680018354609-898-913.mp4) |
+| 弹力带辅助引体向上 | 0970 | 16s | [712–728s](https://www.douyin.com/video/7615846680018354609) | [云端 MP4](https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7615846680018354609-712-728.mp4) |
+| 绳索站姿飞鸟 | 0227 | 14s | [237–251s](https://www.douyin.com/video/7610712695184852603) | [云端 MP4](https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7610712695184852603-237-251.mp4) |
+| 器械上斜胸推2 | 1479 | 15s | [805–820s](https://www.douyin.com/video/7610712695184852603) | [云端 MP4](https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7610712695184852603-805-820.mp4) |
+| 杠铃站姿窄握站姿推举 | 1456 | 12s | [991–1003s](https://www.douyin.com/video/7610712695184852603) | [云端 MP4](https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7610712695184852603-991-1003.mp4) |
+| 绳索过头三头肌臂屈伸绳配件 | 0194 | 15s | [1088–1103s](https://www.douyin.com/video/7610712695184852603) | [云端 MP4](https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7610712695184852603-1088-1103.mp4) |
+
+重点验收：0970 视频采用双脚踩弹力带，动图采用套膝，属于同一辅助引体的支撑位置变式；拍摄和同屏比较按视频的带位，不混两种方法。0194 / 0378 / 0430 的原双语文字与动图不一致，本批已纠正为低位滑轮、坐姿反飞鸟、双手单哑铃站姿屈伸，需要用新 Debug 构建检查说明。
+
 ## 资产校验
 
 本地每个节选均核对 H.264 视频 + AAC 音频、时长、20 MB 上限。下面的 SHA-256 用于与云端下载逐个比较；上传通过不代替真机播放和内容验收。
@@ -73,3 +92,15 @@
 | 0405 | 2640838 | 9db21685f70927d108799fb7856ade93dc227c110b49a10f84ec8185684343e3 |
 | 0309 | 3884522 | 217993263a17dc380b0046a4028263bc4a91bc92dd827b15edc90d988523fc08 |
 | 0314 | 6211518 | c5aebaae3580ca126f6f2e1aac8960242c0fef75a8dccd13e7e548c995aa5b99 |
+| 0025 | 5215721 | 912baaf583f212a11c9f050b692f0d4ca78a0e4f7593b77427ce99bef04df030 |
+| 0194 | 2196015 | fb9c19c18e5345980d80d66df782a8c045aa223f46832a0ff0d9c1c7b5b86c04 |
+| 0227 | 2865498 | 2f8cf9753da1551d01195573799d72fc959454e63586fed6768526d3cee819cb |
+| 0285 | 1596232 | 0e5f32bd601bfe8cf6ce64a3f70a189345ef16c14fafd3d38d0d6e4835b22331 |
+| 0293 | 2299184 | 2eb64dd741ce32180f0b311a837c181727c7f5dab4459a2f90a7e37a6c38e9dd |
+| 0315 | 3582052 | 5c1fde1b2f2b8c00434efc4d97094273dfb9d41a6b86aba79e62d31f24742ce2 |
+| 0378 | 1753636 | ca5e655f4f3850c9e1fdaf2bbdcf53ec27018c6fec6c4af7247971546ab5cbcc |
+| 0381 | 2298256 | 83cf98a4a6dcc60a616bd17b5aa2c94cd4e9122807167b201741297cb47092b0 |
+| 0430 | 2125163 | a382a7a4827447025d441724c2a37fe71177940a0d6393ca6a9e227d0f68c63f |
+| 0970 | 2703432 | 3db9f323eabe7f959d69ffb1dde9fb1c43434e25bcda8bdf67b43bd10149dbe4 |
+| 1456 | 1515508 | e17118b9358e4e0d570720db7c9d9902e238f9792e206b557570637283f5a527 |
+| 1479 | 3508952 | a956bd1c4fdbf425a4981ef0801656348c9d3f2be4790ffc21fd9c14bb45f09f |

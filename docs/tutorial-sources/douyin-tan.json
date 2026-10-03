@@ -386,7 +386,11 @@
         "2616",
         "0818",
         "0868"
-      ]
+      ],
+      "downloaded": true,
+      "durationSeconds": 5048.087007,
+      "sizeBytes": 375600771,
+      "reviewedExcerpts": []
     },
     {
       "id": "7625479021379194118",
@@ -461,17 +465,77 @@
     {
       "id": "7617450016814465785",
       "title": "居家肩部手臂超级组",
-      "candidateTemplateIDs": []
+      "candidateTemplateIDs": [
+        "0430",
+        "0378",
+        "0285"
+      ],
+      "downloaded": true,
+      "durationSeconds": 702.033008,
+      "sizeBytes": 44953327,
+      "reviewedExcerpts": [
+        {
+          "templateID": "0430",
+          "start": 620,
+          "end": 635,
+          "status": "developmentOnly"
+        },
+        {
+          "templateID": "0378",
+          "start": 255,
+          "end": 266,
+          "status": "developmentOnly"
+        },
+        {
+          "templateID": "0285",
+          "start": 588,
+          "end": 599,
+          "status": "developmentOnly"
+        }
+      ]
     },
     {
       "id": "7616718842858024121",
       "title": "居家下肢跟练",
-      "candidateTemplateIDs": []
+      "candidateTemplateIDs": [
+        "0381"
+      ],
+      "downloaded": true,
+      "durationSeconds": 972.966667,
+      "sizeBytes": 70644502,
+      "reviewedExcerpts": [
+        {
+          "templateID": "0381",
+          "start": 485,
+          "end": 500,
+          "status": "developmentOnly"
+        }
+      ]
     },
     {
       "id": "7615846680018354609",
       "title": "居家背部跟练",
-      "candidateTemplateIDs": []
+      "candidateTemplateIDs": [
+        "0293",
+        "0970"
+      ],
+      "downloaded": true,
+      "durationSeconds": 1140.133008,
+      "sizeBytes": 86935761,
+      "reviewedExcerpts": [
+        {
+          "templateID": "0293",
+          "start": 898,
+          "end": 913,
+          "status": "developmentOnly"
+        },
+        {
+          "templateID": "0970",
+          "start": 712,
+          "end": 728,
+          "status": "developmentOnly"
+        }
+      ]
     },
     {
       "id": "7614695798211440613",
@@ -516,7 +580,41 @@
     {
       "id": "7610712695184852603",
       "title": "基础训练跟练",
-      "candidateTemplateIDs": []
+      "candidateTemplateIDs": [
+        "0227",
+        "1479",
+        "1456",
+        "0194"
+      ],
+      "downloaded": true,
+      "durationSeconds": 1154.533008,
+      "sizeBytes": 110280064,
+      "reviewedExcerpts": [
+        {
+          "templateID": "0227",
+          "start": 237,
+          "end": 251,
+          "status": "developmentOnly"
+        },
+        {
+          "templateID": "1479",
+          "start": 805,
+          "end": 820,
+          "status": "developmentOnly"
+        },
+        {
+          "templateID": "1456",
+          "start": 991,
+          "end": 1003,
+          "status": "developmentOnly"
+        },
+        {
+          "templateID": "0194",
+          "start": 1088,
+          "end": 1103,
+          "status": "developmentOnly"
+        }
+      ]
     },
     {
       "id": "7606242319385683898",

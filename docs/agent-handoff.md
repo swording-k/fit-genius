@@ -11,6 +11,27 @@ Last updated: 2026-10-03 Asia/Shanghai
 
 ## Current Status
 
+### 2026-10-03: Second common-exercise batch and release audit
+
+- Published 12 more hosted tutorials, bringing the cloud catalog to 36 distinct
+  playable templates (11–27 seconds). New IDs: `0025`, `0194`, `0227`, `0285`,
+  `0293`, `0315`, `0378`, `0381`, `0430`, `0970`, `1456`, `1479`.
+- Actual GIFs and exact-second source frames were reviewed by main agent before
+  publication. `0970` is explicitly labelled: video uses both feet on the band,
+  GIF uses knees; same assisted-pull-up, different support placement. Owner must
+  verify that disclosure. A longer `0285` backup is not double-counted or published.
+- Corrected only `0194`, `0378`, `0430` bilingual seed instructions to match
+  canonical GIFs: low cable pulley, seated rear fly, two-hand single-dumbbell
+  standing extension. New build is needed to see those text changes.
+- Twenty full originals are retained outside Git. All media remain
+  developmentOnly; no rights labels, CloudBase function, user data, target
+  versions, merge or store submission were changed.
+- Release inspection found confirmed empty-draft cloud-restore, silent AI
+  fallback, account-deletion, large-snapshot and target-version problems.
+  `docs/release-candidate-audit-2026-10-03.md` records evidence and a proposed
+  minimal repair order. These are diagnosed, NOT fixed. Design confirmation and
+  real-device acceptance remain open; media delivery is not release readiness.
+
 ### 2026-10-03: Common-exercise tutorial batch
 
 - The first batch now has 24 distinct exercise templates with hosted, playable
@@ -656,6 +677,22 @@ new reconnect prompt once to receive a new FitGenius cloud session.
 
 ## Latest Validation
 
+### 2026-10-03: Second batch
+
+- Every new asset (12/12) is H.264/AAC, under 20 MiB, with expected duration;
+  full HTTP 200 cloud downloads byte-match local encoded files. Machine-readable
+  proof: `docs/tutorial-reviews/batch2-assets.json`; review boundaries and
+  rejected mismatches: `batch2-upper.json` / `batch2-lower.json`.
+- Uploaded assets first, then the 36-template manifest. Catalog audit tests and
+  compiled Swift repository tests with `--live` PASS (exact cloud/local match,
+  cache failures, schema checks and Debug/Release filtering).
+- Coverage: 1324 templates, 49 source videos, 20 downloaded originals, 46
+  candidate templates, 36 hosted development clips, zero licensed clips;
+  researchComplete remains false. Fifty-template target is not yet achieved.
+- Unsigned Simulator build exits 0. Built App JSON verified to contain exactly
+  the three corrected bilingual instructions. Existing CFBundleVersion mismatch
+  warning remains. No signing, installation or physical playback acceptance.
+
 ### 2026-10-03: Common-exercise batch
 
 - All 24 cloud MP4 downloads byte-match their local encoded assets. ffprobe
@@ -982,6 +1019,17 @@ This is required because Apple authorization UI and real-device Vision behavior
 cannot be fully accepted in Simulator.
 
 ## Next Recommended Work
+
+Release preparation:
+
+- Owner reviews the 36-template Debug candidate via
+  `docs/tutorial-batch-acceptance.md`, especially `0970` support-placement note.
+  New seed descriptions require this latest build, not just manifest refresh.
+- Confirm the scoped repair design in `docs/release-candidate-audit-2026-10-03.md`.
+  Prioritize empty-draft restoration and clear AI failure, then production
+  account deletion. Do not claim these are repaired from a passing media test.
+- Confirm actual video authorization before enabling hosted teaching in Release.
+  Check highest uploaded build and uniform extension versions before Archive.
 
 Cloud tutorial research continuation:
 
