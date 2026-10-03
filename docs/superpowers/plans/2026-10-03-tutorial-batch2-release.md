@@ -22,5 +22,5 @@
 
 - [x] Read-only inspection of real CloudBase routes, client paths, privacy disclosures, account deletion, target versions and Release media packaging. Distinguish confirmed defects from untested physical-device behavior. Findings: `docs/release-candidate-audit-2026-10-03.md`.
 - [ ] Fix confirmed in-scope release defects with proportionate verification; capture any external/authentication requirements rather than changing permissions or guessing credentials.
-- [ ] Build the candidate, then update `docs/agent-handoff.md` Current Status / Latest Validation / Next Recommended Work. Commit and push this feature branch without merging.
+- [x] Build the media candidate, then update `docs/agent-handoff.md` Current Status / Latest Validation / Next Recommended Work. Commit and push this feature branch without merging. This is not a fully repaired release candidate.
 - [ ] Owner verifies the candidate's exercise detail, playback, manual comparison, initial empty plan, authenticated plan proposal and data continuity. Publication requires that acceptance and an explicit authorized-media scope; keep development media hidden otherwise.

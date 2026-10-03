@@ -22,7 +22,10 @@ Last updated: 2026-10-03 Asia/Shanghai
   verify that disclosure. A longer `0285` backup is not double-counted or published.
 - Corrected only `0194`, `0378`, `0430` bilingual seed instructions to match
   canonical GIFs: low cable pulley, seated rear fly, two-hand single-dumbbell
-  standing extension. New build is needed to see those text changes.
+  standing extension. Existing libraries receive these three text-only updates
+  during seed checking, without replacing template objects or workout records.
+  New build is needed to see those text changes; old-device runtime acceptance
+  is still pending.
 - Twenty full originals are retained outside Git. All media remain
   developmentOnly; no rights labels, CloudBase function, user data, target
   versions, merge or store submission were changed.
@@ -691,7 +694,8 @@ new reconnect prompt once to receive a new FitGenius cloud session.
   researchComplete remains false. Fifty-template target is not yet achieved.
 - Unsigned Simulator build exits 0. Built App JSON verified to contain exactly
   the three corrected bilingual instructions. Existing CFBundleVersion mismatch
-  warning remains. No signing, installation or physical playback acceptance.
+  warning remains. A second build after adding the scoped upgrade refresh also
+  exits 0. No signing, installation or physical playback acceptance.
 
 ### 2026-10-03: Common-exercise batch
 

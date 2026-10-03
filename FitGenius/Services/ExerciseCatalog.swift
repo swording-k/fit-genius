@@ -24,6 +24,7 @@ enum ExerciseCatalogSeed {
         // 避免「seededKey 为 true 但模板缺失（如 SwiftData 被重置）」时动作库永久为空。
         let countDescriptor = FetchDescriptor<ExerciseTemplate>()
         if let existing = try? modelContext.fetch(countDescriptor), !existing.isEmpty {
+            applyReviewedInstructionCorrections(to: existing, in: modelContext)
             UserDefaults.standard.set(true, forKey: seededKey)
             return
         }
@@ -44,6 +45,34 @@ enum ExerciseCatalogSeed {
             print("✅ [ExerciseCatalogSeed] 已写入 \(items.count) 个动作模板")
         } catch {
             print("❌ [ExerciseCatalogSeed] 写入失败：\(error)")
+        }
+    }
+
+    /// Update only reviewed system-template text on upgrades. Never reseed the
+    /// library or replace template objects linked to a user's workout plan.
+    @MainActor
+    private static func applyReviewedInstructionCorrections(
+        to existing: [ExerciseTemplate], in context: ModelContext
+    ) {
+        guard let url = Bundle.main.url(forResource: "exercises_seed", withExtension: "json") else { return }
+        do {
+            let items = try JSONDecoder().decode([ExerciseSeedItem].self, from: Data(contentsOf: url))
+            let reviewedIDs: Set<String> = ["0194", "0378", "0430"]
+            let corrections = Dictionary(uniqueKeysWithValues: items
+                .filter { reviewedIDs.contains($0.id) }.map { ($0.id, $0) })
+            var changed = false
+            for template in existing {
+                guard let item = corrections[template.externalId] else { continue }
+                let zh = item.zh ?? ""
+                let en = item.en ?? ""
+                guard template.instructionsZh != zh || template.instructionsEn != en else { continue }
+                template.instructionsZh = zh
+                template.instructionsEn = en
+                changed = true
+            }
+            if changed { try context.save() }
+        } catch {
+            print("[ExerciseCatalogSeed] Reviewed instruction update failed: \(error)")
         }
     }
 }
