@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "reviewedOn": "2026-10-03",
+  "reviewMethod": "Full-source ffprobe; exact-second ffmpeg frames, dense 4-second checks; downloaded canonical GIF contact sheets compared with source footage. Some seed descriptions disagree with GIF, so no title-only matching.",
+  "sources": [{"sourceVideoID":"7648931004442846193","durationSeconds":2324.3,"sizeBytes":184578859}],
+  "proposedClips": [
+    {
+      "templateID": "0860",
+      "sourceVideoID": "7648931004442846193",
+      "start": 316,
+      "end": 339,
+      "cameraView": "oblique",
+      "framingNoteZh": "从示范的斜侧方拍摄，拍全肩、肘、手和绳索；俯身后保持上臂稳定，只通过伸肘向后伸直。示范使用较高的滑轮位置。",
+      "framingNoteEn": "Use the same oblique side angle and include the shoulder, elbow, hand and cable. Hinge forward, keep the upper arm steady and extend the elbow backward. The demonstration uses a higher pulley position.",
+      "visualEvidence": "318s elbow bent; 324s hand near torso; 328/332/336s posterior arm extension in Tan Sir's own cable demonstration. Canonical 0860 GIF confirms the hinged single-arm kickback rather than an upright pushdown; pulley height differs but body/upper-arm plane and elbow action agree. Student mistakes and spotting before 310s are excluded.",
+      "confidence": "high"
+    },
+    {
+      "templateID": "1748",
+      "sourceVideoID": "7648931004442846193",
+      "start": 724,
+      "end": 744,
+      "cameraView": "oblique",
+      "framingNoteZh": "从头端斜侧方拍摄，拍到平板凳、双肩、双肘和整根EZ曲杆，保留杆下降至头后的路径；不要拍成下斜凳或卧推。",
+      "framingNoteEn": "Film obliquely from the head end, including the flat bench, shoulders, elbows and entire EZ bar so the behind-head path remains visible. Do not substitute a decline bench or a chest press.",
+      "visualEvidence": "724/728/730s show EZ bar lowered beyond the forehead toward the head end; 732/736s extension; 740/744s next lower/extend cycle. Canonical 1748 GIF is the same flat-bench EZ behind-head extension. The incorrectly forehead-directed example at 720s is outside the selected range. Coach spots the bar during the set; this is instructed trainee footage, not falsely described as Tan Sir performing it himself.",
+      "confidence": "high"
+    }
+  ],
+  "rejected": [
+    {"templateIDs":["1643"],"sourceVideoID":"7648931004442846193","start":946,"end":978,"reason":"1643 canonical GIF is seated bench, two separate high pulleys and abducted arms. Source is seated floor, a single straight bar and forward cable direction. Seed text is misleading; not an exact match."},
+    {"templateIDs":["1638","1644","1641"],"sourceVideoID":"7648931004442846193","start":946,"end":978,"reason":"Canonical GIFs respectively show overhead bench pulldown-curl, low-pulley squat curl and regular seated curl. Source floor-seated knee-supported forward high cable is not these exact variants."},
+    {"templateIDs":["0350","1661"],"sourceVideoID":"7648931004442846193","start":1325,"end":1568,"reason":"Both canonical GIFs show a flat bench. Exact frame 1382s shows source bench elevated around 30 degrees; the bench is adjusted higher at 1322s. Do not map an incline source to either supine-flat template, or duplicate the same footage under both."},
+    {"templateIDs":["0315"],"sourceVideoID":"7648931004442846193","start":1326,"end":1568,"reason":"Incline bilateral curl is the most plausible template after GIF comparison, but reviewed sections alternate coaching corrections, excessive upper-arm extension examples, rest and static holds. No clean standalone 15–30-second positive sequence selected yet; keep unpublished rather than inflate coverage."},
+    {"templateIDs":["0231"],"sourceVideoID":"7648931004442846193","start":1805,"end":1925,"reason":"0231 canonical GIF is an upright single-arm downward pushdown, not source overhead single-arm extension."},
+    {"templateIDs":["1727"],"sourceVideoID":"7648931004442846193","start":1805,"end":1925,"reason":"Source grips the bare cable end with shoulder flexed overhead. 1727 specifies reverse/underhand handle grip, which cannot be established as the same here. No exact approved match."},
+    {"templateIDs":["0206","1641"],"sourceVideoID":"7648931004442846193","start":2100,"end":2260,"reason":"Source seated floor high-cable, internally-rotated shoulder curl is neither a conventional standing reverse curl nor the regular seated low cable GIF."}
+  ]
+}

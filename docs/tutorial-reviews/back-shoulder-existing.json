@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-03",
+  "reviewMethod": "Viewed full-video low-resolution contact sheets, then exact ffmpeg seek frames every 2 seconds for the accepted segment. Matching uses canonical equipment, grip and posture, not title similarity. This review does not publish clips.",
+  "sources": [
+    {
+      "sourceVideoID": "7662562022056718449",
+      "localFile": "video/tutorial-source/douyin/7662562022056718449.mp4",
+      "sourceURL": "https://www.douyin.com/video/7662562022056718449",
+      "overviewEvidence": "/tmp/fitgenius-review-back-pulldown.jpg"
+    },
+    {
+      "sourceVideoID": "7666644718105452666",
+      "localFile": "video/tutorial-source/douyin/7666644718105452666.mp4",
+      "sourceURL": "https://www.douyin.com/video/7666644718105452666",
+      "overviewEvidence": "/tmp/fitgenius-review-back-lateral.jpg"
+    }
+  ],
+  "accepted": [
+    {
+      "exerciseTemplateIDs": ["0245"],
+      "exerciseName": "cable underhand pulldown",
+      "sourceVideoID": "7662562022056718449",
+      "startSeconds": 541,
+      "endSeconds": 561,
+      "cameraView": "rearThreeQuarterThenSide",
+      "framingNoteZh": "照教学前半段从侧后方斜拍：坐姿、反手握长杆，把双手、肘部、背部和杆的完整轨迹拍进画面。后半段切到侧面讲解；同屏对比时先对齐前半段连续示范，不必跟随镜头切换。",
+      "framingNoteEn": "Match the rear three-quarter view in the first half: sit down, hold the long bar with an underhand grip, and keep both hands, elbows, back and the full bar path visible. The second half switches to side-view explanation; align your comparison with the continuous demonstration before that cut.",
+      "visualEvidence": "Exact frames at 542/544/546/548/550s show a seated cable pulldown with supinated, roughly shoulder-width grip on a long bar, upper and lower positions, and controlled repetitions. At 552s the subtitles explicitly identify the underhand pulldown. 554–560s switches to a side view for upper-position/back-tension explanation. No red-cross/error demonstration appears in the reviewed 534–564s frames. Canonical 0245 GIF was separately downloaded and viewed as all 12 coalesced frames; its seated long-bar supinated pulldown matches the source equipment/grip/posture.",
+      "evidenceContactSheet": "/tmp/fitgenius-review-back-underhand.jpg",
+      "confidence": "high",
+      "reviewCaveat": "The short teaching excerpt includes a camera cut. It is usable for learning, but the rear-angle repetition portion is the better manual-comparison reference. Main agent must check the final encoded excerpt before upload.",
+      "rightsStatus": "developmentOnly",
+      "publicationStatus": "awaitingMainAgentReview"
+    }
+  ],
+  "rejected": [
+    {
+      "exerciseTemplateIDs": ["2616", "0818"],
+      "sourceVideoID": "7662562022056718449",
+      "reason": "The instructor discusses neutral grip, but the reviewed original shows a long pulldown bar throughout, not an actual V-bar or twin parallel-grip handle demonstration. Discussion alone is not the matching exercise."
+    },
+    {
+      "exerciseTemplateIDs": ["3563", "0177", "0237", "0238", "0205", "1325", "0579", "1347", "2736", "0673"],
+      "sourceVideoID": "7662562022056718449",
+      "reason": "No confirmed single-arm handle, rope, straight-arm, behind-neck or lever-machine demonstration in this original. Do not map cable long-bar teaching to these different variants."
+    },
+    {
+      "exerciseTemplateIDs": ["0150", "0197", "2330"],
+      "sourceVideoID": "7662562022056718449",
+      "reason": "There are other overhand long-bar portions, but they are not a newly confirmed distinct variant relative to already published 0198. Keep this expansion from inflating coverage with duplicate generic pulldown mappings. A later GIF-specific equivalence review may decide these separately."
+    },
+    {
+      "exerciseTemplateIDs": ["0355", "0356", "0311", "0396", "0395", "0323", "2317", "0178", "0192", "0584"],
+      "sourceVideoID": "7666644718105452666",
+      "reason": "The original teaches standing bilateral dumbbell lateral raise, already covered by 0334. No confirmed loaded unilateral, supported, full-can/thumbs-up, seated, incline or cable/lever variant. Gestures used while explaining are not exercise demonstrations."
+    }
+  ],
+  "excludedExisting": [
+    {"exerciseTemplateID": "0334", "sourceVideoID": "7666644718105452666", "startSeconds": 132, "endSeconds": 151},
+    {"exerciseTemplateID": "0198", "sourceVideoID": "7662562022056718449", "startSeconds": 350, "endSeconds": 375}
+  ],
+  "summary": {"newConfirmedTemplateCount": 1, "newClipCount": 1, "alreadyPublishedExcludedCount": 2}
+}

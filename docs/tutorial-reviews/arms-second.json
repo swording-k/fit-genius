@@ -1,0 +1,12 @@
+{
+  "reviewedAt": "2026-10-03",
+  "reviewMethod": "Canonical 0447 GIF and exact 2-second source frames reviewed by main agent; boundaries exclude bar pickup and rest.",
+  "proposedClips": [{
+    "templateID": "0447", "sourceVideoID": "7658495365934683493",
+    "start": 686, "end": 710, "cameraView": "side-oblique",
+    "framingNoteZh": "按照示范侧面略偏后角度拍摄，保持站姿、肩肘、双手和EZ曲杆完整可见；谭师指导学员，上臂尽量稳定，以可控制的重量完成弯举。",
+    "framingNoteEn": "Match the rear-oblique side view, keeping the standing posture, shoulders, elbows, hands and EZ bar visible. Tan Sir coaches a student; keep the upper arms steady and use a controllable weight.",
+    "visualEvidence": "686–710s shows standing bilateral supinated EZ-bar curls with elbows near the torso and several complete lower-to-upper cycles. Pickup at 684s and rest after 712s excluded. Canonical 0447 GIF matches standing EZ-bar curl. Instructor assists and cues upper-arm control; this is coached trainee footage.",
+    "confidence": "high"
+  }]
+}

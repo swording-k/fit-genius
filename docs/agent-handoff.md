@@ -11,7 +11,24 @@ Last updated: 2026-10-03 Asia/Shanghai
 
 ## Current Status
 
-### 2026-10-03: Cloud tutorial catalog and official Douyin research
+### 2026-10-03: Common-exercise tutorial batch
+
+- The first batch now has 24 distinct exercise templates with hosted, playable
+  development excerpts (15.5–27 seconds), not just source links or candidates.
+  `docs/tutorial-batch-acceptance.md` lists exact IDs, source timestamps, hosted
+  MP4 URLs and asset SHA-256 values for owner review.
+- Main-agent visual review consumed the local audit records in
+  `docs/tutorial-reviews/`. Matching checks actual canonical GIFs, equipment,
+  grip and posture; similar but unsupported variants stay unpublished. Several
+  sources are coached trainee footage or Tan Sir / Kai Sheng Wang collaborations.
+- All 24 assets were uploaded before the cloud manifest. The existing two
+  clip IDs were retained; no App code, NoSQL collection or cloud function was
+  changed. Fifteen complete original sources are retained outside Git.
+- Video binaries remain in CloudBase Hosting/object storage and metadata in
+  a versioned cloud JSON catalog. Debug can play these development clips;
+  Release still hides them. No merge or release submission.
+
+### 2026-10-03: Initial cloud tutorial catalog and official Douyin research
 
 - Shared library/plan details now load the CloudBase `exercise-tutorials/catalog-v1.json`
   catalog, keep an atomic last-good disk cache, and retain bundled fallback.
@@ -639,6 +656,23 @@ new reconnect prompt once to receive a new FitGenius cloud session.
 
 ## Latest Validation
 
+### 2026-10-03: Common-exercise batch
+
+- All 24 cloud MP4 downloads byte-match their local encoded assets. ffprobe
+  confirms H.264 video plus AAC audio, expected excerpt durations and the
+  existing 20 MB asset limit. URLs are stable Hosting paths, not expiring Douyin
+  CDN addresses.
+- `tutorial-source-coverage.mjs`: 1324 templates, 49 tracked source videos,
+  15 downloaded originals, 24 hosted development clips, zero licensed clips.
+- `tutorial-catalog-audit-tests.mjs`: PASS. The compiled Swift remote-catalog
+  regression suite passes with `--live`: the cloud manifest equals the local
+  manifest, all clips decode, and Debug/Release filtering remains correct.
+- Corrected the existing `0586` Chinese name from supine to prone leg curl;
+  canonical GIF and both existing instruction languages already specify prone.
+  The updated unsigned simulator build passes. The existing extension/main
+  CFBundleVersion mismatch warning remains; no signing/install was performed.
+  New physical-device playback/comparison acceptance is still required.
+
 ### 2026-10-03: cloud tutorials
 
 - Remote repository regression tests pass: valid update/cache, bad JSON/schema/status,
@@ -950,6 +984,10 @@ cannot be fully accepted in Simulator.
 ## Next Recommended Work
 
 Cloud tutorial research continuation:
+
+- First verify the common-exercise batch using `docs/tutorial-batch-acceptance.md`
+  on the current Debug build. Restart the App to bypass the in-memory six-hour
+  refresh throttle, then open an action detail to load the published manifest.
 
 - Continue the official profile beyond the 49 recorded teaching sources; review
   long private-training/follow-along videos for exercise-specific variants.

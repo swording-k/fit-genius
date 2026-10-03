@@ -1,0 +1,50 @@
+{
+  "reviewedAt": "2026-10-03",
+  "reviewMethod": "Exact-second visual frame review of the listed chapters, compared with canonical seed and actual GIF frames for 0410, 0586, 0689 and 1775. Teaching includes the creator coaching his student, not necessarily the creator performing every repetition.",
+  "proposedClips": [
+    {
+      "templateID": "0410",
+      "sourceVideoID": "7655982129109198321",
+      "start": 1710,
+      "end": 1734,
+      "cameraView": "side",
+      "framingNoteZh": "按示范的侧面略偏前角度拍摄，前脚、放在凳上的后脚、双手哑铃及整个躯干保持可见；教学画面为谭师指导学员完成动作。",
+      "framingNoteEn": "Match the slightly front-oblique side view. Keep the front foot, elevated rear foot, both dumbbells and torso visible. This clip shows Tan Sir coaching a student.",
+      "visualEvidence": "1710–1731s student holds one dumbbell in each hand, rear foot stays elevated on a bench, and front foot stays planted. 1713s lowered position, 1716s return, 1728s lowered position and 1731s return form complete repetitions. Creator coaches leg and ankle stability. Actual 0410 GIF confirms the same rear-foot-elevated two-dumbbell variation; not a ground-based split squat or barbell variant.",
+      "confidence": "high"
+    },
+    {
+      "templateID": "0586",
+      "sourceVideoID": "7655982129109198321",
+      "start": 3044,
+      "end": 3064,
+      "cameraView": "side",
+      "framingNoteZh": "按示范的侧面略偏前角度拍摄，俯卧器械、髋部、双膝和脚踝滚垫都留在画面内；教学画面为谭师指导学员完成动作。",
+      "framingNoteEn": "Match the slightly front-oblique side view. Keep the prone machine, hips, both knees and ankle roller visible. This clip shows Tan Sir coaching a student.",
+      "visualEvidence": "Student lies face down on a dedicated lying-leg-curl machine and flexes both knees against a shared ankle roller. 3053s extended legs, 3056s curled position, and 3059s lowered position demonstrate a full cycle. Creator cues abdominal contraction and pelvic control. Actual 0586 GIF confirms prone bilateral knee flexion against a shared roller, unlike seated, kneeling, Nordic or two-up-one-down curls.",
+      "confidence": "high"
+    }
+  ],
+  "rejected": [
+    {
+      "templateIDs": ["1373", "1387", "1490"],
+      "reason": "Calf chapter uses a staggered stance and a machine floor plate; the second-foot loading/support and intended unilateral versus bilateral variation remain ambiguous. Do not publish as ordinary bilateral, unsupported single-leg, or stair calf raise without reviewing clearer footage."
+    },
+    {
+      "templateIDs": ["1775", "0598"],
+      "reason": "The adductor chapter title is discussion context, not proof of a seated hip-adduction demonstration. 1775 actual GIF is a long-lever bench-supported Copenhagen variation, which was not seen in the reviewed chapter."
+    },
+    {
+      "templateIDs": ["0689"],
+      "reason": "Hip-flexion chapter visibly raises legs against a machine shin roller; 0689 actual GIF uses only body weight on a flat bench. Equipment/resistance differs, so do not use this as its tutorial."
+    },
+    {
+      "templateIDs": ["0599"],
+      "reason": "Earlier curl discussion uses an adjustable seated/reclined machine and cuts between explanation and positions. No sufficiently clear upright seated-machine standalone sequence was selected."
+    },
+    {
+      "templateIDs": ["0300", "0432", "0434", "0085"],
+      "reason": "The dumbbell hinge chapter is not evidence for conventional, straight-leg or barbell variants. Use the already-reviewed exact 1459 Romanian deadlift source instead of adding duplicate or mismatched entries."
+    }
+  ]
+}

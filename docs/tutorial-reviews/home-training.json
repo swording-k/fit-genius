@@ -1,0 +1,48 @@
+{
+  "reviewedAt": "2026-10-03",
+  "evidenceContactSheet": "/tmp/fitgenius-review-legs-home-proof.jpg",
+  "proposedClips": [
+    {
+      "templateID": "2188",
+      "sourceVideoID": "7614695798211440613",
+      "start": 1037,
+      "end": 1058,
+      "cameraView": "side",
+      "framingNoteZh": "按示范的侧面角度拍摄，坐姿躯干、双肘和整个哑铃都留在画面里；双手托住同一只哑铃，保持躯干稳定。",
+      "framingNoteEn": "Match the side view. Keep the seated torso, both elbows and entire dumbbell visible. Both hands support the same dumbbell while the torso stays stable.",
+      "visualEvidence": "Tan Sir sits upright on the edge of a bed, both hands supporting one vertically oriented dumbbell. 1037–1040s lowered behind head, 1043–1046s overhead return, 1052–1055s lowered and 1058s extended. Actual 2188 GIF is the same seated single-dumbbell two-hand overhead extension; 2189 GIF instead holds separate dumbbells and is rejected. Bed edge replaces the seat surface only, not movement or resistance.",
+      "confidence": "high"
+    },
+    {
+      "templateID": "0251",
+      "sourceVideoID": "7614695798211440613",
+      "start": 806,
+      "end": 822,
+      "cameraView": "front",
+      "framingNoteZh": "按示范的正面略偏侧角度拍摄，将双杠、双臂、躯干及悬空双脚纳入画面；使用能控制的下降幅度，胸部不适时不要强行继续。",
+      "framingNoteEn": "Match the slightly oblique front view. Include both parallel bars, arms, torso and suspended feet. Use a controllable descent and do not force continuation if the chest feels uncomfortable.",
+      "visualEvidence": "807s arms extended on two independent parallel-bar handles; 810s controlled lowering with torso leaning forward and legs folded clear of the floor; 813s returned top. Creator explains breathing and limiting range. Actual 0251 GIF uses the same forward-leaning suspended chest-dip pattern, not feet-supported bench dips or ring dips.",
+      "confidence": "high"
+    }
+  ],
+  "rejected": [
+    {
+      "templateIDs": ["2189"],
+      "reason": "Actual GIF uses two separate dumbbells; source overhead extension uses a single dumbbell supported with both hands."
+    },
+    {
+      "templateIDs": ["0333", "0420", "1741"],
+      "reason": "Source kickback is single-arm with the other hand braced on a bed, both feet grounded. 0333 GIF kneels on a bench, 0420 GIF moves both dumbbells simultaneously, and 1741 actual GIF is seated despite its English label."
+    },
+    {
+      "templateIDs": ["0354", "1740"],
+      "sourceStart": 1089,
+      "sourceEnd": 1112,
+      "reason": "Close candidate only: source demonstrates the same standing single-dumbbell elbow-extension pattern but adds opposite-hand support on a bed, absent in both canonical GIFs. A clearly labelled supported regression could be reviewed separately; not auto-published as an exact match."
+    },
+    {
+      "templateIDs": ["0662", "3211", "0289", "0308"],
+      "reason": "Do not substitute dumbbell-handle push-ups for palm push-ups, or floor-based pressing/fly demonstrations for flat-bench variations. These source sections are not published as those templates."
+    }
+  ]
+}

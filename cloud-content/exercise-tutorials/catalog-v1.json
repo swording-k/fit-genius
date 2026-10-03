@@ -3,7 +3,9 @@
   "clips": [
     {
       "id": "tan-douyin-wide-pulldown-350-375",
-      "exerciseTemplateIDs": ["0198"],
+      "exerciseTemplateIDs": [
+        "0198"
+      ],
       "creatorName": "谭成义",
       "sourcePlatform": "douyin",
       "sourceURL": "https://www.douyin.com/video/7662562022056718449",
@@ -21,7 +23,9 @@
     },
     {
       "id": "tan-douyin-wide-pulldown-source",
-      "exerciseTemplateIDs": ["0198"],
+      "exerciseTemplateIDs": [
+        "0198"
+      ],
       "creatorName": "谭成义",
       "sourcePlatform": "douyin",
       "sourceURL": "https://www.douyin.com/video/7662562022056718449",
@@ -33,7 +37,9 @@
     },
     {
       "id": "tan-dumbbell-lateral-raise-bv128-132-151",
-      "exerciseTemplateIDs": ["0334"],
+      "exerciseTemplateIDs": [
+        "0334"
+      ],
       "creatorName": "谭成义",
       "sourcePlatform": "douyin",
       "sourceURL": "https://www.douyin.com/video/7666644718105452666",
@@ -51,7 +57,9 @@
     },
     {
       "id": "tan-douyin-lateral-raise-source",
-      "exerciseTemplateIDs": ["0334"],
+      "exerciseTemplateIDs": [
+        "0334"
+      ],
       "creatorName": "谭成义",
       "sourcePlatform": "douyin",
       "sourceURL": "https://www.douyin.com/video/7666644718105452666",
@@ -60,6 +68,446 @@
       "clipStartSeconds": 0,
       "clipEndSeconds": 478.366667,
       "rightsStatus": "externalLinkOnly"
+    },
+    {
+      "id": "tan-douyin-2963-7657365167379023973-254-274",
+      "exerciseTemplateIDs": [
+        "2963"
+      ],
+      "creatorName": "谭成义",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7657365167379023973",
+      "sourceVideoID": "7657365167379023973",
+      "sourceTitle": "船长椅椅直举腿 · 真人示范与指导 · 开发节选",
+      "clipStartSeconds": 254,
+      "clipEndSeconds": 274,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 20,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7657365167379023973-254-274.mp4",
+      "cameraView": "front",
+      "framingNoteZh": "按示范的正面略偏侧角度拍摄，船长椅、双前臂支撑和双腿完整可见；此为谭师指导学员的支撑直腿举腿，不是双手悬垂版。",
+      "framingNoteEn": "Match the slightly oblique front view. Keep the captain's chair, forearm supports and both legs visible. Tan Sir coaches a student performing supported straight-leg raises, not bar-hanging raises.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
+      "id": "tan-douyin-0274-7657365167379023973-452-477",
+      "exerciseTemplateIDs": [
+        "0274"
+      ],
+      "creatorName": "谭成义",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7657365167379023973",
+      "sourceVideoID": "7657365167379023973",
+      "sourceTitle": "卷腹地面 · 真人示范与指导 · 开发节选",
+      "clipStartSeconds": 452,
+      "clipEndSeconds": 477,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 25,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7657365167379023973-452-477.mp4",
+      "cameraView": "front",
+      "framingNoteZh": "按示范的斜上方角度拍摄，头肩、躯干、屈膝和双脚都留在画面内；教学画面为谭师指导学员，双脚不离地。",
+      "framingNoteEn": "Match the diagonal elevated view. Keep the head, shoulders, torso, bent knees and feet visible. Tan Sir coaches the student with both feet planted.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
+      "id": "tan-douyin-0857-7657365167379023973-782-803",
+      "exerciseTemplateIDs": [
+        "0857"
+      ],
+      "creatorName": "谭成义",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7657365167379023973",
+      "sourceVideoID": "7657365167379023973",
+      "sourceTitle": "健腹轮滚动 · 真人示范与指导 · 开发节选",
+      "clipStartSeconds": 782,
+      "clipEndSeconds": 803,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 21,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7657365167379023973-782-803.mp4",
+      "cameraView": "side",
+      "framingNoteZh": "按示范侧面略偏前角度拍摄，将健腹轮、躯干、髋部和跪地双膝放进画面；采用能控制的推出距离，示范为谭师指导学员的跪姿版本。",
+      "framingNoteEn": "Match the slightly front-oblique side view. Include the wheel, torso, hips and grounded knees. Use a controllable rollout distance; Tan Sir coaches a kneeling student.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
+      "id": "tan-douyin-0860-7648931004442846193-316-339",
+      "exerciseTemplateIDs": [
+        "0860"
+      ],
+      "creatorName": "谭成义",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7648931004442846193",
+      "sourceVideoID": "7648931004442846193",
+      "sourceTitle": "绳索后踢臂屈伸 · 真人示范与指导 · 开发节选",
+      "clipStartSeconds": 316,
+      "clipEndSeconds": 339,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 23,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7648931004442846193-316-339.mp4",
+      "cameraView": "oblique",
+      "framingNoteZh": "从示范的斜侧方拍摄，拍全肩、肘、手和绳索；俯身后保持上臂稳定，只通过伸肘向后伸直。示范使用较高的滑轮位置。",
+      "framingNoteEn": "Use the same oblique side angle and include the shoulder, elbow, hand and cable. Hinge forward, keep the upper arm steady and extend the elbow backward. The demonstration uses a higher pulley position.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
+      "id": "tan-douyin-1748-7648931004442846193-724-744",
+      "exerciseTemplateIDs": [
+        "1748"
+      ],
+      "creatorName": "谭成义",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7648931004442846193",
+      "sourceVideoID": "7648931004442846193",
+      "sourceTitle": "EZ杠仰卧窄握三头肌臂屈伸颈后 · 真人示范与指导 · 开发节选",
+      "clipStartSeconds": 724,
+      "clipEndSeconds": 744,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 20,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7648931004442846193-724-744.mp4",
+      "cameraView": "oblique",
+      "framingNoteZh": "从头端斜侧方拍摄，拍到平板凳、双肩、双肘和整根EZ曲杆，保留杆下降至头后的路径；不要拍成下斜凳或卧推。",
+      "framingNoteEn": "Film obliquely from the head end, including the flat bench, shoulders, elbows and entire EZ bar so the behind-head path remains visible. Do not substitute a decline bench or a chest press.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
+      "id": "tan-douyin-0447-7658495365934683493-686-710",
+      "exerciseTemplateIDs": [
+        "0447"
+      ],
+      "creatorName": "谭成义",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7658495365934683493",
+      "sourceVideoID": "7658495365934683493",
+      "sourceTitle": "EZ杠弯举 · 真人示范与指导 · 开发节选",
+      "clipStartSeconds": 686,
+      "clipEndSeconds": 710,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 24,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7658495365934683493-686-710.mp4",
+      "cameraView": "side-oblique",
+      "framingNoteZh": "按照示范侧面略偏后角度拍摄，保持站姿、肩肘、双手和EZ曲杆完整可见；谭师指导学员，上臂尽量稳定，以可控制的重量完成弯举。",
+      "framingNoteEn": "Match the rear-oblique side view, keeping the standing posture, shoulders, elbows, hands and EZ bar visible. Tan Sir coaches a student; keep the upper arms steady and use a controllable weight.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
+      "id": "tan-douyin-0245-7662562022056718449-541-561",
+      "exerciseTemplateIDs": [
+        "0245"
+      ],
+      "creatorName": "谭成义",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7662562022056718449",
+      "sourceVideoID": "7662562022056718449",
+      "sourceTitle": "绳索反握下拉 · 真人示范与指导 · 开发节选",
+      "clipStartSeconds": 541,
+      "clipEndSeconds": 561,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 20,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7662562022056718449-541-561.mp4",
+      "cameraView": "rearThreeQuarterThenSide",
+      "framingNoteZh": "照教学前半段从侧后方斜拍：坐姿、反手握长杆，把双手、肘部、背部和杆的完整轨迹拍进画面。后半段切到侧面讲解；同屏对比时先对齐前半段连续示范，不必跟随镜头切换。",
+      "framingNoteEn": "Match the rear three-quarter view in the first half: sit down, hold the long bar with an underhand grip, and keep both hands, elbows, back and the full bar path visible. The second half switches to side-view explanation; align your comparison with the continuous demonstration before that cut.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
+      "id": "tan-douyin-0289-7668880941976944817-1240-1265",
+      "exerciseTemplateIDs": [
+        "0289"
+      ],
+      "creatorName": "谭成义",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7668880941976944817",
+      "sourceVideoID": "7668880941976944817",
+      "sourceTitle": "哑铃卧推 · 真人示范与指导 · 开发节选",
+      "clipStartSeconds": 1240,
+      "clipEndSeconds": 1265,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 25,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7668880941976944817-1240-1265.mp4",
+      "cameraView": "oblique",
+      "framingNoteZh": "按示范从斜侧方拍摄，完整拍到平板凳、双肩、双肘和两只哑铃；保持双脚稳定落地。",
+      "framingNoteEn": "Film from the same oblique side angle, keeping the flat bench, both shoulders, elbows and dumbbells visible; keep your feet planted.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
+      "id": "tan-douyin-2188-7614695798211440613-1037-1058",
+      "exerciseTemplateIDs": [
+        "2188"
+      ],
+      "creatorName": "谭成义",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7614695798211440613",
+      "sourceVideoID": "7614695798211440613",
+      "sourceTitle": "哑铃坐姿三头肌臂屈伸 · 真人示范与指导 · 开发节选",
+      "clipStartSeconds": 1037,
+      "clipEndSeconds": 1058,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 21,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7614695798211440613-1037-1058.mp4",
+      "cameraView": "side",
+      "framingNoteZh": "按示范的侧面角度拍摄，坐姿躯干、双肘和整个哑铃都留在画面里；双手托住同一只哑铃，保持躯干稳定。",
+      "framingNoteEn": "Match the side view. Keep the seated torso, both elbows and entire dumbbell visible. Both hands support the same dumbbell while the torso stays stable.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
+      "id": "tan-douyin-0251-7614695798211440613-806-822",
+      "exerciseTemplateIDs": [
+        "0251"
+      ],
+      "creatorName": "谭成义",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7614695798211440613",
+      "sourceVideoID": "7614695798211440613",
+      "sourceTitle": "胸部臂屈伸 · 真人示范与指导 · 开发节选",
+      "clipStartSeconds": 806,
+      "clipEndSeconds": 822,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 16,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7614695798211440613-806-822.mp4",
+      "cameraView": "front",
+      "framingNoteZh": "按示范的正面略偏侧角度拍摄，将双杠、双臂、躯干及悬空双脚纳入画面；使用能控制的下降幅度，胸部不适时不要强行继续。",
+      "framingNoteEn": "Match the slightly oblique front view. Include both parallel bars, arms, torso and suspended feet. Use a controllable descent and do not force continuation if the chest feels uncomfortable.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
+      "id": "tan-douyin-1760-7629718942222650670-2173-2200",
+      "exerciseTemplateIDs": [
+        "1760"
+      ],
+      "creatorName": "谭成义 × 凯圣王",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7629718942222650670",
+      "sourceVideoID": "7629718942222650670",
+      "sourceTitle": "哑铃高脚杯深蹲 · 真人示范与指导 · 开发节选",
+      "clipStartSeconds": 2173,
+      "clipEndSeconds": 2200,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 27,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7629718942222650670-2173-2200.mp4",
+      "cameraView": "side",
+      "framingNoteZh": "按照示范的侧面略偏前角度拍摄，胸前竖握的哑铃、躯干、双膝和双脚都在画面内；谭师在旁指导学员完成动作。",
+      "framingNoteEn": "Match the slightly front-oblique side view. Include the vertically held chest-level dumbbell, torso, both knees and feet. Tan Sir coaches the student.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
+      "id": "tan-douyin-0085-7629718942222650670-2815-2838",
+      "exerciseTemplateIDs": [
+        "0085"
+      ],
+      "creatorName": "谭成义 × 凯圣王",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7629718942222650670",
+      "sourceVideoID": "7629718942222650670",
+      "sourceTitle": "杠铃罗马尼亚硬拉 · 真人示范与指导 · 开发节选",
+      "clipStartSeconds": 2815,
+      "clipEndSeconds": 2838,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 23,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7629718942222650670-2815-2838.mp4",
+      "cameraView": "side",
+      "framingNoteZh": "按示范的侧面略偏前角度拍摄，整根杠铃、髋部、双膝和双脚保持可见；从站立开始屈髋下放再回到站立，不必让杠铃落地。",
+      "framingNoteEn": "Match the slightly front-oblique side view. Keep the whole barbell, hips, knees and feet visible. Start upright, hinge downward and return upright without needing to place the bar on the floor.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
+      "id": "tan-douyin-0489-7629718942222650670-3163-3185",
+      "exerciseTemplateIDs": [
+        "0489"
+      ],
+      "creatorName": "谭成义 × 凯圣王",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7629718942222650670",
+      "sourceVideoID": "7629718942222650670",
+      "sourceTitle": "背屈伸 · 真人示范与指导 · 开发节选",
+      "clipStartSeconds": 3163,
+      "clipEndSeconds": 3185,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 22,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7629718942222650670-3163-3185.mp4",
+      "cameraView": "side",
+      "framingNoteZh": "按示范侧面略偏前角度拍摄，将45度挺身凳、髋部支撑垫、躯干和脚踝固定位置纳入画面；示范为无额外负重版本，手臂可自然放下。",
+      "framingNoteEn": "Match the slightly front-oblique side view. Include the 45-degree back-extension bench, hip pad, torso and ankle restraints. This is an unloaded variation with the arms hanging naturally.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
+      "id": "tan-douyin-1459-7671852814386030521-344-364",
+      "exerciseTemplateIDs": [
+        "1459"
+      ],
+      "creatorName": "谭成义",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7671852814386030521",
+      "sourceVideoID": "7671852814386030521",
+      "sourceTitle": "哑铃罗马尼亚硬拉 · 真人示范与指导 · 开发节选",
+      "clipStartSeconds": 344,
+      "clipEndSeconds": 364,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 20,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7671852814386030521-344-364.mp4",
+      "cameraView": "side",
+      "framingNoteZh": "按照示范的侧面略偏前角度拍摄，全身、双脚和两只哑铃都留在画面内；展示从站立到屈髋再站起的完整过程。",
+      "framingNoteEn": "Match the slightly front-oblique side view. Keep your full body, both feet, and both dumbbells visible, including the full standing-to-hinge-to-standing cycle.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
+      "id": "tan-douyin-0596-7661923214516256369-414-431",
+      "exerciseTemplateIDs": [
+        "0596"
+      ],
+      "creatorName": "谭成义",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7661923214516256369",
+      "sourceVideoID": "7661923214516256369",
+      "sourceTitle": "器械坐姿飞鸟 · 真人示范与指导 · 开发节选",
+      "clipStartSeconds": 414,
+      "clipEndSeconds": 431,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 17,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7661923214516256369-414-431.mp4",
+      "cameraView": "frontThreeQuarter",
+      "framingNoteZh": "照教学从正前方略偏侧面拍摄，坐在器械上、背部靠垫，拍到胸部、双手、两侧器械臂和打开到合拢的完整轨迹。",
+      "framingNoteEn": "Match the front three-quarter view. Sit with your back against the pad and keep your chest, both hands, both machine arms and the full open-to-close path visible.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
+      "id": "tan-douyin-0601-7661923214516256369-803-818.5",
+      "exerciseTemplateIDs": [
+        "0601"
+      ],
+      "creatorName": "谭成义",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7661923214516256369",
+      "sourceVideoID": "7661923214516256369",
+      "sourceTitle": "器械坐姿反向飞鸟双杠握 · 真人示范与指导 · 开发节选",
+      "clipStartSeconds": 803,
+      "clipEndSeconds": 818.5,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 15.5,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7661923214516256369-803-818.5.mp4",
+      "cameraView": "rearThenRearThreeQuarter",
+      "framingNoteZh": "照教学从背后略偏侧面拍摄，胸部贴靠垫，双手握竖向把手；让双肩、双肘、双手和器械两侧运动轨迹都入镜。教学后段镜头略向侧面移动，对比时优先对齐背面连续示范。",
+      "framingNoteEn": "Match the rear or rear three-quarter view with your chest against the pad and a neutral grip on the vertical handles. Keep both shoulders, elbows, hands and both machine arms visible. The camera moves toward the side near the end; align comparison with the rear-view repetition first.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
+      "id": "tan-douyin-0410-7655982129109198321-1710-1734",
+      "exerciseTemplateIDs": [
+        "0410"
+      ],
+      "creatorName": "谭成义",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7655982129109198321",
+      "sourceVideoID": "7655982129109198321",
+      "sourceTitle": "哑铃单腿分腿蹲 · 真人示范与指导 · 开发节选",
+      "clipStartSeconds": 1710,
+      "clipEndSeconds": 1734,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 24,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7655982129109198321-1710-1734.mp4",
+      "cameraView": "side",
+      "framingNoteZh": "按示范的侧面略偏前角度拍摄，前脚、放在凳上的后脚、双手哑铃及整个躯干保持可见；教学画面为谭师指导学员完成动作。",
+      "framingNoteEn": "Match the slightly front-oblique side view. Keep the front foot, elevated rear foot, both dumbbells and torso visible. This clip shows Tan Sir coaching a student.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
+      "id": "tan-douyin-0586-7655982129109198321-3044-3064",
+      "exerciseTemplateIDs": [
+        "0586"
+      ],
+      "creatorName": "谭成义",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7655982129109198321",
+      "sourceVideoID": "7655982129109198321",
+      "sourceTitle": "器械俯卧腿弯举 · 真人示范与指导 · 开发节选",
+      "clipStartSeconds": 3044,
+      "clipEndSeconds": 3064,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 20,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7655982129109198321-3044-3064.mp4",
+      "cameraView": "side",
+      "framingNoteZh": "按示范的侧面略偏前角度拍摄，俯卧器械、髋部、双膝和脚踝滚垫都留在画面内；教学画面为谭师指导学员完成动作。",
+      "framingNoteEn": "Match the slightly front-oblique side view. Keep the prone machine, hips, both knees and ankle roller visible. This clip shows Tan Sir coaching a student.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
+      "id": "tan-douyin-0239-7674643042243064997-996-1016",
+      "exerciseTemplateIDs": [
+        "0239"
+      ],
+      "creatorName": "谭成义",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7674643042243064997",
+      "sourceVideoID": "7674643042243064997",
+      "sourceTitle": "绳索直背部坐姿划船 · 真人示范与指导 · 开发节选",
+      "clipStartSeconds": 996,
+      "clipEndSeconds": 1016,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 20,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7674643042243064997-996-1016.mp4",
+      "cameraView": "sideThreeQuarter",
+      "framingNoteZh": "照教学从侧前方斜拍，坐在低位划船器械上、双脚踩脚踏、双手对握把手；完整拍到双手、肘部、躯干、双膝及绳索轨迹。",
+      "framingNoteEn": "Match the side-front three-quarter view. Sit at the low cable row, place both feet on the footrests and use a neutral grip. Keep both hands, elbows, torso, knees and the cable path visible.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
+      "id": "tan-douyin-0405-7651943506576442225-1295-1310.8",
+      "exerciseTemplateIDs": [
+        "0405"
+      ],
+      "creatorName": "谭成义",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7651943506576442225",
+      "sourceVideoID": "7651943506576442225",
+      "sourceTitle": "哑铃坐姿肩上推举 · 真人示范与指导 · 开发节选",
+      "clipStartSeconds": 1295,
+      "clipEndSeconds": 1310.8,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 15.8,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7651943506576442225-1295-1310.8.mp4",
+      "cameraView": "sideThreeQuarter",
+      "framingNoteZh": "照教学从侧前方斜拍，坐稳并让躯干保持稳定；拍到座椅、双脚、双肘、双手和哑铃从肩上推到头顶的完整路径。此真人示范有靠背，动作库动图为无靠背坐姿，重点对照前臂和哑铃推举轨迹。",
+      "framingNoteEn": "Match the side-front three-quarter view. Sit securely with a stable torso and include the seat, feet, elbows, hands and full shoulder-to-overhead dumbbell path. The source uses a backrest while the animation is unsupported seated; focus comparison on the forearm and press path.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
+      "id": "tan-douyin-0309-7651943506576442225-2100-2120",
+      "exerciseTemplateIDs": [
+        "0309"
+      ],
+      "creatorName": "谭成义",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7651943506576442225",
+      "sourceVideoID": "7651943506576442225",
+      "sourceTitle": "哑铃前平举2 · 真人示范与指导 · 开发节选",
+      "clipStartSeconds": 2100,
+      "clipEndSeconds": 2120,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 20,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7651943506576442225-2100-2120.mp4",
+      "cameraView": "sideThreeQuarter",
+      "framingNoteZh": "照教学从侧前方斜拍，站姿、双手对握哑铃，同时向前平举；拍到躯干、双肩、双肘和双手的上下路径，保留完整哑铃位置，不要让最高点超出画面。",
+      "framingNoteEn": "Match the side-front three-quarter view. Stand and raise both dumbbells forward together using a neutral grip. Keep your torso, shoulders, elbows and the full hand path visible, with enough room for both dumbbells at the top.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
+      "id": "tan-douyin-0314-7625479021379194118-2641-2661",
+      "exerciseTemplateIDs": [
+        "0314"
+      ],
+      "creatorName": "谭成义 × 凯圣王",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7625479021379194118",
+      "sourceVideoID": "7625479021379194118",
+      "sourceTitle": "哑铃上斜卧推举 · 真人示范与指导 · 开发节选",
+      "clipStartSeconds": 2641,
+      "clipEndSeconds": 2661,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 20,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7625479021379194118-2641-2661.mp4",
+      "cameraView": "oblique",
+      "framingNoteZh": "按示范从头端斜侧方拍摄，拍全上斜凳、双肩、双肘和两只哑铃；凳背约30–45度，保持双脚落地。教学强调顶端保留轻微肘弯维持张力。",
+      "framingNoteEn": "Film obliquely from the head end, keeping the incline bench, shoulders, elbows and both dumbbells visible. Use roughly a 30–45 degree backrest and planted feet. The lesson keeps a slight elbow bend at the top to maintain tension.",
+      "rightsStatus": "developmentOnly"
     }
   ]
 }

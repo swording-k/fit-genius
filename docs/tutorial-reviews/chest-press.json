@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "reviewedOn": "2026-10-03",
+  "reviewMethod": "ffprobe verified full source; exact-second ffmpeg stills at coarse and 2-second intervals; visual and burned-in subtitle review, not title-only matching",
+  "sources": [{"sourceVideoID":"7668880941976944817","durationSeconds":1512.933008,"sizeBytes":109576652}],
+  "proposedClips": [
+    {
+      "templateID": "0289",
+      "sourceVideoID": "7668880941976944817",
+      "start": 1240,
+      "end": 1265,
+      "cameraView": "oblique",
+      "framingNoteZh": "按示范从斜侧方拍摄，完整拍到平板凳、双肩、双肘和两只哑铃；保持双脚稳定落地。",
+      "framingNoteEn": "Film from the same oblique side angle, keeping the flat bench, both shoulders, elbows and dumbbells visible; keep your feet planted.",
+      "visualEvidence": "1241s top, 1243s bottom, 1247s/top, 1251s/bottom, 1253s/top, 1259s/bottom, 1263s/top show repeated bilateral dumbbell pressing on a horizontal bench. Source subtitle at 1241s gives a slight inward wrist cue; 1235s explicitly rejected technique is outside selected clip. This is not an incline, decline, barbell or sustained neutral-grip press.",
+      "confidence": "high"
+    }
+  ],
+  "rejected": [
+    {"templateIDs":["0314","0301","1623"],"sourceVideoID":"7668880941976944817","reason":"The chest chapter discusses incline/decline principles, but reviewed weighted demonstration is on a flat bench. Do not publish this flat clip under an incline/decline template."},
+    {"templateIDs":["0352","1624","1743","3545"],"sourceVideoID":"7668880941976944817","reason":"No reviewed sustained neutral/reverse/twisting/alternating press segment matching these exact variants."},
+    {"templateIDs":["0405"],"sourceVideoID":"7668880941976944817","start":367,"end":380,"reason":"Shows extreme lower depth; subtitles 378–380s describe high shoulder pressure and advise against this extreme. Not a clean positive demo."},
+    {"templateIDs":["0405"],"sourceVideoID":"7668880941976944817","start":310,"end":330,"reason":"Primarily static overhead hold plus breathing/lumbar-position correction, not a repeated full-range demo suitable for standalone comparison."},
+    {"templateIDs":["0405"],"sourceVideoID":"7668880941976944817","start":576,"end":604,"reason":"Alternates foot/knee lifting and range adjustment; not selected as the standard beginner feet-planted seated-press reference. Actual pressing exists, but choose a cleaner later source."},
+    {"templateIDs":["0404","0290","0388","0360","0361"],"sourceVideoID":"7668880941976944817","reason":"No approved distinct parallel-grip/alternate/standing-single-arm demonstration. Do not duplicate one bilateral seated source across materially different variants."},
+    {"templateIDs":["0289"],"sourceVideoID":"7668880941976944817","start":1445,"end":1500,"reason":"Unweighted arm and breathing explanation, not a weighted exercise demonstration."}
+  ]
+}

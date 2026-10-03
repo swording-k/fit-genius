@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "reviewedOn": "2026-10-03",
+  "reviewMethod": "Full-source ffprobe, canonical GIF comparison, exact-second dense stills plus burned-in subtitle review",
+  "sources": [{"sourceVideoID":"7625479021379194118","durationSeconds":5050.758005,"sizeBytes":570849448}],
+  "proposedClips": [
+    {
+      "templateID": "0314",
+      "sourceVideoID": "7625479021379194118",
+      "start": 2641,
+      "end": 2660,
+      "cameraView": "oblique",
+      "framingNoteZh": "按示范从头端斜侧方拍摄，拍全上斜凳、双肩、双肘和两只哑铃；凳背约30–45度，保持双脚落地。教学强调顶端保留轻微肘弯维持张力。",
+      "framingNoteEn": "Film obliquely from the head end, keeping the incline bench, shoulders, elbows and both dumbbells visible. Use roughly a 30–45 degree backrest and planted feet. The lesson keeps a slight elbow bend at the top to maintain tension.",
+      "visualEvidence": "Tan Sir performs bilateral pronated dumbbell pressing on an inclined bench. 2641/2643/2649/2651/2655s show lowered dumbbells; 2645/2653/2659s show pressed position. Canonical 0314 GIF confirms incline bilateral dumbbell press rather than flat/neutral grip. Excludes outward-wrist counterexample at 2637s and sitting up at 2661s. Parent independently reviewed and adopted the tighter 2641–2660s range. Evidence contact sheet /tmp/fitgenius-review-chest-lastincline.jpg.",
+      "confidence": "high"
+    }
+  ],
+  "pending": [{"templateID":"0025","note":"Not selected in this batch. Leave unmapped and review a clean standalone demonstration in a later batch."}],
+  "rejected": [
+    {"templateIDs":["0025"],"sourceVideoID":"7625479021379194118","start":170,"end":550,"reason":"Mostly supine setup, breathing/ribcage discussion and unloaded arm gestures; not a weighted positive demonstration."},
+    {"templateIDs":["3541","1017","0178"],"sourceVideoID":"7625479021379194118","start":4155,"end":4660,"reason":"Standing cable Y-raise chapter does not match prone incline dumbbell Y-raise, band Y-raise or conventional lateral-raise GIF. Do not match by generic shoulder target."}
+  ]
+}

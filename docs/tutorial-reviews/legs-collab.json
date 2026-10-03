@@ -1,0 +1,62 @@
+{
+  "reviewedAt": "2026-10-03",
+  "evidenceContactSheets": [
+    "/tmp/fitgenius-review-legs-collabdetail.jpg",
+    "/tmp/fitgenius-review-legs-barbellproof.jpg",
+    "/tmp/fitgenius-review-legs-hyper.jpg"
+  ],
+  "reviewMethod": "Exact-time source frames compared with actual canonical GIFs. Unloaded dowel demonstrations and differently loaded single-leg deadlifts are not substituted for exact equipment variants.",
+  "proposedClips": [
+    {
+      "templateID": "1760",
+      "sourceVideoID": "7629718942222650670",
+      "start": 2173,
+      "end": 2200,
+      "cameraView": "side",
+      "framingNoteZh": "按照示范的侧面略偏前角度拍摄，胸前竖握的哑铃、躯干、双膝和双脚都在画面内；谭师在旁指导学员完成动作。",
+      "framingNoteEn": "Match the slightly front-oblique side view. Include the vertically held chest-level dumbbell, torso, both knees and feet. Tan Sir coaches the student.",
+      "visualEvidence": "Gray-hoodie student holds a single dumbbell vertically at the chest in a goblet grip. Upright at 2180s, squat bottom at 2184s, upright at 2192s, squat bottom at 2196s and upright at 2200s. The brief 2188s creator cut contains squat instruction and does not change the variation. Actual 1760 GIF confirms one vertical dumbbell held with both hands at the chest.",
+      "confidence": "high"
+    },
+    {
+      "templateID": "0085",
+      "sourceVideoID": "7629718942222650670",
+      "start": 2815,
+      "end": 2838,
+      "cameraView": "side",
+      "framingNoteZh": "按示范的侧面略偏前角度拍摄，整根杠铃、髋部、双膝和双脚保持可见；从站立开始屈髋下放再回到站立，不必让杠铃落地。",
+      "framingNoteEn": "Match the slightly front-oblique side view. Keep the whole barbell, hips, knees and feet visible. Start upright, hinge downward and return upright without needing to place the bar on the floor.",
+      "visualEvidence": "Gray-hoodie student uses a real barbell with plates, not the creator's yellow dowel. Upright at 2815–2820s, hip hinge with softly bent knees at 2825–2830s, upright return at 2835s. Creator cues controlled hip movement and avoiding excessive spinal motion. Actual 0085 GIF confirms the barbell Romanian deadlift pattern, distinct from the earlier dumbbell source.",
+      "confidence": "high"
+    },
+    {
+      "templateID": "0489",
+      "sourceVideoID": "7629718942222650670",
+      "start": 3163,
+      "end": 3185,
+      "cameraView": "side",
+      "framingNoteZh": "按示范侧面略偏前角度拍摄，将45度挺身凳、髋部支撑垫、躯干和脚踝固定位置纳入画面；示范为无额外负重版本，手臂可自然放下。",
+      "framingNoteEn": "Match the slightly front-oblique side view. Include the 45-degree back-extension bench, hip pad, torso and ankle restraints. This is an unloaded variation with the arms hanging naturally.",
+      "visualEvidence": "Tan Sir in a black shirt performs unloaded hip-hinging extension on a 45-degree Roman-chair bench. 3163–3166s raised position; 3169s lowering; 3172–3175s raised return; 3178–3181s another lowering; 3184s return. The red-shirt instructor says the setup is fixed well at 3175s. Actual 0489 GIF uses the same inclined hip pad and ankle anchoring; arm placement differs but no external resistance is introduced. Later student excessive-spinal-motion corrections at 3290–3298s are excluded.",
+      "confidence": "high"
+    }
+  ],
+  "rejected": [
+    {
+      "templateIDs": ["1757", "1756", "2805"],
+      "reason": "Source single-leg working sets visibly use two dumbbells, whereas 1757 actual GIF and seed specify a single hand-held dumbbell. The creator's one-leg explanation is unloaded. No barbell or step-box-supported single-leg demonstration was selected."
+    },
+    {
+      "templateIDs": ["0099", "2810", "2368"],
+      "reason": "The Bulgarian chapter cannot be remapped to a barbell or both-feet-grounded split squat. Exact rear-foot-elevated two-dumbbell 0410 is already reviewed in private-legs.json; do not inflate template coverage with a duplicate."
+    },
+    {
+      "templateIDs": ["0032", "0116", "0117"],
+      "reason": "The reviewed barbell clip begins upright and uses a Romanian hip hinge, not conventional floor-start, strict straight-leg or sumo stance."
+    },
+    {
+      "templateIDs": ["0488", "0573", "0593", "0835"],
+      "reason": "Source is an unloaded 45-degree Roman chair; not flat bench, leverage machine, reverse hyperextension or a weighted stability-ball variation."
+    }
+  ]
+}

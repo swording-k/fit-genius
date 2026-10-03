@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-03",
+  "reviewMethod": "Viewed complete-original contact sheets, exact-seek dense frames, and every coalesced frame of canonical 0292/0359/0380/0383/2292/0180/0861/0239 GIFs. Exact matches are separated from related teaching references with visible stance/support differences; references are not automatically approved for publication.",
+  "sources": [
+    {"sourceVideoID": "7670171990876103153", "sourceURL": "https://www.douyin.com/video/7670171990876103153", "localFile": "video/tutorial-source/douyin/7670171990876103153.mp4", "overviewEvidence": "/tmp/fitgenius-review-rows-db-overview.jpg"},
+    {"sourceVideoID": "7674643042243064997", "sourceURL": "https://www.douyin.com/video/7674643042243064997", "localFile": "video/tutorial-source/douyin/7674643042243064997.mp4", "overviewEvidence": "/tmp/fitgenius-review-rows-cable-overview.jpg"}
+  ],
+  "accepted": [
+    {
+      "exerciseTemplateIDs": ["0239"],
+      "exerciseName": "cable straight back seated row",
+      "sourceVideoID": "7674643042243064997",
+      "startSeconds": 996,
+      "endSeconds": 1016,
+      "cameraView": "sideThreeQuarter",
+      "framingNoteZh": "照教学从侧前方斜拍，坐在低位划船器械上、双脚踩脚踏、双手对握把手；完整拍到双手、肘部、躯干、双膝及绳索轨迹。",
+      "framingNoteEn": "Match the side-front three-quarter view. Sit at the low cable row, place both feet on the footrests and use a neutral grip. Keep both hands, elbows, torso, knees and the cable path visible.",
+      "visualEvidence": "996/998s show the seated neutral-grip contraction toward the waist; 1000s returns to arms-forward position and 1002/1004s repeats the row. The pelvis and torso remain upright without the large hip-flexion/extension seen in canonical 0861. Canonical 0239 GIF visibly shows upright seated neutral-grip low cable rowing with feet braced and matches this demonstration. 1006–1016s retains explanation of bringing the scapular action into the pull.",
+      "evidenceContactSheet": "/tmp/fitgenius-review-rows-cablerow-final.jpg",
+      "confidence": "high",
+      "reviewCaveat": "Teaching excerpt includes a complete cycle and repeat followed by explanation, rather than uninterrupted reps. Start at 996s to exclude the creator's accidental 输入文字 editing placeholder at approximately 994s. Canonical 0180 GIF also appears closely equivalent (upright low seated row); a main-agent equivalence decision may reuse this clip there, but do not count it as another independent demonstrated movement.",
+      "possibleCanonicalEquivalentTemplateIDs": ["0180"],
+      "rightsStatus": "developmentOnly",
+      "publicationStatus": "awaitingMainAgentReview"
+    }
+  ],
+  "teachingReferencesWithVariantDifferences": [
+    {
+      "exerciseTemplateIDs": ["0292"],
+      "exerciseName": "dumbbell one arm bent-over row",
+      "sourceVideoID": "7670171990876103153",
+      "startSeconds": 583,
+      "endSeconds": 602,
+      "cameraView": "sideThreeQuarter",
+      "framingNoteZh": "这是双脚着地、单手撑哑铃架的支撑变式；动作库动图是一手一膝撑平凳。参考肘部贴身向后划的轨迹，拍摄时照真人片段的侧面斜角，让背部、支撑手、工作手和双脚入镜。",
+      "framingNoteEn": "This teaching uses both feet on the floor and one hand braced on a rack; the library animation uses a hand and knee on a flat bench. Compare the close-elbow rowing path. Match the source's side three-quarter view and include your back, supporting hand, working hand and both feet.",
+      "variantDifferenceZh": "相同的单臂哑铃划船，但支撑点不同：真人为手撑架、双脚着地；动图为手与同侧膝撑凳。",
+      "variantDifferenceEn": "Same unilateral dumbbell row, but different support: rack-braced hand with both feet grounded versus a hand and knee on a bench.",
+      "visualEvidence": "584s arm down, 586s mid-pull and 588s elbow back at contraction show the unilateral neutral-grip row with one braced hand and torso hinged forward. The arm subsequently lowers before 592s; the remainder explains contraction under manageable load. Canonical 0292 all-frame GIF has a hand/knee-on-bench support, confirming the explicit difference. Later 614–620s contains another controlled cycle but is too brief to serve as a clean 15-second repeating demonstration alone.",
+      "evidenceContactSheet": "/tmp/fitgenius-review-rows-dbrow-final.jpg",
+      "confidence": "highForMovementFamilyOnly",
+      "publicationStatus": "requiresMainAgentVariantDecision",
+      "reviewCaveat": "Do not label as identical stance. The selected excerpt includes one complete demonstration then static instruction; no longer clean repeated-loop section was confirmed after the 450–474s section."
+    },
+    {
+      "exerciseTemplateIDs": ["0380"],
+      "exerciseName": "dumbbell rear lateral raise",
+      "sourceVideoID": "7670171990876103153",
+      "startSeconds": 1020,
+      "endSeconds": 1040,
+      "cameraView": "rearThreeQuarter",
+      "framingNoteZh": "此片是坐姿俯身哑铃反飞鸟，动作库动图为站姿俯身。若用作教学参考，请明确姿势差异；拍摄照真人片段从侧后方，拍到背部、双肩、双肘和哑铃完整轨迹。",
+      "framingNoteEn": "This source teaches a seated bent-over reverse fly, while the library animation is standing bent-over. If used as a teaching reference, state that stance difference. Film from the same rear three-quarter angle with your back, shoulders, elbows and full dumbbell path visible.",
+      "variantDifferenceZh": "后束外展动作相同，但坐姿与站姿的躯干支撑不同；不能当完全一致的模板。",
+      "variantDifferenceEn": "Same rear-delt abduction family, but seated versus standing trunk support; not an identical exercise setup.",
+      "visualEvidence": "1020/1024s show bent-over seated start with both dumbbells down; 1022/1026/1028/1032s show bilateral horizontal-abduction repetitions before the instructor sits up to explain at 1034s. Canonical 0380 GIF is visibly unsupported standing hip-hinged, so the stance difference is confirmed rather than inferred from the English title.",
+      "evidenceContactSheet": "/tmp/fitgenius-review-rows-dbreverse-clean.jpg",
+      "confidence": "highForMovementFamilyOnly",
+      "publicationStatus": "requiresMainAgentVariantDecision"
+    },
+    {
+      "exerciseTemplateIDs": ["0359"],
+      "exerciseName": "dumbbell one arm reverse fly (with support)",
+      "sourceVideoID": "7670171990876103153",
+      "startSeconds": 1076,
+      "endSeconds": 1093,
+      "cameraView": "frontThreeQuarter",
+      "framingNoteZh": "这里是单手撑凳、身体侧斜的单臂后束教学，姿态与动图的站姿俯身支撑不同。用于参考时应明确差别；按真人片段的斜前方角度，拍到支撑手、躯干、工作肘和哑铃路径。",
+      "framingNoteEn": "This is a bench-braced unilateral rear-delt teaching variation with the body tilted sideways, unlike the standing hinged support in the animation. State that difference if used. Match the front three-quarter angle and include the supporting hand, torso, working elbow and dumbbell path.",
+      "variantDifferenceZh": "真人坐靠平凳并侧斜躯干、手撑凳；动图站姿向前俯身、手撑上斜凳。肩部相对重力方向不同，不应默认精确匹配。",
+      "variantDifferenceEn": "Source sits/leans laterally on a flat bench with a braced hand; GIF is standing hip-hinged with a hand on an incline bench. Shoulder orientation relative to gravity differs, so exact equivalence must not be assumed.",
+      "visualEvidence": "1076/1080s show supported start; 1084/1088/1092s show repeated unilateral dumbbell raises on the taught fiber-aligned path. The all-frame 0359 GIF visibly uses a different standing bent-over trunk angle. 1100s introduces an explicit unwanted alternative (不要去从这样), outside this candidate range.",
+      "evidenceContactSheet": "/tmp/fitgenius-review-rows-single-reverse.jpg",
+      "confidence": "mediumForMovementFamilyOnly",
+      "publicationStatus": "requiresMainAgentVariantDecision"
+    }
+  ],
+  "rejected": [
+    {
+      "exerciseTemplateIDs": ["0383", "0326", "0348", "0345", "0379"],
+      "sourceVideoID": "7670171990876103153",
+      "reason": "Canonical 0383 is actually chest-supported incline-bench reverse fly, despite seed prose describing standing. Source bilateral main section is unsupported seated bent-over. Do not equate unsupported seated teaching to chest/head-supported or lying variants."
+    },
+    {
+      "exerciseTemplateIDs": ["2292"],
+      "sourceVideoID": "7670171990876103153",
+      "reason": "Canonical 2292 GIF is visibly an upright elbow-bending rear-delt row/raise rather than the source's seated bent-over straight-ish-arm reverse fly. English title/seed prose alone would be misleading."
+    },
+    {
+      "exerciseTemplateIDs": ["0861"],
+      "sourceVideoID": "7674643042243064997",
+      "reason": "Canonical 0861 has pronounced hip flexion/extension across the cycle. The selected upright clip 996–1016s belongs to the straight-back variant; do not map it as an identical dynamic-hinge row."
+    },
+    {
+      "exerciseTemplateIDs": ["0193", "0167", "0189", "0214", "3563"],
+      "sourceVideoID": "7674643042243064997",
+      "reason": "Single-arm chapters use seated bench or floor setups with differing pulley elevation; no exact kneeling, standing bent-over, alternating seated or standing pulldown setup was confirmed. These chapters need a separate per-GIF review rather than family-wide assignment."
+    },
+    {
+      "sourceVideoID": "7674643042243064997",
+      "startSeconds": 993,
+      "endSeconds": 995,
+      "reason": "Visible 输入文字 creator editing placeholder; excluded from selected published candidate."
+    }
+  ],
+  "summary": {"exactNewTemplateCount": 1, "exactNewClipCount": 1, "possibleEquivalentTemplateCount": 1, "variantReferenceCandidateCount": 3, "referencesAreNotPublishedMatches": true}
+}

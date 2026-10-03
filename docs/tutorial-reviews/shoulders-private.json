@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-03",
+  "reviewMethod": "Exact seek contact sheets across the seated-press and front-raise chapters followed by dense 2-second frames. All coalesced frames of canonical 0405/0404/0310/0309/0392 GIFs were separately downloaded and viewed. No shared catalog or cloud state was changed.",
+  "sources": [
+    {"sourceVideoID": "7651943506576442225", "sourceURL": "https://www.douyin.com/video/7651943506576442225", "localFile": "video/tutorial-source/douyin/7651943506576442225.mp4", "pressOverviewEvidence": "/tmp/fitgenius-review-shoulder-press-overview.jpg", "frontRaiseOverviewEvidence": "/tmp/fitgenius-review-shoulder-front-overview.jpg"}
+  ],
+  "accepted": [
+    {
+      "exerciseTemplateIDs": ["0405"],
+      "exerciseName": "dumbbell seated shoulder press",
+      "sourceVideoID": "7651943506576442225",
+      "startSeconds": 1295,
+      "endSeconds": 1310.8,
+      "cameraView": "sideThreeQuarter",
+      "framingNoteZh": "照教学从侧前方斜拍，坐稳并让躯干保持稳定；拍到座椅、双脚、双肘、双手和哑铃从肩上推到头顶的完整路径。此真人示范有靠背，动作库动图为无靠背坐姿，重点对照前臂和哑铃推举轨迹。",
+      "framingNoteEn": "Match the side-front three-quarter view. Sit securely with a stable torso and include the seat, feet, elbows, hands and full shoulder-to-overhead dumbbell path. The source uses a backrest while the animation is unsupported seated; focus comparison on the forearm and press path.",
+      "visualEvidence": "1296/1298s show the seated bilateral dumbbell press moving out of the shoulder-level start; 1302/1304s show overhead extension, 1306s returns to the bottom and 1308s presses overhead again before lowering at 1310s. Both palms face forward rather than toward each other, matching canonical 0405 GIF. The instructor gestures at the shoulder/forearm without lifting the dumbbells or pushing the elbows in this warmup segment. Source has a backrest, while canonical animation uses a flat seat; neither is a standing, alternating, Arnold or neutral-grip press.",
+      "evidenceContactSheet": "/tmp/fitgenius-review-shoulder-press-exact.jpg",
+      "confidence": "high",
+      "reviewCaveat": "Backrest is an explicit setup difference; the seated bilateral grip and pressing movement are equivalent. Starts with the dumbbells being brought into working position. End before 1311s when they are lowered to finish the warmup. Prefer this segment to 1595–1600s where the coach begins assisting near the student's elbows.",
+      "rightsStatus": "developmentOnly",
+      "publicationStatus": "awaitingMainAgentReview"
+    },
+    {
+      "exerciseTemplateIDs": ["0309"],
+      "exerciseName": "dumbbell front raise v. 2",
+      "sourceVideoID": "7651943506576442225",
+      "startSeconds": 2100,
+      "endSeconds": 2120,
+      "cameraView": "sideThreeQuarter",
+      "framingNoteZh": "照教学从侧前方斜拍，站姿、双手对握哑铃，同时向前平举；拍到躯干、双肩、双肘和双手的上下路径，保留完整哑铃位置，不要让最高点超出画面。",
+      "framingNoteEn": "Match the side-front three-quarter view. Stand and raise both dumbbells forward together using a neutral grip. Keep your torso, shoulders, elbows and the full hand path visible, with enough room for both dumbbells at the top.",
+      "visualEvidence": "2100s establishes the standing bilateral neutral-grip start; 2102s raises the arms forward, 2104/2106/2108s lower to the start, 2112/2114s raise again and 2116/2118/2120s lower. The instructor cues a stable torso and breathing, with a light hand on the back rather than assistance to the weights. Canonical 0309 GIF uses the bilateral neutral/hammer-oriented front raise; canonical 0310 uses a pronated front raise and is not silently substituted. High-resolution 2104 and 2114 frames were viewed in addition to the dense sheet.",
+      "evidenceContactSheet": "/tmp/fitgenius-review-shoulder-front-exact.jpg",
+      "highResolutionEvidence": ["/tmp/fitgenius-review-shoulder-hi2104.jpg", "/tmp/fitgenius-review-shoulder-hi2114.jpg"],
+      "confidence": "high",
+      "reviewCaveat": "The source camera tightly frames the near-side student and instructor; the far dumbbell is near the left edge at the top. Good for teaching, but a wider reproduction is preferable for user comparison. Excludes the earlier incorrect too-low starting-position discussion at 2095–2098s and the later fatigue commentary at 2124s.",
+      "rightsStatus": "developmentOnly",
+      "publicationStatus": "awaitingMainAgentReview"
+    }
+  ],
+  "rejected": [
+    {"exerciseTemplateIDs": ["0404"], "sourceVideoID": "7651943506576442225", "reason": "The instructor's 1805–1860s seated dumbbell demonstration teaches loading dumbbells onto the thighs and bringing them to the shoulder start. No full neutral-grip overhead pressing cycle was confirmed there. Do not map setup footage to seated neutral-grip press."},
+    {"exerciseTemplateIDs": ["0310"], "sourceVideoID": "7651943506576442225", "reason": "Canonical 0310 animation uses pronated grip. Selected student front-raise repetitions use neutral/hammer grip and are mapped to 0309; do not duplicate this grip-specific clip as pronated front raise."},
+    {"exerciseTemplateIDs": ["0392", "0387"], "sourceVideoID": "7651943506576442225", "reason": "Source front raise is standing bilateral, not seated or alternating."},
+    {"exerciseTemplateIDs": ["0426", "0427", "0414", "0388", "0361", "0360", "2137", "0287"], "sourceVideoID": "7651943506576442225", "reason": "Press chapter demonstrates seated simultaneous bilateral pronated press, not standing, alternating, unilateral, neutral or Arnold rotation variants."},
+    {"exerciseTemplateIDs": ["0334"], "sourceVideoID": "7651943506576442225", "reason": "Standing dumbbell lateral raise is already covered by the earlier reviewed source; do not count another general lateral-raise lesson as a new movement."}
+  ],
+  "summary": {"newConfirmedTemplateCount": 2, "newClipCount": 2, "repeatedExistingMovementExcludedCount": 1}
+}

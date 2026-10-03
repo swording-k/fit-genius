@@ -1,0 +1,41 @@
+{
+  "reviewedAt": "2026-10-03",
+  "reviewMethod": "Exact-time ffmpeg frame extraction and visual review of source captions; template equipment, stance, and start position checked against the canonical seed. Counts are distinct templates, not generic movement families.",
+  "proposedClips": [
+    {
+      "templateID": "1459",
+      "sourceVideoID": "7671852814386030521",
+      "start": 344,
+      "end": 364,
+      "cameraView": "side",
+      "framingNoteZh": "按照示范的侧面略偏前角度拍摄，全身、双脚和两只哑铃都留在画面内；展示从站立到屈髋再站起的完整过程。",
+      "framingNoteEn": "Match the slightly front-oblique side view. Keep your full body, both feet, and both dumbbells visible, including the full standing-to-hinge-to-standing cycle.",
+      "visualEvidence": "344s upright start holding two dumbbells; 346s controlled hip hinge with slightly bent knees; 348s upright return; 350s second bottom position; 352s upright return; 354–360s another complete repetition. Captions at 352s say to move more slowly, at 360s coordinate hip and knee extension, and at 362s keep the center of gravity steady. The preceding 330–333s explosive counterexample is excluded.",
+      "confidence": "high"
+    }
+  ],
+  "rejected": [
+    {
+      "templateIDs": ["0085", "0032", "0116", "0117", "1756", "0066"],
+      "sourceVideoID": "7671852814386030521",
+      "reason": "Source uses two dumbbells throughout the reviewed movement sequences, not a barbell; no reviewed barbell demonstration."
+    },
+    {
+      "templateIDs": ["0300", "0432", "0434", "1757", "2805"],
+      "sourceVideoID": "7671852814386030521",
+      "reason": "Do not duplicate an explicitly named two-leg dumbbell Romanian deadlift across conventional, straight-leg, single-leg, or supported variants."
+    },
+    {
+      "templateIDs": ["0157", "0578", "0752", "0811"],
+      "sourceVideoID": "7671852814386030521",
+      "reason": "Cable, leverage machine, Smith machine, and trap-bar equipment are not demonstrated."
+    },
+    {
+      "templateIDs": ["1459"],
+      "sourceVideoID": "7671852814386030521",
+      "start": 330,
+      "end": 334,
+      "reason": "Creator explicitly presents an explosive counterexample; unsuitable as a standalone correct-form teaching clip."
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "reviewedAt": "2026-10-03",
+  "evidenceContactSheet": "/tmp/fitgenius-review-legs-absproof.jpg",
+  "reviewMethod": "Exact-time frame and caption review compared with actual GIF movements, including the distinction between bar-hanging and captain-chair support.",
+  "proposedClips": [
+    {
+      "templateID": "2963",
+      "sourceVideoID": "7657365167379023973",
+      "start": 254,
+      "end": 274,
+      "cameraView": "front",
+      "framingNoteZh": "按示范的正面略偏侧角度拍摄，船长椅、双前臂支撑和双腿完整可见；此为谭师指导学员的支撑直腿举腿，不是双手悬垂版。",
+      "framingNoteEn": "Match the slightly oblique front view. Keep the captain's chair, forearm supports and both legs visible. Tan Sir coaches a student performing supported straight-leg raises, not bar-hanging raises.",
+      "visualEvidence": "254s forearms supported on captain-chair pads with legs lowered; 257–263s straight-leg raises; 266s lowering and 269–273s another raised position. Creator cues abdominal contraction and controllable height. Actual 2963 GIF uses the same forearm-supported captain-chair and straight legs.",
+      "confidence": "high"
+    },
+    {
+      "templateID": "0274",
+      "sourceVideoID": "7657365167379023973",
+      "start": 452,
+      "end": 477,
+      "cameraView": "front",
+      "framingNoteZh": "按示范的斜上方角度拍摄，头肩、躯干、屈膝和双脚都留在画面内；教学画面为谭师指导学员，双脚不离地。",
+      "framingNoteEn": "Match the diagonal elevated view. Keep the head, shoulders, torso, bent knees and feet visible. Tan Sir coaches the student with both feet planted.",
+      "visualEvidence": "452–477s student lies on a flat mat with bent knees and feet planted, hands behind head, repeatedly curling shoulders off the floor and lowering. Creator cues curling upward without pulling the neck. Actual 0274 GIF confirms the same floor-crunch posture and hand placement, not a full sit-up or decline crunch.",
+      "confidence": "high"
+    },
+    {
+      "templateID": "0857",
+      "sourceVideoID": "7657365167379023973",
+      "start": 782,
+      "end": 803,
+      "cameraView": "side",
+      "framingNoteZh": "按示范侧面略偏前角度拍摄，将健腹轮、躯干、髋部和跪地双膝放进画面；采用能控制的推出距离，示范为谭师指导学员的跪姿版本。",
+      "framingNoteEn": "Match the slightly front-oblique side view. Include the wheel, torso, hips and grounded knees. Use a controllable rollout distance; Tan Sir coaches a kneeling student.",
+      "visualEvidence": "782s kneeling starting position holding wheel; 784s rolling forward; 786–788s return toward knees; 790–794s forward rollout and return, with another extension at 800s. Knees remain supported on a mat. Actual 0857 GIF confirms a kneeling wheel rollout, unlike standing 0796.",
+      "confidence": "high"
+    }
+  ],
+  "rejected": [
+    {
+      "templateIDs": ["0472", "0475", "1764", "0474"],
+      "reason": "Earlier hanging sequences include visible trunk-position corrections and mixed knee/hip ranges; selected clear supported-chair footage cannot be reused for bar-hanging templates."
+    },
+    {
+      "templateIDs": ["0826"],
+      "reason": "Despite its seed wording, the actual 0826 GIF is a forearm-supported bent-knee raise; selected 254–274s footage is a straight-leg captain-chair variation."
+    },
+    {
+      "templateIDs": ["0796"],
+      "reason": "Source demonstrates kneeling, not standing, wheel rollouts."
+    }
+  ]
+}

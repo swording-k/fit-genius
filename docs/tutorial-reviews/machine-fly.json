@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-03",
+  "reviewMethod": "Full source contact sheet followed by exact seek frames at 1–2 second intervals around selected segments and their boundaries. Canonical 0596, 0601 and 0602 GIFs were downloaded and all 12 coalesced frames of each were viewed. No shared catalog or cloud upload was changed.",
+  "sources": [
+    {
+      "sourceVideoID": "7661923214516256369",
+      "sourceURL": "https://www.douyin.com/video/7661923214516256369",
+      "localFile": "video/tutorial-source/douyin/7661923214516256369.mp4",
+      "overviewEvidence": "/tmp/fitgenius-review-machine-overview.jpg"
+    }
+  ],
+  "accepted": [
+    {
+      "exerciseTemplateIDs": ["0596"],
+      "exerciseName": "lever seated fly",
+      "sourceVideoID": "7661923214516256369",
+      "startSeconds": 414,
+      "endSeconds": 431,
+      "cameraView": "frontThreeQuarter",
+      "framingNoteZh": "照教学从正前方略偏侧面拍摄，坐在器械上、背部靠垫，拍到胸部、双手、两侧器械臂和打开到合拢的完整轨迹。",
+      "framingNoteEn": "Match the front three-quarter view. Sit with your back against the pad and keep your chest, both hands, both machine arms and the full open-to-close path visible.",
+      "visualEvidence": "At 416/418/420s the instructor is seated with lumbar support, slightly bent elbows and both hands on the machine's vertical grips. 422–430s demonstrates bilateral horizontal adduction with a chest squeeze; the lever arms reopen at 431s, completing the cycle. The 0596 canonical GIF shows the same seated pec-deck style lever fly and vertical grip arrangement. The source begins an intentionally relaxed-chest example at 433–435s, so this excerpt ends before that example.",
+      "evidenceContactSheet": "/tmp/fitgenius-review-machine-chest-exact.jpg",
+      "boundaryEvidence": "/tmp/fitgenius-review-machine-error-boundary.jpg",
+      "confidence": "high",
+      "reviewCaveat": "Seed prose says pronated grip, but the canonical GIF and source both visibly use the vertical pec-deck grips. Matching is to actual canonical animation/equipment, not that imprecise prose. The excerpt includes a contraction hold before the return; it is not a continuous fast repetition loop. Do not extend past 431s into the deliberately relaxed-chest counterexample.",
+      "rightsStatus": "developmentOnly",
+      "publicationStatus": "awaitingMainAgentReview"
+    },
+    {
+      "exerciseTemplateIDs": ["0601"],
+      "exerciseName": "lever seated reverse fly (parallel grip)",
+      "sourceVideoID": "7661923214516256369",
+      "startSeconds": 803,
+      "endSeconds": 818.5,
+      "cameraView": "rearThenRearThreeQuarter",
+      "framingNoteZh": "照教学从背后略偏侧面拍摄，胸部贴靠垫，双手握竖向把手；让双肩、双肘、双手和器械两侧运动轨迹都入镜。教学后段镜头略向侧面移动，对比时优先对齐背面连续示范。",
+      "framingNoteEn": "Match the rear or rear three-quarter view with your chest against the pad and a neutral grip on the vertical handles. Keep both shoulders, elbows, hands and both machine arms visible. The camera moves toward the side near the end; align comparison with the rear-view repetition first.",
+      "visualEvidence": "The source at 804s finishes a verbal shoulder-position explanation. 806s shows both arms abducted, 808s controlled partial return, and 812/814s renewed bilateral reverse-fly contraction using the vertical grips with palms facing each other. 816–818s continues the contraction cue while the camera shifts rear-oblique. Canonical 0601 GIF shows the same chest-supported seated reverse fly with parallel/vertical grip. The deliberately excessive full return at 800–802s is excluded.",
+      "evidenceContactSheet": "/tmp/fitgenius-review-machine-reverse-exact.jpg",
+      "confidence": "high",
+      "reviewCaveat": "Correct grip/equipment match is high-confidence. This is a short coached demonstration, not uninterrupted repeated reps: one cycle plus a contraction/range cue and a camera move. Main agent should review the encoded excerpt and may use it as teaching rather than the best synchronized comparison reference. Do not extend earlier into the 800–802s counterexample.",
+      "rightsStatus": "developmentOnly",
+      "publicationStatus": "awaitingMainAgentReview"
+    }
+  ],
+  "rejected": [
+    {
+      "exerciseTemplateIDs": ["0602"],
+      "sourceVideoID": "7661923214516256369",
+      "reason": "0602 canonical GIF has pronated grip on the horizontal handle. The clearly reviewed repetitions in this source use neutral/parallel vertical grips. At 886–905s the instructor discusses grip variations and demonstrates hand rotation while explaining, but no clean separate bilateral loaded overhand-horizontal-grip repetition was confirmed. Do not duplicate 0601 media under 0602."
+    },
+    {
+      "exerciseTemplateIDs": ["0596"],
+      "sourceVideoID": "7661923214516256369",
+      "startSeconds": 431,
+      "endSeconds": 440,
+      "reason": "Explicitly introduces the chest-relaxation counterexample (subtitle: 胸腔松掉了) rather than a clean correct demonstration; excluded from the accepted clip."
+    },
+    {
+      "exerciseTemplateIDs": ["0601"],
+      "sourceVideoID": "7661923214516256369",
+      "startSeconds": 798,
+      "endSeconds": 803,
+      "reason": "Includes the fully returned position while the instructor says 不要完全回去; keep the counterexample outside the isolated teaching excerpt."
+    }
+  ],
+  "summary": {"newConfirmedTemplateCount": 2, "newClipCount": 2, "unconfirmedGripVariantCount": 1}
+}
