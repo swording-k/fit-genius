@@ -4,6 +4,7 @@ const cloudbase = require("@cloudbase/node-sdk");
 const { extractBearerToken, verifySessionToken, signSessionToken } = require("./backend/sessionToken.cjs");
 const { resolveAIProviderConfig, resolveUpstreamModel } = require("./backend/aiProviderConfig.cjs");
 const { verifyAppleIdentityToken } = require("./backend/appleTokenVerifier.cjs");
+const { createCloudData } = require("./backend/cloudData.cjs");
 
 // ── CloudBase NoSQL (server-side) ─────────────────────────
 // The function runs inside the `fitgenius` BaaS env, so node-sdk picks up the
@@ -11,6 +12,7 @@ const { verifyAppleIdentityToken } = require("./backend/appleTokenVerifier.cjs")
 const ENV_ID = process.env.TCB_ENV || "fitgenius-d0ghm1rz21cef6594";
 const app = cloudbase.init({ env: ENV_ID });
 const db = app.database();
+const cloudData = createCloudData(db);
 
 // ── Auth helper ───────────────────────────────────────────
 function authError(status, error) {
@@ -24,11 +26,15 @@ async function authenticate(event) {
   const authHeader = event.headers?.authorization || event.headers?.Authorization || "";
   const bearer = extractBearerToken(authHeader);
   if (!bearer) throw authError(401, "missing_authorization");
+  let claims;
   try {
-    return await verifySessionToken(bearer);
+    claims = await verifySessionToken(bearer);
   } catch {
     throw authError(401, "invalid_session");
   }
+  try { await cloudData.authorize(claims); }
+  catch (error) { throw error.httpStatus ? error : authError(503, "account_state_unavailable"); }
+  return claims;
 }
 
 exports.main = async (event, context) => {
@@ -49,8 +55,8 @@ exports.main = async (event, context) => {
   // A path of "/" can ONLY originate from these transmission-off sync routes, so
   // this mapping is unambiguous (the transmission-ON routes always carry their
   // real, non-root path).
-  if (path === "/" && (method === "POST" || method === "GET" || method === "PUT")) {
-    path = method === "POST" ? "/api/form-analyses" : "/api/cloud-snapshot";
+  if (path === "/" && ["POST", "GET", "PUT", "DELETE"].includes(method)) {
+    path = method === "DELETE" ? "/api/account" : method === "POST" ? "/api/form-analyses" : "/api/cloud-snapshot";
   }
 
   // ── Health ──────────────────────────────────────────────
@@ -69,10 +75,14 @@ exports.main = async (event, context) => {
 
     try {
       const claims = await verifyAppleIdentityToken(identityToken);
+      let generation;
+      try { generation = await cloudData.loginGeneration(claims.sub); }
+      catch (error) { throw error.httpStatus ? error : authError(503, "account_state_unavailable"); }
       const session = await signSessionToken({
         sub: claims.sub,
         email: claims.email || email || "",
-        name: fullName || {}
+        name: fullName || {},
+        generation
       });
       // Response must match AppleAuthSession struct in iOS app:
       // { ok, mode?, sessionToken, userId, expiresAt?, displayName? }
@@ -85,7 +95,7 @@ exports.main = async (event, context) => {
         displayName: fullName?.givenName || null
       });
     } catch (err) {
-      return json(401, { ok: false, error: "invalid_identity_token", detail: err.message || String(err) });
+      return json(err.httpStatus || 401, { ok: false, error: err.errorCode || "invalid_identity_token" });
     }
   }
 
@@ -93,15 +103,8 @@ exports.main = async (event, context) => {
   if (path === "/api/ai/chat") {
     if (method !== "POST") return json(405, { ok: false, error: "method_not_allowed" });
 
-    // verify session
-    const authHeader = event.headers?.authorization || event.headers?.Authorization || "";
-    const bearer = extractBearerToken(authHeader);
-    if (!bearer) return json(401, { ok: false, error: "missing_authorization" });
-    try {
-      await verifySessionToken(bearer);
-    } catch {
-      return json(401, { ok: false, error: "invalid_session" });
-    }
+    try { await authenticate(event); }
+    catch (error) { return json(error.httpStatus || 503, { ok: false, error: error.errorCode || "account_state_unavailable" }); }
 
     // resolve provider
     let provider;
@@ -193,27 +196,16 @@ exports.main = async (event, context) => {
     }
 
     try {
-      const res = await db.collection("form_analyses").add({
-        userId: claims.userId,
-        createdAt: new Date().toISOString(),
-        payload: body
-      });
-      const localIdentifier = (res && (res.id || res._id)) ? String(res.id || res._id) : "";
+      const localIdentifier = await cloudData.writeAnalysis(claims, body);
       return json(200, { ok: true, localIdentifier, mode: "stored" });
     } catch (err) {
-      return json(500, { ok: false, error: "db_write_failed", detail: err.message || String(err) });
+      return json(err.httpStatus || 500, { ok: false, error: err.errorCode || "db_write_failed" });
     }
   }
 
   // ── Cloud Snapshot Sync (GET / PUT) ─────────────────────
-  // iOS CloudSnapshotService:
-  //   GET  → expects 200 + { snapshot, updatedAt }; 404 == no remote snapshot.
-  //   PUT  → sends the full CloudSnapshot JSON; expects 200 + { snapshot, updatedAt }.
-  // NOTE: PUT carries the full account snapshot. Per-user snapshots that exceed
-  // the CloudBase JSON body ~100KB gateway limit will be rejected upstream
-  // (EXCEED_MAX_PAYLOAD_SIZE) before reaching this function. Large-account
-  // support requires an iOS change (upload to Storage, send URL pointer) — see
-  // README "云同步" section. Small/new accounts sync fine as-is.
+  // Legacy small JSON is retained. Large snapshots use authenticated 48 KiB
+  // chunks and an atomic committed pointer; no request crosses the gateway cap.
   if (path === "/api/cloud-snapshot") {
     let claims;
     try { claims = await authenticate(event); }
@@ -221,13 +213,9 @@ exports.main = async (event, context) => {
 
     if (method === "GET") {
       try {
-        const res = await db.collection("cloud_snapshots").where({ userId: claims.userId }).limit(1).get();
-        const docs = (res && res.data) || [];
-        if (docs.length === 0) return json(404, { ok: false, error: "not_found" });
-        const doc = docs[0];
-        return json(200, { ok: true, snapshot: doc.snapshot, updatedAt: doc.updatedAt });
+        return json(200, await cloudData.download(claims, event.queryStringParameters || {}));
       } catch (err) {
-        return json(500, { ok: false, error: "db_read_failed", detail: err.message || String(err) });
+        return json(err.httpStatus || 500, { ok: false, error: err.errorCode || "db_read_failed" });
       }
     }
 
@@ -236,26 +224,35 @@ exports.main = async (event, context) => {
       if (!body || typeof body !== "object") {
         return json(400, { ok: false, error: "invalid_body" });
       }
-      const updatedAt = new Date().toISOString();
       try {
-        const res = await db.collection("cloud_snapshots").where({ userId: claims.userId }).limit(1).get();
-        const docs = (res && res.data) || [];
-        if (docs.length > 0) {
-          await db.collection("cloud_snapshots").doc(docs[0]._id).update({ snapshot: body, updatedAt });
-        } else {
-          await db.collection("cloud_snapshots").add({
-            userId: claims.userId,
-            snapshot: body,
-            updatedAt
-          });
-        }
-        return json(200, { ok: true, snapshot: body, updatedAt });
+        return json(200, await cloudData.upload(claims, body));
       } catch (err) {
-        return json(500, { ok: false, error: "db_write_failed", detail: err.message || String(err) });
+        return json(err.httpStatus || 500, { ok: false, error: err.errorCode || "db_write_failed" });
       }
     }
 
     return json(405, { ok: false, error: "method_not_allowed" });
+  }
+
+  // ── Account Deletion ────────────────────────────────────
+  if (path === "/api/account") {
+    if (method !== "DELETE") return json(405, { ok: false, error: "method_not_allowed" });
+    const bearer = extractBearerToken(event.headers?.authorization || event.headers?.Authorization || "");
+    if (!bearer) return json(401, { ok: false, error: "missing_authorization" });
+    let claims;
+    try { claims = await verifySessionToken(bearer); }
+    catch { return json(401, { ok: false, error: "invalid_session" }); }
+    // Special idempotent deletion authorization permits the revoked deleting
+    // generation to retry cleanup, but never lets it delete a newly opened account.
+    try { return json(200, await cloudData.deleteAccount(claims)); }
+    catch (err) {
+      const diagnostic = {
+        stage: /^[a-z_.]+$/.test(err.deletionStage || "") ? err.deletionStage : "unknown",
+        code: /^[a-zA-Z0-9_.-]{1,100}$/.test(String(err.code || "")) ? String(err.code) : "unspecified",
+        type: ["Error", "TypeError", "CloudBaseError"].includes(err.name) ? err.name : "Error"
+      };
+      return json(err.httpStatus || 500, { ok: false, error: err.errorCode || "account_delete_failed", diagnostic });
+    }
   }
 
   // ── 404 ─────────────────────────────────────────────────

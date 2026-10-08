@@ -38,6 +38,10 @@ struct SyncSettings {
     var backendBaseURLString: String {
         if let override = defaults.string(forKey: Self.backendBaseURLKey),
            !override.isEmpty {
+            // Upgrade only the known legacy default, never arbitrary custom endpoints.
+            if override.trimmingCharacters(in: CharacterSet(charactersIn: "/")) == "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com" {
+                return "https://fitgenius-d0ghm1rz21cef6594-1441969311.ap-shanghai.app.tcloudbase.com"
+            }
             return override
         }
         if let baked = Bundle.main.object(forInfoDictionaryKey: "FitGeniusBackendURL")

@@ -831,3 +831,4 @@
 "health_nutrition_sync_detail" = "After you confirm, edit, or delete a meal, FitGenius updates that day's calories, protein, carbohydrates, and fat in Apple Health. Meal photos and descriptions stay in FitGenius.";
 "planned_exercise_loading_tutorial" = "Loading tutorial excerpt…";
 "planned_exercise_tutorial_load_failed" = "Unable to load this excerpt. Retry or open the source video.";
+"ai_plan_invalid_response_error" = "AI did not return a valid training plan. Your current plan is unchanged. Please try again.";

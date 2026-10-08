@@ -120,6 +120,7 @@ enum AIServiceError: Error, LocalizedError {
     case invalidResponse(String)
     case decodingError(Error)
     case emptyContent
+    case invalidPlanResponse
 
     var errorDescription: String? {
         switch self {
@@ -137,6 +138,8 @@ enum AIServiceError: Error, LocalizedError {
             return "数据解析错误: \(error.localizedDescription)"
         case .emptyContent:
             return "AI 返回的内容为空"
+        case .invalidPlanResponse:
+            return NSLocalizedString("ai_plan_invalid_response_error", comment: "")
         }
     }
 }
@@ -293,8 +296,7 @@ class AIService {
 				throw AIServiceError.backendNotConfigured
 			}
 			guard resolveAuthHeader() != nil else {
-				print("⚠️ [AIService] 未登录，使用兜底训练计划")
-				return fallbackPlan(for: profile)
+				throw AIServiceError.missingSessionToken
 			}
 			print("✅ [AIService] 使用后端代理模式")
 		} else {
@@ -318,20 +320,24 @@ class AIService {
 		let content = try await sendStreamingRequest(body: requestBody)
         let candidate = Self.extractJSONObject(from: content) ?? cleanMarkdownCodeBlock(content)
 
-        // 解析为 WorkoutPlan；解析失败时使用本地兜底计划
+        // 失败必须由上层显示，不能把固定模板伪装成个性化生成结果。
         do {
-            return try parseWorkoutPlan(from: candidate, profile: profile, catalog: catalog)
+            let parsed = try parseWorkoutPlan(from: candidate, profile: profile, catalog: catalog)
+            guard !(parsed.days ?? []).isEmpty else {
+                throw AIServiceError.invalidPlanResponse
+            }
+            return parsed
         } catch {
-            return fallbackPlan(for: profile)
+            throw AIServiceError.invalidPlanResponse
         }
     }
     
 	// MARK: - 根据用户要求重新生成训练计划
 	func regeneratePlan(profile: UserProfile, userRequest: String, catalog: [ExerciseTemplate] = []) async throws -> WorkoutPlan {
-		// 直连模式下不要求登录；后端代理模式未登录时走兜底计划
+		// 自有 Key 仍免登录；代理模式缺少认证时明确失败并保留当前计划。
 		if !providerSettings.isConfigured {
 			guard resolveAuthHeader() != nil else {
-				return fallbackPlan(for: profile)
+				throw AIServiceError.missingSessionToken
 			}
 		}
 
@@ -365,11 +371,11 @@ class AIService {
         do {
             let parsed = try parseWorkoutPlan(from: candidate, profile: profile, catalog: catalog)
             guard !(parsed.days ?? []).isEmpty else {
-                throw AIServiceError.invalidResponse("AI 返回的计划为空，请重试或把要求说得更具体")
+                throw AIServiceError.invalidPlanResponse
             }
             return parsed
         } catch {
-            throw AIServiceError.invalidResponse("AI 返回的训练计划无法解析（可能未严格返回 JSON）。请重试，或把要求说得更具体。")
+            throw AIServiceError.invalidPlanResponse
         }
     }
 
@@ -778,44 +784,6 @@ class AIService {
         
         print("✅ 训练计划创建成功，共 \((workoutPlan.days ?? []).count) 天")
         return workoutPlan
-    }
-
-    private func fallbackPlan(for profile: UserProfile) -> WorkoutPlan {
-        let plan = WorkoutPlan(name: "fallback_plan_name".localized)
-        
-        // Day 1: 胸部
-        let day1 = WorkoutDay(dayNumber: 1, focus: .chest, isRestDay: false)
-        day1.plan = plan
-        let ex1_1 = Exercise(name: "fallback_push_up".localized, sets: 4, reps: "12-15", weight: 0, notes: "fallback_keep_core_stable".localized)
-        ex1_1.workoutDay = day1
-        let ex1_2 = Exercise(name: "fallback_dumbbell_bench_press".localized, sets: 3, reps: "8-12", weight: 15, notes: "fallback_retract_shoulders".localized)
-        ex1_2.workoutDay = day1
-        day1.exercises = [ex1_1, ex1_2]
-        
-        // Day 2: 背部
-        let day2 = WorkoutDay(dayNumber: 2, focus: .back, isRestDay: false)
-        day2.plan = plan
-        let ex2_1 = Exercise(name: "fallback_pull_up_lat_pulldown".localized, sets: 4, reps: "8-12", weight: 0)
-        ex2_1.workoutDay = day2
-        let ex2_2 = Exercise(name: "fallback_seated_row".localized, sets: 3, reps: "10-12", weight: 35)
-        ex2_2.workoutDay = day2
-        day2.exercises = [ex2_1, ex2_2]
-        
-        // Day 3: 腿部
-        let day3 = WorkoutDay(dayNumber: 3, focus: .legs, isRestDay: false)
-        day3.plan = plan
-        let ex3_1 = Exercise(name: "fallback_squat_leg_press".localized, sets: 4, reps: "8-12", weight: 40)
-        ex3_1.workoutDay = day3
-        let ex3_2 = Exercise(name: "fallback_lunge".localized, sets: 3, reps: "12-15", weight: 0)
-        ex3_2.workoutDay = day3
-        day3.exercises = [ex3_1, ex3_2]
-        
-        // Day 4: 休息日
-        let day4 = WorkoutDay(dayNumber: 4, focus: .rest, isRestDay: true)
-        day4.plan = plan
-        
-        plan.days = [day1, day2, day3, day4]
-        return plan
     }
 
 	func dietChat(userMessage: String) async throws -> String {

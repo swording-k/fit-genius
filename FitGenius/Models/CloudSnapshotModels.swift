@@ -12,7 +12,7 @@ struct CloudSnapshot: Codable, Equatable {
 
     var hasMeaningfulData: Bool {
         profile != nil
-        || workoutPlan != nil
+        || !(workoutPlan?.days ?? []).isEmpty
         || mealDays.contains { !$0.entries.isEmpty || $0.submitted }
         || !(healthDailySummaries ?? []).isEmpty
         || !(dailyReadinessReports ?? []).isEmpty
@@ -20,15 +20,15 @@ struct CloudSnapshot: Codable, Equatable {
     }
 
     @MainActor
-    static func make(from context: ModelContext) -> CloudSnapshot {
-        let profiles = (try? context.fetch(FetchDescriptor<UserProfile>())) ?? []
-        let plans = (try? context.fetch(FetchDescriptor<WorkoutPlan>())) ?? []
+    static func make(from context: ModelContext) throws -> CloudSnapshot {
+        let profiles = try context.fetch(FetchDescriptor<UserProfile>())
+        let plans = try context.fetch(FetchDescriptor<WorkoutPlan>())
         let plan = CurrentWorkoutPlanStore.resolve(profiles: profiles, plans: plans)
         let profile = profiles.first { $0.workoutPlan === plan } ?? profiles.first
-        let mealDays = (try? context.fetch(FetchDescriptor<MealDay>())) ?? []
-        let healthSummaries = (try? context.fetch(FetchDescriptor<HealthDailySummary>())) ?? []
-        let dailyReports = (try? context.fetch(FetchDescriptor<DailyReadinessReportRecord>())) ?? []
-        let weeklyReports = (try? context.fetch(FetchDescriptor<WeeklyHealthReportRecord>())) ?? []
+        let mealDays = try context.fetch(FetchDescriptor<MealDay>())
+        let healthSummaries = try context.fetch(FetchDescriptor<HealthDailySummary>())
+        let dailyReports = try context.fetch(FetchDescriptor<DailyReadinessReportRecord>())
+        let weeklyReports = try context.fetch(FetchDescriptor<WeeklyHealthReportRecord>())
         return CloudSnapshot(
             schemaVersion: 2,
             profile: profile.map(CloudProfile.init),

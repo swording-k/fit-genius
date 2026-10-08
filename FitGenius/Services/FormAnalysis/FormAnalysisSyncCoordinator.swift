@@ -22,6 +22,9 @@ final class FormAnalysisSyncCoordinator: ObservableObject {
     static let shared = FormAnalysisSyncCoordinator()
 
     @Published private(set) var isSyncing = false
+    private var deletionSuspended = false
+    private var activeRecords = 0
+    private var sessionEpoch = 0
     @Published private(set) var lastSyncedAt: Date?
     @Published private(set) var lastErrorMessage: String?
 
@@ -62,7 +65,7 @@ final class FormAnalysisSyncCoordinator: ObservableObject {
         userId: String?,
         bearerToken: String?
     ) async -> Int {
-        guard !isSyncing else { return 0 }
+        guard !isSyncing, !deletionSuspended else { return 0 }
         guard let userId, !userId.isEmpty else {
             log.info("Skipping sync: no signed-in userId.")
             return 0
@@ -72,6 +75,7 @@ final class FormAnalysisSyncCoordinator: ObservableObject {
             return 0
         }
         isSyncing = true
+        let epoch = sessionEpoch
         defer { isSyncing = false }
 
         let descriptor = FetchDescriptor<FormAnalysisRecord>(
@@ -93,6 +97,7 @@ final class FormAnalysisSyncCoordinator: ObservableObject {
 
         var attempted = 0
         for record in records {
+            guard !deletionSuspended, epoch == sessionEpoch else { break }
             // Re-resolve the endpoint per record so a config change in the
             // middle of a long loop is honored. Token / endpoint / user
             // changes all need a fresh attempt.
@@ -118,11 +123,16 @@ final class FormAnalysisSyncCoordinator: ObservableObject {
         userId: String?,
         bearerToken: String?
     ) async -> Bool {
+        guard !deletionSuspended else { return false }
+        activeRecords += 1
+        let epoch = sessionEpoch
+        defer { activeRecords -= 1 }
         guard let userId, !userId.isEmpty else { return false }
         guard let endpoint = resolveEndpoint() else { return false }
 
         var lastError: String?
         for attempt in 0..<Self.maxRetryAttempts {
+            guard !deletionSuspended, epoch == sessionEpoch else { return false }
             do {
                 _ = try await service.sync(
                     payload: record.syncPayload(),
@@ -131,12 +141,14 @@ final class FormAnalysisSyncCoordinator: ObservableObject {
                     bearerToken: bearerToken,
                     session: session
                 )
+                guard !deletionSuspended, epoch == sessionEpoch else { return false }
                 record.markSyncSucceeded()
                 try? context.save()
                 lastSyncedAt = record.lastSyncedAt
                 lastErrorMessage = nil
                 return true
             } catch {
+                guard !deletionSuspended, epoch == sessionEpoch else { return false }
                 let message = String(classify(error: error).prefix(200))
                 lastError = message
                 log.error("Sync attempt \(attempt + 1)/\(Self.maxRetryAttempts) failed for \(record.syncLocalIdentifier, privacy: .public): \(message, privacy: .public)")
@@ -154,6 +166,22 @@ final class FormAnalysisSyncCoordinator: ObservableObject {
             lastErrorMessage = lastError
         }
         return false
+    }
+
+    func suspendForAccountDeletion() async {
+        deletionSuspended = true
+        while isSyncing || activeRecords > 0 {
+            do { try await Task.sleep(nanoseconds: 50_000_000) }
+            catch { await Task.yield() }
+        }
+    }
+
+    func resumeAfterAccountDeletionFailure() {
+        deletionSuspended = false
+    }
+
+    func invalidateSession() {
+        sessionEpoch += 1
     }
 
     /// Visible to tests so they can assert URL resolution without spinning up

@@ -56,6 +56,10 @@ FitGenius 是一款原生 iOS 健身应用，支持**训练计划管理**和**�
 
 AI 请求统一通过**腾讯云 CloudBase** 的 provider-neutral 代理（云函数 `fitgenius-api`）；当前主用 MiniMax-M3，Aliyun 仅作紧急回滚。iOS 包内不含任何第三方 API key——也支持 App 内「直连模式」填自有 Key，完全不依赖后端。
 
+当前功能分支已准备1.6.0发布候选：云恢复、AI失败反馈、账户删除及大快照分块同步已修复。
+API接入独立CloudBase HTTP网关，视频仍按需从静态对象存储加载。
+它尚未发布；验收及剩余生产凭据轮换门槛见[发布候选清单](docs/release-acceptance-2026-10-08.md)。
+
 ### ✨ 核心特性
 
 #### 🏋️ 训练模块

@@ -10,6 +10,8 @@ final class CloudSnapshotCoordinator {
     private let service: CloudSnapshotService
     private let defaults: UserDefaults
     private var isSyncing = false
+    private var deletionSuspended = false
+    private var sessionEpoch = 0
     private let ownerKey = "fitgenius.cloudSnapshot.localOwnerUserId"
 
     init(service: CloudSnapshotService? = nil, defaults: UserDefaults = .standard) {
@@ -18,18 +20,27 @@ final class CloudSnapshotCoordinator {
     }
 
     func sync(context: ModelContext, userId: String?, bearerToken: String?) async {
-        guard !isSyncing, let userId, let bearerToken else { return }
+        guard !isSyncing, !deletionSuspended, let userId, let bearerToken,
+              !userId.isEmpty, !bearerToken.isEmpty else { return }
         isSyncing = true
+        let epoch = sessionEpoch
         defer { isSyncing = false }
 
         do {
-            let remote = try? await service.fetch(bearerToken: bearerToken)
+            let beforeFetch = try digest(CloudSnapshot.make(from: context))
+            let remote: CloudSnapshotEnvelope?
+            do {
+                remote = try await service.fetch(bearerToken: bearerToken)
+            } catch CloudSnapshotServiceError.notFound {
+                remote = nil
+            }
+            guard !deletionSuspended, epoch == sessionEpoch else { return }
             let localOwner = defaults.string(forKey: ownerKey)
 
             // Never upload one account's retained local data into another
             // account after sign-out/sign-in on the same device.
             if let localOwner, localOwner != userId {
-                if let remote {
+                if let remote, try digest(CloudSnapshot.make(from: context)) == beforeFetch {
                     try apply(remote.snapshot, userId: userId, context: context)
                 }
                 return
@@ -38,14 +49,14 @@ final class CloudSnapshotCoordinator {
             if localOwner == nil {
                 defaults.set(userId, forKey: ownerKey)
             }
-            let local = CloudSnapshot.make(from: context)
+            let local = try CloudSnapshot.make(from: context)
             let localDigest = try digest(local)
             let previousDigest = defaults.string(forKey: digestKey(for: userId))
 
             if previousDigest == nil {
                 if local.hasMeaningfulData {
                     try await upload(local, digest: localDigest, userId: userId, bearerToken: bearerToken)
-                } else if let remote {
+                } else if let remote, localDigest == beforeFetch {
                     try apply(remote.snapshot, userId: userId, context: context)
                 }
                 return
@@ -53,7 +64,8 @@ final class CloudSnapshotCoordinator {
 
             if localDigest != previousDigest {
                 try await upload(local, digest: localDigest, userId: userId, bearerToken: bearerToken)
-            } else if let remote, try digest(remote.snapshot) != previousDigest {
+            } else if let remote, localDigest == beforeFetch,
+                      try digest(remote.snapshot) != previousDigest {
                 try apply(remote.snapshot, userId: userId, context: context)
             }
         } catch {
@@ -62,7 +74,26 @@ final class CloudSnapshotCoordinator {
     }
 
     func resetLocalOwnership() {
+        if let owner = defaults.string(forKey: ownerKey) {
+            defaults.removeObject(forKey: digestKey(for: owner))
+        }
         defaults.removeObject(forKey: ownerKey)
+    }
+
+    func invalidateSession() {
+        sessionEpoch += 1
+    }
+
+    func suspendForAccountDeletion() async {
+        deletionSuspended = true
+        while isSyncing {
+            do { try await Task.sleep(nanoseconds: 50_000_000) }
+            catch { await Task.yield() }
+        }
+    }
+
+    func resumeAfterAccountDeletionFailure() {
+        deletionSuspended = false
     }
 
     private func upload(_ snapshot: CloudSnapshot, digest: String, userId: String, bearerToken: String) async throws {
@@ -71,7 +102,15 @@ final class CloudSnapshotCoordinator {
     }
 
     private func apply(_ snapshot: CloudSnapshot, userId: String, context: ModelContext) throws {
-        try snapshot.replaceLocalData(in: context, userId: userId)
+        try context.save()
+        do {
+            try context.transaction {
+                try snapshot.replaceLocalData(in: context, userId: userId)
+            }
+        } catch {
+            context.rollback()
+            throw error
+        }
         defaults.set(userId, forKey: ownerKey)
         defaults.set(try digest(snapshot), forKey: digestKey(for: userId))
         WidgetDataManager.updateWorkoutData(modelContext: context)

@@ -1,5 +1,17 @@
 # FitGenius Form Coach Roadmap
 
+## Current production correction (2026-10-08)
+
+Current API backend is CloudBase, not the historical Vercel/Neon sections below.
+The1.6.0 candidate uses the modern regional HTTP host; tutorial metadata/media
+remain on the separate static host. Authenticated48KiB snapshot chunks and
+account generation-based deletion are deployed. SwiftData stays primary;
+empty drafts, network failures and stale sessions cannot overwrite a remote
+plan. AI failures are explicit, never silent fixed-plan replacements.
+See `docs/release-acceptance-2026-10-08.md` for verified code/cloud/archive layers
+and outstanding owner credential rotation/device acceptance.43 media excerpts
+remain developmentOnly; no Store upload or production media authorization.
+
 Last updated: 2026-06-05
 
 ## Product Vision

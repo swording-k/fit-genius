@@ -54,6 +54,8 @@ final class AuthViewModel: ObservableObject {
     }
 
     func signIn(context: ModelContext) async {
+        CloudSnapshotCoordinator.shared.invalidateSession()
+        FormAnalysisSyncCoordinator.shared.invalidateSession()
         isLoading = true
         errorMessage = nil
 
@@ -128,6 +130,8 @@ final class AuthViewModel: ObservableObject {
                 userDisplayName = displayName
             }
             currentUserId = session.userId
+            CloudSnapshotCoordinator.shared.resumeAfterAccountDeletionFailure()
+            FormAnalysisSyncCoordinator.shared.resumeAfterAccountDeletionFailure()
             await CloudSnapshotCoordinator.shared.sync(
                 context: context,
                 userId: session.userId,
@@ -143,6 +147,8 @@ final class AuthViewModel: ObservableObject {
     }
 
     func signOut() {
+        CloudSnapshotCoordinator.shared.invalidateSession()
+        FormAnalysisSyncCoordinator.shared.invalidateSession()
         Keychain.delete(keyKey)
         settings.setSessionToken(nil, userId: nil)
         currentUserId = nil
@@ -153,34 +159,28 @@ final class AuthViewModel: ObservableObject {
 
     @discardableResult
     func deleteAccount(context: ModelContext) async -> Bool {
+        guard !isLoading else { return false }
+        isLoading = true
+        defer { isLoading = false }
         errorMessage = nil
-        if let token = settings.sessionToken {
-            do {
-                try await accountDeletionService.deleteAccount(bearerToken: token)
-            } catch {
-                errorMessage = error.localizedDescription
-                return false
+        // Stop and drain old account requests before DELETE, not after it.
+        await CloudSnapshotCoordinator.shared.suspendForAccountDeletion()
+        await FormAnalysisSyncCoordinator.shared.suspendForAccountDeletion()
+        do {
+            try await LocalAccountDataCleaner.deleteAccount(
+                context: context,
+                hasConfiguredBackend: !settings.backendBaseURLString.isEmpty,
+                hasAppleIdentity: currentUserId != nil || settings.sessionUserId != nil,
+                bearerToken: settings.sessionToken
+            ) { token in
+                try await self.accountDeletionService.deleteAccount(bearerToken: token)
             }
+        } catch {
+            CloudSnapshotCoordinator.shared.resumeAfterAccountDeletionFailure()
+            FormAnalysisSyncCoordinator.shared.resumeAfterAccountDeletionFailure()
+            errorMessage = NSLocalizedString("account_delete_failed_message", comment: "")
+            return false
         }
-
-        // 1. 删除所有 SwiftData 模型
-        let modelsToDelete: [any PersistentModel.Type] = [
-            UserProfile.self,
-            WorkoutPlan.self,
-            WorkoutDay.self,
-            Exercise.self,
-            ExerciseLog.self,
-            MealDay.self,
-            MealEntry.self,
-            NutritionSummary.self,
-            ChatMessage.self,
-            FormAnalysisRecord.self
-        ]
-
-        for modelType in modelsToDelete {
-            try? context.delete(model: modelType)
-        }
-        try? context.save()
 
         // 2. 清除 Keychain + 后端 session
         Keychain.delete(keyKey)
@@ -189,7 +189,7 @@ final class AuthViewModel: ObservableObject {
         settings.setSessionToken(nil, userId: nil)
 
         // 3. 清除 UserDefaults（保留语言设置）
-        let languagePref = UserDefaults.standard.string(forKey: "AppleLanguages")
+        let languagePref = UserDefaults.standard.array(forKey: "AppleLanguages")
         if let domain = Bundle.main.bundleIdentifier {
             UserDefaults.standard.removePersistentDomain(forName: domain)
         }

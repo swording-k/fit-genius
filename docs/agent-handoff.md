@@ -11,6 +11,33 @@ Last updated: 2026-10-08 Asia/Shanghai
 
 ## Current Status
 
+### 2026-10-08: Release repair candidate 1.6.0 (20261008)
+
+- Fixed automatic empty-draft cloud overwrite, swallowed remote errors,
+  in-flight local edits/session changes, and rollback-safe restore. Manual
+  days retain local priority; only404 means no remote snapshot.
+- AI initial/regeneration missing-session and malformed/empty output now throw
+  localized errors. Own-key mode, candidate previews and explicit apply remain.
+- Production DELETE/account generation revocation plus safe retries deployed.
+  Local deletion clears14 product models, preserves templates and language,
+  and drains sync before removal. Database transactions serialize multi-row
+  deletion; concurrent chunk removal caused real DATABASE_TRANSACTION_FAIL.
+- Bounded48KiB snapshot chunks (24MiB maximum) and atomic pointer published.
+  Legacy≤96KiB JSON remains supported; client>64KiB uses chunks. Never expose
+  these snapshots publicly or send a >100KB full JSON request.
+- New App backend uses the modern ap-shanghai.app.tcloudbase.com HTTP host;
+  old API host remains for existing builds. Known legacy override is migrated,
+  unrelated custom endpoints preserved. Tutorial JSON/media remain on the
+  separate static host. Required route/collection deployments are complete.
+- All targets aligned1.6.0/20261008. Final signed Release archive is
+  `~/Library/Developer/Xcode/Archives/2026-10-08/FitGenius-1.6.0-20261008-RC.xcarchive`.
+  Initial archive audit caught an auto-bundled development MP4; membership
+  exclusion fixes it, final archive has zeroMP4 and valid deep signatures.
+- No merge, TestFlight upload or Store submission. Owner must rotate the
+  previously exposed MiniMax and SESSION_SECRET before formal release:
+  in-memory comparison confirmed both production values still equal history.
+  No values were printed/stored, and no secrets were automatically changed.
+
 ### 2026-10-08: Third common-exercise batch
 
 - Published 7 more exact-variant hosted tutorials: `0031`, `0104`, `0238`,
@@ -697,6 +724,29 @@ new reconnect prompt once to receive a new FitGenius cloud session.
 
 ## Latest Validation
 
+### 2026-10-08: Release repairs
+
+- Real CloudBase probe: health/missing+invalid authorization;180122-byte UTF8
+  snapshot/4chunks; incomplete-upload preservation; exact SHA/bytes; account
+  isolation404; deletion/repeated deletion200; old-token GET/PUT401 allPASS.
+  Uses random synthetic subjects, not real users. Two failed-probe leftovers
+  were cleaned through authenticated DELETE; only irreversible revocation
+  metadata remains. Existing provider/session env keys preserved on code update.
+- Backend13/13, full production AIService8/8, SwiftData restoration and14-model
+  cleanup, wire integrity/70KiB boundary, default-host migration, existing form
+  sync coordinator and localization checks PASS. Regression runner is
+  `bash scripts/run-release-repair-tests.sh`.
+- Generic Simulator build and signed Release/Debug device architecture builds
+  exit0. Final archive audit:3 matching targets, deep signature valid, zero
+  development video binaries. Existing HealthKit/resolver/CloudKit warnings
+  remain; they are not treated as new compiler failures.
+- Actual Apple authorization, phone UI and dual-device restore are owner
+  acceptance steps. Administrative synthetic JWT proves API behavior, not
+  Apple identity-token exchange. Highest App Store Connect build not queried.
+- Signed Debug1.6.0(20261008) installed successfully on the owner's connected
+  iPhone14Pro; device app inventory independently confirms the version/build.
+  This is upgrade-install proof, not confirmation of retained UI content.
+
 ### 2026-10-08: Third batch
 
 - 7/7 H.264/AAC assets meet expected durations within 0.05s and are under20MiB;
@@ -1056,6 +1106,16 @@ cannot be fully accepted in Simulator.
 
 ## Next Recommended Work
 
+Release repair acceptance:
+
+- Follow `docs/release-acceptance-2026-10-08.md` on the updated physical build.
+- Owner rotates MINIMAX_API_KEY and SESSION_SECRET in production, revokes old
+  provider key, reconnects Apple login, and verifies a real AI response. These
+  values still matched known exposed history at the last check; do not publish
+  first or imply the gate is only hypothetical.
+- Check App Store Connect version/build and actual media authorization before
+  any upload or Release visibility change. Only the final RC archive is current.
+
 Latest content acceptance:
 
 - Restart the current Debug App, open an exercise detail to refresh the catalog,
@@ -1070,9 +1130,8 @@ Release preparation:
 - Owner reviews the 43-template Debug candidate via
   `docs/tutorial-batch-acceptance.md`, especially `0970` support-placement note.
   New seed descriptions require this latest build, not just manifest refresh.
-- Confirm the scoped repair design in `docs/release-candidate-audit-2026-10-03.md`.
-  Prioritize empty-draft restoration and clear AI failure, then production
-  account deletion. Do not claim these are repaired from a passing media test.
+- The scoped repair design in `docs/release-candidate-audit-2026-10-03.md` was
+  approved and implemented on2026-10-08. Use the newer acceptance evidence above.
 - Confirm actual video authorization before enabling hosted teaching in Release.
   Check highest uploaded build and uniform extension versions before Archive.
 

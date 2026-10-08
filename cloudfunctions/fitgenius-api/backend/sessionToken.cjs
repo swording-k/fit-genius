@@ -24,7 +24,7 @@ function getIssuer() {
  * Signs a session JWT. In validated-only mode, uses sub as userId.
  * @param {{ sub: string, email?: string, name?: object }} params
  */
-async function signSessionToken({ sub, email, name } = {}) {
+async function signSessionToken({ sub, email, name, generation = "0" } = {}) {
   if (!sub) throw new Error("signSessionToken: sub is required");
   const { SignJWT } = await getJose();
   const nowSeconds = Math.floor(Date.now() / 1000);
@@ -33,7 +33,8 @@ async function signSessionToken({ sub, email, name } = {}) {
     sub: sub,
     apple_sub: sub,
     email: email || "",
-    name: name || {}
+    name: name || {},
+    generation
   })
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
     .setIssuer(getIssuer())
@@ -59,7 +60,8 @@ async function verifySessionToken(token) {
   return {
     userId: payload.sub,
     appleUserIdentifier: payload.apple_sub,
-    expiresAt: payload.exp
+    expiresAt: payload.exp,
+    generation: payload.generation || "0"
   };
 }
 

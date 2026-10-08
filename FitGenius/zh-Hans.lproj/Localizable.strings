@@ -831,3 +831,4 @@
 "health_nutrition_sync_detail" = "确认、编辑或删除餐食后，FitGenius 会更新当天的热量、蛋白质、碳水和脂肪；餐食照片与描述仍只保留在 FitGenius。";
 "planned_exercise_loading_tutorial" = "正在加载教学片段…";
 "planned_exercise_tutorial_load_failed" = "教学片段暂时加载失败，请重试或查看原视频。";
+"ai_plan_invalid_response_error" = "AI 未返回有效的训练计划，现有计划未被替换。请重试。";

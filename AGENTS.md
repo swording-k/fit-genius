@@ -66,7 +66,7 @@ iOS 包内**不携带**任何 AI provider 真实 key；所有第三方 key 全�
         │   CloudBase 云函数 fitgenius-api (Event, Node18)    │
         │  ┌─────────────┐ ┌─────────────┐                    │
         │  │/api/auth/   │ │/api/ai/     │   (仅这 2 条 +     │
-        │  │  apple      │ │  chat       │   /api/health 上线) │
+        │  │  apple      │ │  chat       │   同步/删除也上线) │
         │  └──────┬──────┘ └──────┬──────┘                    │
         │         │               │                           │
         │   Apple JWKS       MiniMax-M3 转发 (thinking:off)   │
@@ -135,7 +135,7 @@ FitGenius/
 │
 ├── cloudfunctions/                ← ★ 当前生产后端（CloudBase Event 函数）
 │   └── fitgenius-api/
-│       ├── index.js               ← 仅 3 路由：health / auth/apple / ai/chat
+│       ├── index.js               ← 6 路由：health / auth/apple / ai/chat / form-analyses / cloud-snapshot / account
 │       └── backend/               ← sessionToken / appleTokenVerifier /
 │                                     aiProviderConfig（jose + MiniMax）
 │
@@ -172,7 +172,7 @@ FitGenius/
 ### 后端（生产 = CloudBase）
 - **平台**: 腾讯云 CloudBase Event 云函数（envId `fitgenius-d0ghm1rz21cef6594`）
 - **Runtime**: Node.js 18.15（云函数运行时）
-- **形态**: 纯 Node Event 函数（无 Express），仅 3 路由，无状态、无数据库
+- **形态**: 纯 Node Event 函数（无 Express），6路由；CloudBase NoSQL存储账户撤销状态、分析、快照及分块
 - **AI 转发**: provider-neutral OpenAI 兼容代理，当前 `AI_PROVIDER=minimax`（MiniMax-M3），
   `thinking:{type:"disabled"}` 关思考避免超过 50s 云函数超时；key 仅服务端持有
 - **认证**: `jose`（Apple JWKS 验签 + HS256 session JWT）
@@ -194,7 +194,7 @@ FitGenius/
 5. **本地化**：新文案必须同步 `en.lproj` + `zh-Hans.lproj`。变量 key 用 `LocalizedStringKey(...)`。
 6. **App Group** 必须在 Main App + Widget 两侧都正确配置。
 7. **新文件放进 `FitGenius/` 即可被 Xcode 自动收录**（PBXFileSystemSynchronizedRootGroup）。
-8. **CloudBase JSON 请求体有 ~100KB 硬限**（文本类型）；图片压到 ≤50KB 单图、云快照需走 Storage URL 而非直接塞 JSON。
+8. **CloudBase JSON 请求体有 ~100KB 硬限**（文本类型）；图片压到 ≤50KB 单图、新客户端快照>64KiB使用认证48KiB分块，完整后原子提交；禁止把大快照整份直接塞单次JSON。
 
 ---
 
@@ -259,20 +259,22 @@ FitGenius/
 
 ---
 
-## 9. 云同步现状（iOS 端 + 服务端均已就绪并上线）
+## 9. 云同步与账户删除现状（2026-10-08）
 
-**状态（2026-07-16）**：云同步**已上线**。iOS 端 `FormAnalysisSyncCoordinator`（POST `/api/form-analyses`，payload = `FormAnalysisRecord.syncPayload()`）与 `CloudSnapshotCoordinator`/`CloudSnapshotService`（GET/PUT `/api/cloud-snapshot`，payload = `CloudSnapshot` 全量账户快照）完整实现并随 scene 回到前台触发；服务端 CloudBase `fitgenius-api` 已实现这两条路由，并开通了 NoSQL 集合 `form_analyses` 与 `cloud_snapshots`（按 `userId` 隔离）。端到端已验证：POST 写入、PUT/GET 快照往返、跨用户隔离（404）、无 token 返回 401。
+当前 iOS 默认 API 为 `https://fitgenius-d0ghm1rz21cef6594-1441969311.ap-shanghai.app.tcloudbase.com`。
+旧 `*.tcloudbaseapp.com` 静态域名上的历史 API 保留，不支持新增SCF路由；新客户端已迁移到HTTP域名，已知旧默认override会升级，其他自定义地址保留。
+教程索引/视频继续使用静态域名绝对URL，不与API域名拼接。
 
-**路由实现细节（重要）**：网关 `createRoute` 默认 `EnablePathTransmission = false`，会把请求路径剥离后转发给 Event 函数（`event.path` 收到 `/`）。三条内置路由（health/auth/apple/ai/chat）在初始化时即以 transmission ON 创建，保留真实路径；两条云同步路由通过 transmission-off 路由暴露到默认域名 `fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com`，函数无法从 `event.path` 区分，因此 `index.js` 在 `event.path === "/"` 时按 HTTP method 还原路由（POST→form-analyses，GET/PUT→cloud-snapshot）。各端点 method 唯一，映射无歧义，**无需改动 iOS 端**。若日后在 CloudBase 控制台把这两个路由的「路径透传」打开，函数优先使用 `event.path`，逻辑向后兼容。
+- 六路由：GEThealth、POSTauth/apple、POSTai/chat、POSTform-analyses、GET/PUTcloud-snapshot、DELETEaccount。
+- health/auth/AI的现代HTTP路由已开启路径透传；快照/分析/账户默认路径剥离仍支持：POST→分析，GET/PUT→快照，DELETE→账户。
+- SwiftData为本地主源，只有明确404意味着无远端；读取/解码失败不上传。零天数自动草稿不算有效计划；手动日保留本地优先。读取期间编辑/退出使旧恢复失效。
+- 新客户端≤64KiB直传，更大使用48KiB原始字节base64分块。服务端保留旧客户端≤96KiB直传/直返；分块每次JSON约66KiB，完整后才提交当前指针。
+- 协议：PUT `{snapshotUpload:{id,index,count,chunk}}`；GET大快照返回 `{snapshotDownload:{id,count,sha256},updatedAt}`；GET `?download=id&chunk=N` 返回对应块。客户端验证身份、数量、SHA256，再解码。上限512块/24MiB。
+- 集合：form_analyses、cloud_snapshots、cloud_snapshot_chunks、account_states。新两集合ADMINONLY；不开放客户端直读或公开视频/账户文件访问。
+- 账户删除先撤销generation，再仅清理本人数据。事务内按顺序删除，不使用并发remove（生产已验证会DATABASE_TRANSACTION_FAIL）。保留不可逆最小撤销状态以拒绝旧JWT；重新Apple登录发新generation。
+- 使用 `tcb fn code update` 部署代码，不能用包含占位/不完整env的配置覆盖生产key。2026-10-08现有provider/session变量已确认保留。
+- 真实隔离探针已验证180122字节/4块往返、半途保旧、跨账号404、删除200、重试200及旧会话401；不等于真实Apple登录或双设备验收。
 
-**仍需处理的限制（上线前/后）**：
-1. **100KB JSON 上限（关键）**：`form-analyses` 单条记录小，直传 JSON 即可（已验证）。`cloud-snapshot` 是全量账户导出，**对小/新账户可直传**（已验证往返），但大账户会超过 CloudBase HTTP 触发 ~100KB 文本请求体上限（实测超即 `EXCEED_MAX_PAYLOAD_SIZE`）。彻底解法（与图片管线一致）：快照 JSON 先传 **CloudBase Storage** 拿 `fileID`/临时 URL，再 `PUT /api/cloud-snapshot` 只传 URL 指针（走「其他请求 100MB」通道），后端按 URL 落库；GET 返回 URL，客户端再下载还原。该 iOS 端 Storage-first 重构尚未做。
-2. **隐私政策**：必须明确「用户训练/饮食/表单数据存于腾讯云 CloudBase」，否则过不了 App Store 审核（见上线核查）。
+发布证据与剩余门槛见 `docs/release-acceptance-2026-10-08.md`：两个历史暴露生产凭据仍未轮换，不得将归档成功当作可直接发布。媒体仍developmentOnly。
 
-**部署**：已于 2026-07-16 通过 CloudBase MCP 完成（非 `tcb` CLI）——`updateFunctionCode` 部署 `index.js` + `@cloudbase/node-sdk`，并在默认域名上以 `createRoute` 暴露两条同步路由。此前 `tcb_refresh` ECONNRESET 的连接面问题已绕开（MCP 直连可用）。
-
-**开启后的影响**：不改变「离线优先」——SwiftData 仍是本地主源，同步只是备份/跨设备。你个人 CloudBase 环境存真实用户 PII，需自行承担数据安全与合规责任。
-
----
-
-如果本文件与你看到的代码不一致，**以代码为准**并提 issue / 改本文件。
+如果本文件与代码不一致，以代码为准并同步记录。

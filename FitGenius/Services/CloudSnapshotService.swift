@@ -22,34 +22,24 @@ struct CloudSnapshotService {
     }
 
     func fetch(bearerToken: String) async throws -> CloudSnapshotEnvelope {
-        let request = try makeRequest(method: "GET", bearerToken: bearerToken)
-        let (data, response) = try await session.data(for: request)
-        guard let http = response as? HTTPURLResponse else { throw CloudSnapshotServiceError.invalidResponse }
-        if http.statusCode == 404 { throw CloudSnapshotServiceError.notFound }
-        guard http.statusCode == 200 else { throw CloudSnapshotServiceError.server(http.statusCode) }
-        return try Self.decoder.decode(CloudSnapshotEnvelope.self, from: data)
+        guard let base = settings.appleAuthBaseURL else { throw CloudSnapshotServiceError.invalidConfiguration }
+        do {
+            let result = try await CloudSnapshotWireClient(baseURL: base, session: session).fetch(bearerToken: bearerToken)
+            return CloudSnapshotEnvelope(snapshot: try Self.decoder.decode(CloudSnapshot.self, from: result.snapshot), updatedAt: result.updatedAt)
+        } catch CloudSnapshotWireError.notFound {
+            throw CloudSnapshotServiceError.notFound
+        }
     }
 
     func upload(_ snapshot: CloudSnapshot, bearerToken: String) async throws -> CloudSnapshotEnvelope {
-        var request = try makeRequest(method: "PUT", bearerToken: bearerToken)
-        request.httpBody = try Self.encoder.encode(snapshot)
-        let (data, response) = try await session.data(for: request)
-        guard let http = response as? HTTPURLResponse else { throw CloudSnapshotServiceError.invalidResponse }
-        guard http.statusCode == 200 else { throw CloudSnapshotServiceError.server(http.statusCode) }
-        return try Self.decoder.decode(CloudSnapshotEnvelope.self, from: data)
+        guard let base = settings.appleAuthBaseURL else { throw CloudSnapshotServiceError.invalidConfiguration }
+        let updatedAt = try await CloudSnapshotWireClient(baseURL: base, session: session)
+            .upload(Self.encoder.encode(snapshot), bearerToken: bearerToken)
+        return CloudSnapshotEnvelope(snapshot: snapshot, updatedAt: updatedAt)
     }
 
     static func digestData(for snapshot: CloudSnapshot) throws -> Data {
         try encoder.encode(snapshot)
-    }
-
-    private func makeRequest(method: String, bearerToken: String) throws -> URLRequest {
-        guard let base = settings.appleAuthBaseURL else { throw CloudSnapshotServiceError.invalidConfiguration }
-        var request = URLRequest(url: base.appendingPathComponent("api/cloud-snapshot"))
-        request.httpMethod = method
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(bearerToken)", forHTTPHeaderField: "Authorization")
-        return request
     }
 
     private static let encoder: JSONEncoder = {
