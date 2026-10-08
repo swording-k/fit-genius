@@ -1,6 +1,22 @@
 # 常见动作真人教学验证清单
 
-更新：2026-10-03。36 个可播放节选，对应 36 个不同动作模板；本批新增 12 个。不是候选视频数量。
+## 第三批新增 7 个（2026-10-08）
+
+| 动作库名称 | ID | 时长 | 原视频节选 | 播放验证 |
+|---|---|---:|---|---|
+| 杠铃弯举 | 0031 | 13s | [1715–1728s](https://www.douyin.com/video/7611481791380257969) | [云端 MP4](https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7611481791380257969-1715-1728.mp4) |
+| 杠铃站姿背部腕弯举 | 0104 | 11s | [55–66s](https://www.douyin.com/video/7679415198898073009) | [云端 MP4](https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7679415198898073009-55-66.mp4) |
+| 绳索直手臂下拉 | 0238 | 20s | [559–579s](https://www.douyin.com/video/7647176615788911793) | [云端 MP4](https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7647176615788911793-559-579.mp4) |
+| 哑铃上斜锤式推举 | 0321 | 9s | [196–205s](https://www.douyin.com/video/7686888075494347697) | [云端 MP4](https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7686888075494347697-196-205.mp4) |
+| 器械坐姿反向飞鸟 | 0602 | 15s | [482–497s](https://www.douyin.com/video/7613586950141907450) | [云端 MP4](https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7613586950141907450-482-497.mp4) |
+| 史密斯站姿站姿推举 | 0774 | 13s | [414–427s](https://www.douyin.com/video/7595410750903198075) | [云端 MP4](https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7595410750903198075-414-427.mp4) |
+| 站姿提踵楼梯 | 1490 | 10s | [899–909s](https://www.douyin.com/video/7612270623104450533) | [云端 MP4](https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7612270623104450533-899-909.mp4) |
+
+0321 仅保留 9 秒完整正确循环，避免混入紧接着的错误幅度示范。0238 是谭师指导学员的片段。0774 原片脚部未完整入镜，自拍对比时按提示补全。青蛙式伸展 2571 因遮挡及现有简介不准确暂不发布；无辅助引体教学段含反例，也未凑数加入。
+
+7/7 云端完整文件与本地 SHA-256 一致；编码、时长、体积证据见 `docs/tutorial-reviews/batch3-assets.json`。
+
+更新：2026-10-08。43 个可播放节选，对应 43 个不同动作模板；第三批新增 7 个。不是候选视频数量。
 
 ## 怎么验证
 
@@ -43,7 +59,7 @@
 | 哑铃前平举2 | 0309 | 20s | [2100–2120s](https://www.douyin.com/video/7651943506576442225) | [云端 MP4](https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7651943506576442225-2100-2120.mp4) |
 | 哑铃上斜卧推举 | 0314 | 20s | [2641–2661s](https://www.douyin.com/video/7625479021379194118) | [云端 MP4](https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7625479021379194118-2641-2661.mp4) |
 
-### 本批新增 12 个
+### 第二批新增 12 个
 
 | 动作库名称 | ID | 时长 | 原视频节选 | 播放验证 |
 |---|---|---:|---|---|

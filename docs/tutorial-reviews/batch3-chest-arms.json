@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "reviewedOn": "2026-10-03",
+  "reviewMethod": "Existing review records and 36-template catalog checked first. Local original videos were reviewed with exact-second ffmpeg contact sheets and canonical GIF comparison. Titles and seed text alone are not accepted as evidence. No catalog, seed or cloud mutation performed.",
+  "baselineDistinctTemplates": 36,
+  "newDistinctTemplates": 1,
+  "sources": [
+    {"sourceVideoID":"7625479021379194118","durationSeconds":5050.758005},
+    {"sourceVideoID":"7668880941976944817","durationSeconds":1512.933008},
+    {"sourceVideoID":"7648931004442846193","durationSeconds":2324.3},
+    {"sourceVideoID":"7658495365934683493","durationSeconds":815.266667},
+    {"sourceVideoID":"7686888075494347697","durationSeconds":721.443991,"note":"New original downloaded by parent; audited locally without downloading another original."}
+  ],
+  "proposedClips": [
+    {
+      "templateID": "0321",
+      "sourceVideoID": "7686888075494347697",
+      "start": 196,
+      "end": 205,
+      "durationSeconds": 9,
+      "cameraView": "oblique",
+      "framingNoteZh": "按照示范从斜侧方拍摄，完整拍到约45度上斜凳、双肩、双肘、两只哑铃和落地双脚。保持掌心相对，按教学控制下降幅度；这是9秒短节选，包含一轮完整下放与上推，不是平板或正手推胸。",
+      "framingNoteEn": "Match the oblique side view, including the roughly 45-degree incline bench, shoulders, elbows, both dumbbells and planted feet. Keep palms facing each other and control the lowering range as taught. This nine-second excerpt contains one complete lowering-and-pressing cycle, not a flat or pronated press.",
+      "visualEvidence": "Canonical 0321-PG1kcIb GIF confirms incline bilateral neutral-grip dumbbell press. Source shows the same incline and palms-facing grip with planted feet. At 196s the instructor begins the recommended technique; 199s subtitle explicitly confirms it is correct. 202s shows the lower position, 203s the upward phase, and 204s the upper position. The 192–195s rejected technique and 206–212s excessive-range counterexample are excluded. Nine seconds is intentionally shorter than the preferred 10–30s; extending it would introduce a counterexample. Later 390–415s is single-arm/static discussion; 570–574s is a brief static bilateral hold, not a complete better repetition.",
+      "confidence": "high",
+      "evidenceImages": [
+        "/tmp/fitgenius-batch3-gif-0321.jpg",
+        "/tmp/fitgenius-batch3-hammer-dense-sheet.jpg",
+        "/tmp/fitgenius-batch3-hammer-boundary-sheet.jpg"
+      ]
+    }
+  ],
+  "alreadyCovered": [
+    {"templateIDs":["0025","0314","0251"],"sourceVideoID":"7625479021379194118","reason":"Flat barbell press, incline dumbbell press and unassisted parallel-bar dip already have approved catalog clips; do not count another source range as another exercise."},
+    {"templateIDs":["0289"],"sourceVideoID":"7668880941976944817","reason":"Clean flat bilateral dumbbell press 1240–1265s already approved."},
+    {"templateIDs":["0860","1748","0315"],"sourceVideoID":"7648931004442846193","reason":"Cable kickback, flat EZ behind-head extension and incline bilateral dumbbell curl already approved; older arms-private pending note for 0315 was superseded by batch2-upper approval."},
+    {"templateIDs":["0447"],"sourceVideoID":"7658495365934683493","reason":"Standing EZ curl 686–710s already approved. Coarse exact-time checks of the 815s original found no separately matched new exercise."}
+  ],
+  "rejected": [
+    {
+      "templateIDs":["0060","0061","0056"],
+      "sourceVideoID":"7625479021379194118",
+      "start":3645,
+      "end":4105,
+      "reason":"Reinspection at 3645–3670, 3780–3825 and 4090–4105 shows an EZ curved bar, whereas all three canonical templates use a straight bar. Several portions also contain wrist/upper-arm corrections or hands-on coaching. Do not map by the generic lying-triceps chapter name.",
+      "evidenceImages":["/tmp/fitgenius-batch3-triceps-sheet.jpg","/tmp/fitgenius-review-chest-gif-0060-h8LFzo9.jpg","/tmp/fitgenius-review-chest-gif-0061-iZop9xO.jpg"]
+    },
+    {"templateIDs":["0317","0318","0322","0350","1661"],"sourceVideoID":"7648931004442846193","start":1325,"end":1568,"reason":"Source curl is incline bilateral supinated curl already assigned to 0315. 0317 has effectively the same bilateral incline pattern and is not counted again using the same source repetition; 0318 is alternating, 0322 flared inner curl, and 0350/1661 flat bench. These are not distinct additional matches."},
+    {"templateIDs":["1643","1638","1644","1641","0206"],"sourceVideoIDs":["7648931004442846193","7658495365934683493"],"reason":"Floor-seated forward cable curls in these sources do not establish the canonical bench-seated dual-high-pulley, overhead bench, squat-low-pulley, regular seated low-cable or standing reverse-grip variants. Retain the exact-variant exclusions from arms-private; no title-based coverage added.","evidenceImages":["/tmp/fitgenius-batch3-arms-sheet.jpg"]},
+    {"templateIDs":["0231","1727"],"sourceVideoID":"7648931004442846193","start":1805,"end":1925,"reason":"Overhead bare-cable-end extension is not upright pushdown 0231. A matching reverse/underhand handle grip for 1727 is not established."},
+    {"templateIDs":["0301","1623","0352","1624","1743","3545","0404","0290","0388","0360","0361"],"sourceVideoID":"7668880941976944817","reason":"Previously reviewed weighted material is flat bilateral pronated press or correction-focused seated shoulder press. No exact clean additional incline/decline/neutral/reverse/twisting/alternating/single-arm variant established."},
+    {"templateIDs":["3541","1017","0178"],"sourceVideoID":"7625479021379194118","start":4155,"end":4660,"reason":"Standing cable Y chapter does not match prone incline dumbbell Y, band Y or conventional lateral raise; unchanged from prior review."},
+    {"templateIDs":["0352","0314"],"sourceVideoID":"7686888075494347697","start":196,"end":205,"reason":"Approved clip is incline neutral grip: not flat neutral-grip 0352 and not pronated incline press 0314."},
+    {"templateIDs":["0321"],"sourceVideoID":"7686888075494347697","start":206,"end":212,"reason":"Excessive lowering range is explicitly shown as a counterexample; do not append to the short positive clip."}
+  ]
+}

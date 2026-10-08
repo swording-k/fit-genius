@@ -1,6 +1,6 @@
 # FitGenius Agent Handoff
 
-Last updated: 2026-10-03 Asia/Shanghai
+Last updated: 2026-10-08 Asia/Shanghai
 
 ## Read First
 
@@ -10,6 +10,23 @@ Last updated: 2026-10-03 Asia/Shanghai
 4. `docs/agent-handoff.md`
 
 ## Current Status
+
+### 2026-10-08: Third common-exercise batch
+
+- Published 7 more exact-variant hosted tutorials: `0031`, `0104`, `0238`,
+  `0321`, `0602`, `0774`, `1490`. Cloud catalog now has 43 distinct playable
+  templates, not candidate counts. New clips are 9–20 seconds; `0321` deliberately
+  ends after one correct cycle before the counterexample starts.
+- Seven new full originals bring the retained ignored source archive to 27.
+  Main compared canonical GIFs and exact-second footage before publication.
+  `0238` is coached-student footage; `0774` notes the original feet crop.
+  Deferred `2571` because learner visibility is poor and seed text needs a
+  separate correction. Pull-up mechanics/explanation with counterexamples was
+  not published. Detailed decisions are in `docs/tutorial-reviews/batch3-*.json`.
+- Assets were deployed and full-byte verified before publishing the manifest.
+  No App code, seed, user data, function, versions, merge or store submission
+  changed. All new clips retain developmentOnly visibility; owner Debug-device
+  acceptance remains pending. Media delivery does not resolve release-audit items.
 
 ### 2026-10-03: Second common-exercise batch and release audit
 
@@ -680,6 +697,21 @@ new reconnect prompt once to receive a new FitGenius cloud session.
 
 ## Latest Validation
 
+### 2026-10-08: Third batch
+
+- 7/7 H.264/AAC assets meet expected durations within 0.05s and are under20MiB;
+  full HTTPS200 downloads equal local bytes/SHA-256. Recorded in
+  `docs/tutorial-reviews/batch3-assets.json`.
+- Cloud manifest full bytes match the checked-in file. Compiled Swift remote
+  repository `--live` PASS, including Debug/Release filtering and cache recovery.
+  `tutorial-catalog-audit-tests.mjs` and `git diff --check` PASS.
+- Coverage: 1324 templates, 49 observed sources, 27 downloaded originals,
+  52 candidate templates, 43 hosted development clips and zero licensed clips.
+  Research remains incomplete. No App build repeated for metadata-only changes.
+- CLI initially reported ECONNRESET from tcb_refresh; retry succeeded. CLI's
+  successCount=0 output is not proof of publication; actual cloud byte equality
+  and Swift live-catalog success provide the deployment evidence.
+
 ### 2026-10-03: Second batch
 
 - Every new asset (12/12) is H.264/AAC, under 20 MiB, with expected duration;
@@ -1024,9 +1056,18 @@ cannot be fully accepted in Simulator.
 
 ## Next Recommended Work
 
+Latest content acceptance:
+
+- Restart the current Debug App, open an exercise detail to refresh the catalog,
+  then validate the seven third-batch IDs in `docs/tutorial-batch-acceptance.md`.
+  Verify GIF match, sound, seek and manual Photos comparison on the owner's iPhone.
+- Continue remaining common gaps, prioritizing clean unassisted pull-ups,
+  leg press, leg extension, calf variants and arm pushdowns. Exact grip/equipment
+  matches and unobscured demonstrations are required; backups do not add coverage.
+
 Release preparation:
 
-- Owner reviews the 36-template Debug candidate via
+- Owner reviews the 43-template Debug candidate via
   `docs/tutorial-batch-acceptance.md`, especially `0970` support-placement note.
   New seed descriptions require this latest build, not just manifest refresh.
 - Confirm the scoped repair design in `docs/release-candidate-audit-2026-10-03.md`.

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "reviewedOn": "2026-10-03",
+  "reviewMethod": "Compared the current 36 hosted-template catalog against previous back/shoulder review records. Revisited previously unreviewed early shoulder footage with exact-seek contact sheets, then reviewed the newly supplied 7613586950141907450 original. The accepted interval was checked at one-second resolution and against all canonical GIF frames, with a full-resolution grip frame. No catalog, seed or cloud state changed.",
+  "accepted": [
+    {
+      "exerciseTemplateIDs": ["0602"],
+      "exerciseName": "lever seated reverse fly",
+      "sourceVideoID": "7613586950141907450",
+      "localSource": "video/tutorial-source/douyin/7613586950141907450.mp4",
+      "startSeconds": 482,
+      "endSeconds": 497,
+      "cameraView": "sideThreeQuarter",
+      "exactSetup": "Seated facing the reverse-fly machine with the chest against its pad, both hands on horizontal handles with palms down, elbows slightly flexed, bilateral simultaneous outward opening and controlled forward return. This is not the vertical-handle neutral-grip 0601 variant.",
+      "framingNoteZh": "按照谭师的斜侧面拍摄，面向器械坐稳并让胸部贴住靠垫；正手握住横向把手、掌心向下。拍全胸垫、双肩、双肘和把手前后开合的完整路径，勿将此示范当作竖把对握反飞鸟。",
+      "framingNoteEn": "Match Tan Sir's oblique side view. Sit facing the machine with your chest against its pad and hold the horizontal handles with a palms-down grip. Include the chest pad, both shoulders, elbows and the full opening/return path. This is not the vertical-handle neutral-grip reverse fly.",
+      "visualEvidence": "482s begins with the handles opened; 483s returns forward and 484–489s opens again. 490–493s returns forward, 494s opens, 495–496s returns and 497s opens again. Full-resolution 486s confirms the fingers curled over a horizontal handle and the palm-down wrist orientation. Chest stays against the support throughout. The canonical 0602 GIF shows the same seated chest-supported bilateral horizontal-handle overhand reverse fly, unlike the already hosted 0601 neutral-handle GIF. Cues in the selected interval explain outward extension and controlled eccentric return, not a deliberately wrong example. End before 498s when the creator discusses and demonstrates returning too far.",
+      "evidenceContactSheet": "/tmp/fitgenius-batch3-0602-final.jpg",
+      "highResolutionEvidence": ["/tmp/fitgenius-batch3-0602-grip486.jpg"],
+      "canonicalGIFEvidence": "/tmp/fitgenius-review-machine-0602.jpg",
+      "confidence": "high",
+      "rightsStatus": "developmentOnly",
+      "publicationStatus": "awaitingMainAgentReview"
+    }
+  ],
+  "rejected": [
+    {
+      "exerciseTemplateIDs": ["0380"],
+      "sourceVideoID": "7651943506576442225",
+      "reviewedRangeSeconds": [410, 832],
+      "reason": "The previously unreviewed early standing rear-delt lesson is not canonical 0380. Dense 798–832s frames show dumbbells moving mainly rearward beside/behind the hips with a modest forward hinge, rather than the canonical horizontal-torso, outward transverse-abduction reverse fly. A rear-delt title is not sufficient to substitute this shoulder-extension path.",
+      "evidenceContactSheet": "/tmp/fitgenius-batch3-rearfly-dense.jpg",
+      "surveyEvidence": "/tmp/fitgenius-batch3-rearfly-survey.jpg",
+      "canonicalGIFEvidence": "/tmp/fitgenius-review-rows-0380.jpg"
+    },
+    {
+      "exerciseTemplateIDs": ["1022", "1017"],
+      "sourceVideoID": "7651943506576442225",
+      "reviewedRangeSeconds": [170, 310],
+      "reason": "Pink straps are a suspension/TRX setup with rigid loop handles and a backward-leaning bodyweight Y pull. Canonical 1022 is an elastic-band rear-delt row; 1017 requires elastic-band resistance too. Do not rename suspension equipment as an elastic band because the material is pink.",
+      "evidenceContactSheet": "/tmp/fitgenius-batch3-band-survey.jpg",
+      "canonicalGIFEvidence": "/tmp/fitgenius-batch3-1022.jpg"
+    },
+    {
+      "exerciseTemplateIDs": ["1457"],
+      "sourceVideoID": "7613586950141907450",
+      "reviewedRangeSeconds": [650, 678],
+      "reason": "Standing barbell press is demonstrated with a shoulder-width/relatively close grip and forward elbows. Canonical 1457 is visibly wide grip with abducted elbows; the demonstrated version belongs to already hosted 1456. Do not count another narrow press source as a new wide-grip template.",
+      "evidenceContactSheet": "/tmp/fitgenius-batch3-military-dense.jpg",
+      "canonicalGIFEvidence": ["/tmp/fitgenius-batch3-1457.jpg", "/tmp/fitgenius-batch3-1456.jpg"]
+    },
+    {
+      "exerciseTemplateIDs": ["0203", "0233", "3697"],
+      "sourceVideoID": "7613586950141907450",
+      "reviewedRangeSeconds": [740, 980],
+      "reason": "Rope face-pull lesson is supine on a flat bench, not the standing or kneeling canonical rope rear-delt rows. No exact supine face-pull template exists under these IDs. The chapter also includes wrist and neck counterexamples; it must not be used as a generic correct face-pull clip.",
+      "evidenceContactSheet": "/tmp/fitgenius-batch3-lyingface-survey.jpg"
+    },
+    {
+      "exerciseTemplateIDs": ["0195", "1633", "1642", "1644"],
+      "sourceVideoID": "7613586950141907450",
+      "reviewedRangeSeconds": [1280, 1380],
+      "reason": "Curl teaching uses a bilateral straight cable bar while seated on the floor with elbows on the raised knees. This is not a preacher bench, unilateral concentration curl or a squat supported on the feet. No exact floor-seated bilateral knee-braced template confirmed; do not match by target muscle alone.",
+      "evidenceContactSheet": "/tmp/fitgenius-batch3-arms-survey.jpg"
+    }
+  ],
+  "alreadyCoveredOrPreviouslyRejected": [
+    {"sourceVideoID": "7662562022056718449", "coveredTemplateIDs": ["0198", "0245"], "previousReview": "docs/tutorial-reviews/back-shoulder-existing.json", "decision": "No new attachment or grip demonstration confirmed. Neutral V-bar/independent handles and behind-neck/straight-arm variants remain excluded; generic overhand duplicates are not new movements."},
+    {"sourceVideoID": "7670171990876103153", "previousReview": "docs/tutorial-reviews/rows.json", "decision": "0292 rack-braced, both-feet-grounded row still differs from hand/knee-on-bench canonical setup. 0359 lateral-leaning supported raise still differs from standing forward-hinge GIF. Seated reverse fly family already has hosted 0378; do not map it to standing 0380, incline-supported 0383 or head-supported 0379."},
+    {"sourceVideoID": "7674643042243064997", "coveredTemplateIDs": ["0239"], "previousReview": "docs/tutorial-reviews/rows.json", "decision": "0180 is a possible duplicate canonical equivalent to the hosted 0239 upright low row, not an independently demonstrated movement. The bench/floor-seated unilateral chapters remain unlike standing and kneeling variants. No new exact match confirmed."},
+    {"sourceVideoID": "7651943506576442225", "coveredTemplateIDs": ["0405", "0309", "0334"], "previousReview": "docs/tutorial-reviews/shoulders-private.json", "decision": "Seated pronated press, standing neutral front raise and ordinary lateral raise are already covered. Instructor neutral-grip press setup still has no full pressing cycle, so 0404 remains excluded."},
+    {"sourceVideoID": "7613586950141907450", "coveredTemplateIDs": ["0601", "1456", "0309", "0194"], "decision": "Neutral machine reverse fly around 580s, narrow military press, neutral bilateral front raise and standing low-pulley rope overhead triceps extension duplicate hosted movements. No additional count from those chapters."}
+  ],
+  "summary": {"newExactTemplateCount": 1, "newClipCount": 1, "newExactTemplateIDs": ["0602"], "publishedByThisReview": false}
+}

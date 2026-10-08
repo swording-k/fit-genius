@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "checkedOn": "2026-10-03",
+  "checkedOn": "2026-10-08",
   "creatorName": "谭成义",
   "profileURL": "https://www.douyin.com/user/MS4wLjABAAAArfpAmbNNdODGpzfznrZAXrt2JgCGFWxE25eFkQDGXOY",
   "douyinHandle": "nishitiantan",
@@ -189,16 +189,42 @@
     {
       "id": "7686888075494347697",
       "title": "对握上斜推胸详解",
-      "candidateTemplateIDs": [],
-      "reviewNote": "Do not map incline neutral press to a flat neutral press template."
+      "candidateTemplateIDs": [
+        "0321"
+      ],
+      "reviewNote": "Do not map incline neutral press to a flat neutral press template. Batch 3: exact GIF and full-original visual review; see docs/tutorial-reviews/batch3-*.json. Published ranges exclude mismatched variants and counterexamples.",
+      "downloaded": true,
+      "durationSeconds": 721.443991,
+      "sizeBytes": 79137542,
+      "reviewedExcerpts": [
+        {
+          "templateID": "0321",
+          "start": 196,
+          "end": 205,
+          "status": "developmentOnly"
+        }
+      ]
     },
     {
       "id": "7679415198898073009",
       "title": "小臂握力、健腹轮和倒立",
       "candidateTemplateIDs": [
         "0857",
-        "0796"
-      ]
+        "0796",
+        "0104"
+      ],
+      "downloaded": true,
+      "durationSeconds": 751.235011,
+      "sizeBytes": 48247265,
+      "reviewedExcerpts": [
+        {
+          "templateID": "0104",
+          "start": 55,
+          "end": 66,
+          "status": "developmentOnly"
+        }
+      ],
+      "reviewNote": "Batch 3: exact GIF and full-original visual review; see docs/tutorial-reviews/batch3-*.json. Published ranges exclude mismatched variants and counterexamples."
     },
     {
       "id": "7658495365934683493",
@@ -333,7 +359,21 @@
     {
       "id": "7647176615788911793",
       "title": "私教背部跟练",
-      "candidateTemplateIDs": []
+      "candidateTemplateIDs": [
+        "0238"
+      ],
+      "downloaded": true,
+      "durationSeconds": 2951.366667,
+      "sizeBytes": 193964679,
+      "reviewedExcerpts": [
+        {
+          "templateID": "0238",
+          "start": 559,
+          "end": 579,
+          "status": "developmentOnly"
+        }
+      ],
+      "reviewNote": "Batch 3: exact GIF and full-original visual review; see docs/tutorial-reviews/batch3-*.json. Published ranges exclude mismatched variants and counterexamples."
     },
     {
       "id": "7645715297237252785",
@@ -565,17 +605,59 @@
     {
       "id": "7613586950141907450",
       "title": "肩部与手臂训练",
-      "candidateTemplateIDs": []
+      "candidateTemplateIDs": [
+        "0602"
+      ],
+      "downloaded": true,
+      "durationSeconds": 1552.733008,
+      "sizeBytes": 144135139,
+      "reviewedExcerpts": [
+        {
+          "templateID": "0602",
+          "start": 482,
+          "end": 497,
+          "status": "developmentOnly"
+        }
+      ],
+      "reviewNote": "Batch 3: exact GIF and full-original visual review; see docs/tutorial-reviews/batch3-*.json. Published ranges exclude mismatched variants and counterexamples."
     },
     {
       "id": "7612270623104450533",
       "title": "下肢训练",
-      "candidateTemplateIDs": []
+      "candidateTemplateIDs": [
+        "1490"
+      ],
+      "downloaded": true,
+      "durationSeconds": 936.066667,
+      "sizeBytes": 88131460,
+      "reviewedExcerpts": [
+        {
+          "templateID": "1490",
+          "start": 899,
+          "end": 909,
+          "status": "developmentOnly"
+        }
+      ],
+      "reviewNote": "Batch 3: exact GIF and full-original visual review; see docs/tutorial-reviews/batch3-*.json. Published ranges exclude mismatched variants and counterexamples."
     },
     {
       "id": "7611481791380257969",
       "title": "背部训练讲解",
-      "candidateTemplateIDs": []
+      "candidateTemplateIDs": [
+        "0031"
+      ],
+      "downloaded": true,
+      "durationSeconds": 1822.2,
+      "sizeBytes": 130173609,
+      "reviewedExcerpts": [
+        {
+          "templateID": "0031",
+          "start": 1715,
+          "end": 1728,
+          "status": "developmentOnly"
+        }
+      ],
+      "reviewNote": "Batch 3: exact GIF and full-original visual review; see docs/tutorial-reviews/batch3-*.json. Published ranges exclude mismatched variants and counterexamples."
     },
     {
       "id": "7610712695184852603",
@@ -654,7 +736,21 @@
     {
       "id": "7595410750903198075",
       "title": "三分化肩腿",
-      "candidateTemplateIDs": []
+      "candidateTemplateIDs": [
+        "0774"
+      ],
+      "downloaded": true,
+      "durationSeconds": 1455.3,
+      "sizeBytes": 104815045,
+      "reviewedExcerpts": [
+        {
+          "templateID": "0774",
+          "start": 414,
+          "end": 427,
+          "status": "developmentOnly"
+        }
+      ],
+      "reviewNote": "Batch 3: exact GIF and full-original visual review; see docs/tutorial-reviews/batch3-*.json. Published ranges exclude mismatched variants and counterexamples."
     },
     {
       "id": "7594285071629030769",

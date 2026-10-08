@@ -1,0 +1,56 @@
+{
+  "verifiedOn": "2026-10-08",
+  "newDistinctTemplates": 7,
+  "verification": "H.264/AAC, duration within 0.05s, under20MiB, HTTP200 complete cloud bytes equal local excerpt",
+  "assets": [
+    {
+      "templateID": "0031",
+      "durationSeconds": 13,
+      "sizeBytes": 2934829,
+      "sha256": "73fd0c5cda112bd7c6730c07e11695cdc68057974a57fa473a6f29676605684f",
+      "cloudByteMatch": true
+    },
+    {
+      "templateID": "0774",
+      "durationSeconds": 13,
+      "sizeBytes": 2806945,
+      "sha256": "7b2d2a7b445fac1d57760d9209a5b402230f5a58f0d8d87bb93f8d9fa5e05160",
+      "cloudByteMatch": true
+    },
+    {
+      "templateID": "0238",
+      "durationSeconds": 20,
+      "sizeBytes": 4067292,
+      "sha256": "e43f67535470a83eb474c1080d1105bfb09a040c13ce215fe92eedb2fe274ef6",
+      "cloudByteMatch": true
+    },
+    {
+      "templateID": "0104",
+      "durationSeconds": 11,
+      "sizeBytes": 1448592,
+      "sha256": "6d26d7c015d73978ced62aaeb62ec4404916c12cce1cd6a2bd7578787998fafb",
+      "cloudByteMatch": true
+    },
+    {
+      "templateID": "1490",
+      "durationSeconds": 10,
+      "sizeBytes": 1413639,
+      "sha256": "f3168033d87157fba8f60e787815f100c32ddcfa82e2e3c5131ce1b51b434dc6",
+      "cloudByteMatch": true
+    },
+    {
+      "templateID": "0321",
+      "durationSeconds": 9,
+      "sizeBytes": 1755462,
+      "sha256": "0557a03388d404178a58d891b25c4b1f111e1c5f2bb6fdbf2682d8595caedb0f",
+      "cloudByteMatch": true
+    },
+    {
+      "templateID": "0602",
+      "durationSeconds": 15,
+      "sizeBytes": 3136003,
+      "sha256": "31d7fb69fd8587fd54226ae43691d7b17438bbd3934a711dba15327b276b0b63",
+      "cloudByteMatch": true
+    }
+  ]
+}

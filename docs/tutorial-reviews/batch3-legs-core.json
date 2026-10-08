@@ -1,0 +1,74 @@
+{
+  "reviewedAt": "2026-10-03",
+  "reviewMethod": "Local full-original exact-second ffmpeg frames and actual canonical GIF contact sheets; existing catalogue and previous rejection records checked. Only genuinely new exact variants are proposed. No catalogue, seed, cloud or original-source changes.",
+  "reviewedSources": ["7655982129109198321", "7629718942222650670", "7616718842858024121", "7657365167379023973", "7671852814386030521", "7595410750903198075"],
+  "proposedClips": [
+    {
+      "templateID": "2571",
+      "sourceVideoID": "7655982129109198321",
+      "start": 136,
+      "end": 152,
+      "cameraView": "rear_oblique",
+      "framingNoteZh": "按示范的侧后方斜角拍摄，将双膝、小腿、前臂支撑和骨盆全部拍进画面。保持宽膝青蛙位，缓慢将髋部向后移、再向前回，不伸直双腿；本段为谭师指导学员的热身伸展。",
+      "framingNoteEn": "Match the oblique rear-side view and include both knees, lower legs, forearm support and pelvis. Maintain the wide-knee frog position while slowly rocking the hips back and returning forward, without straightening the legs. Tan Sir coaches a student through this warm-up stretch.",
+      "visualEvidence": "Actual 2571 GIF shows wide knees on the floor, outward lower legs, forearm support and forward/backward hip rocking. Source matches this exact bodyweight frog variation: 136–139s backward hip position, 142–145s forward return with a brief hold, 146–148s backward return, and 150–152s held backward position. Captions explicitly cue slower movement (139s), forward movement (142s), backward movement (146s), and a brief pause (148s). The earlier pelvic-rotation correction at 110s and the unilateral explanation after 200s are excluded. Some of the student's upper body is outside the source crop; the knees, lower legs and moving pelvis remain visible. This is a coaching clip, not a solo creator performance.",
+      "confidence": "high",
+      "evidenceContactSheets": ["/tmp/fitgenius-review-legs-b3frogproof.jpg", "/tmp/fitgenius-review-legs-b3frogfinal.jpg"],
+      "canonicalGIFContactSheet": "/tmp/fitgenius-review-legs-b3gif-2571-2Dk4xQV.jpg",
+      "requiresSeedCorrectionBeforePublishing": true,
+      "seedCorrectionZh": "跪在垫上，将双膝向两侧打开，小腿向外，保持膝部有舒适支撑。双前臂撑地，躯干和骨盆保持稳定。在可控范围内缓慢将髋部向后移动，短暂停顿，再缓慢向前回到起始位置。双膝全程保持弯曲和落地，不靠扭转骨盆增加幅度。按舒适幅度重复。",
+      "seedCorrectionEn": "Kneel on a mat and spread your knees apart with your lower legs pointing outward and your knees comfortably supported. Rest your forearms on the floor and keep your torso and pelvis stable. Slowly rock your hips backward within a controlled range, pause briefly, then return forward to the starting position. Keep your knees bent and grounded throughout; do not increase the range by twisting your pelvis. Repeat within a comfortable range."
+    }
+  ],
+  "rejected": [
+    {
+      "sourceVideoID": "7616718842858024121",
+      "templateIDs": ["1604", "1585"],
+      "start": 100,
+      "end": 150,
+      "reason": "Source mainly teaches a low-lunge trunk rotation followed by a straight-front-leg stretch. The actual 1604 GIF instead cycles a non-rotating lunge/hamstring sequence; 1585 GIF is a standing straight-leg toe-reaching stretch. Similar names do not establish the exact sequence. Keep these mappings blank.",
+      "evidenceContactSheet": "/tmp/fitgenius-review-legs-b3specific.jpg",
+      "canonicalGIFContactSheets": ["/tmp/fitgenius-review-legs-b3gif-1604-DFGXwZr.jpg", "/tmp/fitgenius-review-legs-b3gif-1585-0mB6wHO.jpg"]
+    },
+    {
+      "sourceVideoID": "7616718842858024121",
+      "templateIDs": ["3645", "3561", "3013", "1422"],
+      "start": 395,
+      "end": 445,
+      "reason": "Source is a sustained bent-knee single-leg bridge, with the raised thigh held by the hands. Actual 3645 extends the raised leg straight; 3561 alternates marching legs while maintaining a bilateral-bridge start; 3013/1422 are bilateral. Do not distribute one single-leg variant across these different templates.",
+      "evidenceContactSheet": "/tmp/fitgenius-review-legs-b3check.jpg",
+      "canonicalGIFContactSheets": ["/tmp/fitgenius-review-legs-b3gif-3645-rmEukuS.jpg", "/tmp/fitgenius-review-legs-b3gif-3561-GibBPPg.jpg"]
+    },
+    {
+      "sourceVideoID": "7616718842858024121",
+      "templateIDs": ["1387", "1373", "1490"],
+      "start": 899,
+      "end": 911,
+      "reason": "Enlarged frames reveal both feet supported at the edge of a thin training mat, not a lifted free leg as required by 1387. The heel-below-edge range is also not ordinary flat-floor 1373. This is closest to 1490, but batch3-main.json already proposes clearer bilateral step-edge footage from a different source, so this source adds no distinct template and is not published again.",
+      "evidenceContactSheet": "/tmp/fitgenius-review-legs-b3calf.jpg"
+    },
+    {
+      "sourceVideoID": "7595410750903198075",
+      "templateIDs": ["1489", "0741", "0743", "0755"],
+      "start": 1050,
+      "end": 1145,
+      "reason": "Rhino squat demonstration loads a waist belt connected to the machine. It is neither the actual 1489 unsupported-bodyweight sissy pattern with backward body lean nor a shoulder-pad sled/Smith hack squat. No corresponding belt-squat template was found in the current seed.",
+      "evidenceContactSheet": "/tmp/fitgenius-review-legs-b3rhinoproof.jpg",
+      "canonicalGIFContactSheet": "/tmp/fitgenius-review-legs-b3gif-1489-xdYPUtE.jpg"
+    },
+    {
+      "sourceVideoID": "7595410750903198075",
+      "templateIDs": ["2368", "0410", "0099", "0768"],
+      "start": 1240,
+      "end": 1340,
+      "reason": "Creator demonstrates unloaded rear-foot-elevated Bulgarian squats and posture explanations. Actual 2368 has both feet grounded; 0410 carries two dumbbells; 0099/0768 require barbell/Smith loading. No exact unloaded rear-foot-elevated template was found; do not match an equipment regression to the loaded template.",
+      "evidenceContactSheets": ["/tmp/fitgenius-review-legs-b3new.jpg", "/tmp/fitgenius-review-legs-b3rhinoproof.jpg"],
+      "canonicalGIFContactSheet": "/tmp/fitgenius-review-legs-b3gif-2368-9E25EOx.jpg"
+    },
+    {
+      "sourceVideoIDs": ["7655982129109198321", "7629718942222650670", "7657365167379023973", "7671852814386030521"],
+      "templateIDs": ["0410", "0586", "1760", "0085", "0489", "2963", "0274", "0857", "1459"],
+      "reason": "Exact main strength variants from these sources are already published. Previous rejections in private-legs.json, legs-collab.json, abs-private.json and legs-core.json remain in force; additional clips of the same variant do not increase distinct coverage. No new leg-press demonstration exists in the reviewed source chapters."
+    }
+  ]
+}

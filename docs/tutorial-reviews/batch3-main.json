@@ -1,0 +1,72 @@
+{
+  "reviewedOn": "2026-10-03",
+  "reviewMethod": "Main-agent canonical GIF contact sheets compared with exact-second full-original video frames. Assets are not published until codec and cloud byte verification.",
+  "proposedClips": [
+    {
+      "templateID": "0031",
+      "sourceVideoID": "7611481791380257969",
+      "start": 1715,
+      "end": 1728,
+      "cameraView": "side-oblique",
+      "framingNoteZh": "按谭师的斜侧面拍摄，站姿掌心向上握直杆杠铃，拍全双肩、双肘、双手、杠铃和躯干，最好包含落地双脚。保持躯干稳定，控制下放；不是EZ曲杆、掌心向下的反向弯举或牧师凳弯举。",
+      "framingNoteEn": "Match Tan Sir's oblique side view for a standing supinated straight-bar curl. Include shoulders, elbows, hands, bar and torso, preferably planted feet. Keep your torso steady and lower under control. This is not an EZ-bar, reverse-grip or preacher curl.",
+      "visualEvidence": "Main compared actual 0031 GIF and 1710–1742s exact-second source sheet. Straight bar, bilateral supinated standing curl with stable torso and natural mild upper-arm movement. Accepted 1715–1728s contains lowering to the thighs, curling up, another controlled lowering and repeat; excludes bar setup and later wrist-position close-up/explanation. /tmp/fitgenius-batch3-0031.jpg and /tmp/fitgenius-batch3-curl-dense.jpg were visually reviewed.",
+      "confidence": "high"
+    },
+    {
+      "templateID": "0774",
+      "sourceVideoID": "7595410750903198075",
+      "start": 414,
+      "end": 427,
+      "cameraView": "side-oblique",
+      "framingNoteZh": "按示范斜侧面拍摄，站姿正手推起史密斯杠铃，拍全横杆、双肩、双肘、躯干和落地双脚。原片脚部未完整入镜，自拍时请补全；这是站姿版，不是坐姿或颈后推举。",
+      "framingNoteEn": "Match the oblique side view for a standing overhand Smith-machine press. Include the bar, shoulders, elbows, torso and planted feet. The original crops the feet; include them in your recording. This is not a seated or behind-neck press.",
+      "visualEvidence": "Main compared actual 0774 GIF with exact 414–427s contact sheet. Standing bilateral front-of-head Smith press with a slightly wider than shoulder-width grip, repeat overhead extension and controlled return to shoulder level. Source cues vertical forearms. Excludes subsequent exaggerated backward-lean counterexample. Main viewed /tmp/fitgenius-batch3-0774.jpg and /tmp/fitgenius-batch3-smith-approved.jpg.",
+      "confidence": "high"
+    },
+    {
+      "templateID": "0238",
+      "sourceVideoID": "7647176615788911793",
+      "start": 559,
+      "end": 579,
+      "cameraView": "rear-oblique",
+      "framingNoteZh": "这是谭师指导学员的直杆直臂下拉。按侧后方斜角拍摄，拍到高位滑轮、直杆、双手、双肘与躯干；保持轻微屈髋和上臂控制，不把屈肘下拉混进来。",
+      "framingNoteEn": "Tan Sir coaches a trainee performing straight-bar straight-arm pulldowns. Match the rear-oblique view and include the high pulley, straight bar, hands, elbows and torso. Maintain a slight hip hinge and controlled upper-arm movement; this is not a bent-arm pulldown.",
+      "visualEvidence": "Canonical 0238 GIF shows standing bilateral straight-bar overhand straight-arm pulldowns. Exact 559–579s source has the same attachment and shoulder-extension pattern with only a slight fixed hip hinge. Bar rises to near shoulder height at 559, 562, 564, 567, 571, 574 and 577s and lowers to thighs between these, while coach cues wrists, tension and stable shoulders. End release/exit at 580s is excluded. Main viewed /tmp/fitgenius-batch3-0238.jpg and /tmp/fitgenius-batch3-straightarm-approved.jpg (559s start, 1-second samples).",
+      "confidence": "high"
+    },
+    {
+      "templateID": "0104",
+      "sourceVideoID": "7679415198898073009",
+      "start": 55,
+      "end": 66,
+      "cameraView": "side-oblique",
+      "framingNoteZh": "按谭师的侧面斜角拍摄，拍全双手、手腕、杠铃与站姿；杠铃位于身体后方，以手腕屈伸完成动作，不把手臂弯举混进来。",
+      "framingNoteEn": "Match Tan Sir's oblique side view and include both hands, wrists, barbell and standing posture. Hold the barbell behind your body and move through wrist flexion and extension, not an arm curl.",
+      "visualEvidence": "Canonical 0104 GIF shows a straight standing behind-body barbell wrist curl. Source 55–66s has the same bar behind the thighs, elbows extended and repeated wrist curling. Stepping over the bar at 53–54s and the switch to front-of-body at 67s are excluded. Source explains the shoulder-position distinction. Main viewed /tmp/fitgenius-batch3-0104.jpg and /tmp/fitgenius-batch3-wrist-back-exact.jpg (53s start, 1-second samples).",
+      "confidence": "high"
+    },
+    {
+      "templateID": "1490",
+      "sourceVideoID": "7612270623104450533",
+      "start": 899,
+      "end": 909,
+      "cameraView": "side-oblique",
+      "framingNoteZh": "按示范侧面略偏前角度拍摄，双脚、台阶边缘、脚跟和躯干完整入镜；双脚前掌踩稳，脚跟悬空，以稳固扶手辅助平衡。器械底座仅作台阶，不增加负重。",
+      "framingNoteEn": "Match the slightly front-oblique side view with both feet, step edge, heels and torso visible. Keep both forefeet planted and heels free, using a stable handhold for balance. The machine base serves only as a step, not added resistance.",
+      "visualEvidence": "Canonical 1490 GIF shows both forefeet on a step edge with free heels. Source uses a stable machine-base step for the same bodyweight bilateral calf raise, not a loaded calf machine or staggered stance. 899s says not to rock forward; 900s restores fixed balance, 901–902s lowering, 903–904s rising, 905s lowering, 906–907s rising and 908s controlled return. Incorrect forward rocking at 896–898s and stepping away at 909s are excluded. Main viewed /tmp/fitgenius-batch3-1490.jpg and /tmp/fitgenius-batch3-calf-corrected-exact.jpg (893s start, 1-second samples).",
+      "confidence": "high"
+    }
+  ],
+  "rejected": [
+    {"sourceVideoID":"7611481791380257969","templateIDs":["0652","1763","1429"],"reason":"1030–1334s section is mainly verbal instruction, partial setup and explicitly contrasted pull-up mechanics. Dense 1205–1243s includes rejected shoulder motion and repositioning, not a sufficiently clean isolated teaching cycle. Leave unassisted pull-up mappings empty."},
+    {"sourceVideoID":"7655982129109198321","templateIDs":["2571"],"reason":"Exact frog-rock stretch candidate reviewed, but the source crops much of the learner and the coach obscures the knees/pelvis. Defer rather than present a poorly framed learning/comparison clip. Incorrect existing seed instructions are recorded in batch3-legs-core.json for a separate correction; no seed mutation in this content-only batch."},
+    {"sourceVideoID":"7679415198898073009","templateIDs":["0125","0126","0079","0082"],"reason":"Front-of-body wrist teaching is standing and unsupported; canonical GIFs are seated with supported forearms. Do not map these exact supported variants."},
+    {"sourceVideoID":"7612270623104450533","templateIDs":["1757","1775","0598"],"reason":"Single-leg deadlift demonstration initially holds two dumbbells; later one-dumbbell option adds opposite-hand support. Copenhagen demonstration supports the knee, unlike canonical straight-leg foot-supported 1775. Hip-adduction machine is demonstrated lying back/supine rather than canonical upright seated posture. Leave mappings blank."}
+  ],
+  "downloadedSources": [
+    {"id":"7679415198898073009","durationSeconds":751.235011,"sizeBytes":48247265},
+    {"id":"7612270623104450533","durationSeconds":936.066667,"sizeBytes":88131460},
+    {"id":"7613586950141907450","durationSeconds":1552.733008,"sizeBytes":144135139}
+  ]
+}
