@@ -2,6 +2,24 @@
   "schemaVersion": 1,
   "clips": [
     {
+      "id": "tan-douyin-0129-7594285071629030769-1283-1301",
+      "exerciseTemplateIDs": ["0129"],
+      "creatorName": "谭成义",
+      "sourcePlatform": "douyin",
+      "sourceURL": "https://www.douyin.com/video/7594285071629030769",
+      "sourceVideoID": "7594285071629030769",
+      "sourceTitle": "屈膝凳上臂屈伸 · 真人示范与指导 · 开发节选",
+      "clipStartSeconds": 1283,
+      "clipEndSeconds": 1301,
+      "playbackStartSeconds": 0,
+      "playbackEndSeconds": 18,
+      "playbackURL": "https://fitgenius-d0ghm1rz21cef6594-1441969311.tcloudbaseapp.com/exercise-tutorials/development-media/7594285071629030769-1283-1301.mp4",
+      "cameraView": "side-oblique",
+      "framingNoteZh": "按照谭师的斜侧面拍摄，双手撑在凳沿，双膝保持弯曲。拍全长凳、双肩、双肘、髋部、双膝与落地双脚。原片脚部被裁切，自拍时请补全；这是屈膝徒手版，不是伸腿、负重或两凳之间臂屈伸。控制下放，勿刻意追求过深幅度。",
+      "framingNoteEn": "Match the oblique side view with your hands on the bench edge and both knees bent. Include the bench, shoulders, elbows, hips, knees and planted feet. The original crops the feet; include them in your recording. This is an unweighted bent-knee version, not straight-leg, weighted or between-bench dips. Lower under control without forcing excessive depth.",
+      "rightsStatus": "developmentOnly"
+    },
+    {
       "id": "tan-douyin-wide-pulldown-350-375",
       "exerciseTemplateIDs": [
         "0198"

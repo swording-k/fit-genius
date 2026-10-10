@@ -1,5 +1,12 @@
 # FitGenius Form Coach Roadmap
 
+## Tutorial discovery correction (2026-10-10)
+
+Users should not search1324 entries blind for the44 available tutorials.
+The library now refreshes the shared catalog on entry and offers a playable-only
+filter/count plus row badges. This is build-visible playback coverage, not
+source-link/candidate counts; missing media still keeps GIF/instructions useful.
+
 ## Current production correction (2026-10-08)
 
 Current API backend is CloudBase, not the historical Vercel/Neon sections below.

@@ -11,6 +11,15 @@ struct ExerciseLibraryView: View {
     @State private var searchText = ""
     @State private var selectedFocus: BodyPartFocus? = nil
     @State private var selectedEquipment: ExerciseEquipmentCategory? = nil
+    @State private var tutorialsOnly = false
+    @ObservedObject private var tutorials = ExerciseTutorialStore.shared
+
+    private var playableIDs: Set<String> { tutorials.catalog.playableTemplateIDs }
+
+    private var tutorialCount: Int {
+        let available = playableIDs
+        return templates.filter { available.contains($0.externalId) }.count
+    }
 
     // 部位筛选项：排除“休息”，只保留训练部位
     private let focusOptions: [BodyPartFocus] = [
@@ -18,7 +27,9 @@ struct ExerciseLibraryView: View {
     ]
 
     private var filtered: [ExerciseTemplate] {
-        templates.filter { t in
+        let available = playableIDs
+        return templates.filter { t in
+            if tutorialsOnly && !available.contains(t.externalId) { return false }
             if let selectedFocus, t.focus != selectedFocus { return false }
             if let selectedEquipment, t.equipmentCategory != selectedEquipment.rawValue { return false }
             if !searchText.isEmpty {
@@ -37,6 +48,7 @@ struct ExerciseLibraryView: View {
     }
 
     var body: some View {
+        let available = playableIDs
         NavigationStack {
             VStack(spacing: 0) {
                 filterBar
@@ -50,11 +62,11 @@ struct ExerciseLibraryView: View {
                                 NavigationLink {
                                     ExerciseDetailView(template: template)
                                 } label: {
-                                    ExerciseRow(template: template)
+                                    ExerciseRow(template: template, hasTutorial: available.contains(template.externalId))
                                 }
                             }
                         } header: {
-                            Text("exercise_library_count_format".localized(with: filtered.count))
+                            Text((tutorialsOnly ? "exercise_library_tutorial_results_format" : "exercise_library_count_format").localized(with: filtered.count))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -65,6 +77,7 @@ struct ExerciseLibraryView: View {
             .navigationTitle("exercise_library_title".localized)
             .navigationBarTitleDisplayMode(.inline)
         }
+        .task { await tutorials.refreshIfNeeded() }
     }
 
     // MARK: - 子视图
@@ -94,6 +107,20 @@ struct ExerciseLibraryView: View {
             .padding(.vertical, 10)
             .background(Color(.secondarySystemBackground))
             .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, 12)
+
+            HStack(spacing: 8) {
+                FilterChip(title: "exercise_library_all_actions".localized,
+                           isSelected: !tutorialsOnly) {
+                    tutorialsOnly = false
+                }
+                FilterChip(title: "exercise_library_tutorial_filter_format".localized(with: tutorialCount),
+                           systemImage: "play.rectangle.fill",
+                           isSelected: tutorialsOnly) {
+                    tutorialsOnly.toggle()
+                }
+                Spacer(minLength: 0)
+            }
             .padding(.horizontal, 12)
 
             ScrollView(.horizontal, showsIndicators: false) {
@@ -140,8 +167,15 @@ struct ExerciseLibraryView: View {
             Image(systemName: "magnifyingglass")
                 .font(.largeTitle)
                 .foregroundColor(.secondary)
-            Text("exercise_library_empty".localized)
+            Text((tutorialsOnly ? "exercise_library_tutorial_empty" : "exercise_library_empty").localized)
                 .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+            if tutorialsOnly {
+                Button("exercise_library_show_all".localized) {
+                    tutorialsOnly = false
+                }
+                .buttonStyle(.bordered)
+            }
             Spacer()
         }
         .frame(maxWidth: .infinity)
@@ -152,6 +186,7 @@ struct ExerciseLibraryView: View {
 
 private struct ExerciseRow: View {
     let template: ExerciseTemplate
+    let hasTutorial: Bool
 
     private var preferChinese: Bool {
         Locale.preferredLanguages.first?.hasPrefix("zh") ?? false
@@ -181,6 +216,11 @@ private struct ExerciseRow: View {
                 }
                 .font(.caption)
                 .foregroundColor(.secondary)
+                if hasTutorial {
+                    Label("exercise_library_tutorial_badge".localized, systemImage: "play.rectangle.fill")
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(.blue)
+                }
             }
             Spacer()
         }

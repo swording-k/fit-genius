@@ -1,6 +1,6 @@
 # FitGenius Agent Handoff
 
-Last updated: 2026-10-08 Asia/Shanghai
+Last updated: 2026-10-10 Asia/Shanghai
 
 ## Read First
 
@@ -10,6 +10,22 @@ Last updated: 2026-10-08 Asia/Shanghai
 4. `docs/agent-handoff.md`
 
 ## Current Status
+
+### 2026-10-10: Playable tutorial discovery and fourth batch
+
+- Library observes the shared tutorial store and refreshes on entry; added
+  tutorial-only filter with unique visible-template count and per-row badges.
+  Search/body/equipment filters intersect normally. Source links and missing
+  local media are excluded from counts; Release visibility remains unchanged.
+- Added reviewed bent-knee bench dip0129 (18s) to cloud media/catalog, bringing
+  distinct playable Debug templates to44. Source feet crop is disclosed.
+  Corrected only0129 bilingual seed instructions and upgrade text refresh;
+  existing templates/plan relationships are preserved.
+- Reviewed two previously unreviewed complete originals, now29 retained.
+  Additional leg source7663876801953801721 remains unpublished because its
+  lower-leg/attachment path is obscured; do not count it as a new match.
+- Signed Debug built, upgrade-installed and launched on owner iPhone14Pro.
+  No merge, version bump, Release archive replacement or Store upload.
 
 ### 2026-10-08: Release repair candidate 1.6.0 (20261008)
 
@@ -724,6 +740,16 @@ new reconnect prompt once to receive a new FitGenius cloud session.
 
 ## Latest Validation
 
+### 2026-10-10: Discovery
+
+- Focused actual Swift catalog test first failed on absent playable IDs, then
+  passed unique-count, source/missing-file exclusion and Debug/Release checks.
+- Catalog audit and compiled remote-repository --live pass;0129 H.264/AAC
+  asset18.000s/3502026bytes full HTTPS download matches local SHA256.
+- Seed diff checked structurally: only0129 changed. Localization/plist lint
+  and signed Debug device build pass; install and process launch succeed.
+- Manual visible filter/search/playback acceptance remains owner verification.
+
 ### 2026-10-08: Release repairs
 
 - Real CloudBase probe: health/missing+invalid authorization;180122-byte UTF8
@@ -1105,6 +1131,13 @@ This is required because Apple authorization UI and real-device Vision behavior
 cannot be fully accepted in Simulator.
 
 ## Next Recommended Work
+
+Tutorial discovery acceptance:
+
+- Restart updated Debug App, open library and select“有真人教学”; verify count44,
+  badges, search/body/equipment intersections and0129 playback/Photos comparison.
+- Continue exact common-variant review. Do not equate connected neutral pulldown
+  handles with narrow V-bars or independent dual-pulley handles to inflate counts.
 
 Release repair acceptance:
 

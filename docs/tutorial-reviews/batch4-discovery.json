@@ -1,0 +1,22 @@
+{
+  "reviewedOn": "2026-10-10",
+  "sourceVideoID": "7594285071629030769",
+  "sourceURL": "https://www.douyin.com/video/7594285071629030769",
+  "method": "Observed logged-in Douyin author and chapter UI; downloaded actual player media; compared canonical GIF contact sheets with full-original exact-second frames.",
+  "accepted": [{
+    "templateID": "0129", "start":1283, "end":1301,
+    "evidence": "Canonical GIF shows both knees bent, feet on floor, hands behind hips on a bench, controlled lowering and elbow extension. Exact-second source sheet1283..1302 shows the same bent-knee bilateral bench dip, including lowering1283, extension1284, lowering1288..1290, extension1291, lowering1294..1295, extension1296, lowering1298..1299 and extension1300. Excludes external-assistance discussion starting1302. Source crops feet, explicitly disclosed. Seed originally wrongly said straighten legs; bilingual text corrected without replacing linked template objects."
+  }],
+  "rejected": [
+    {"templateIDs":["2616","0818"],"range":[515,575],"reason":"Full-resolution549s reveals a connected shoulder-width neutral handle.2616 is narrow V attachment;0818 GIF has two independent cables. Do not rename hardware or count either exact variant."},
+    {"templateIDs":["0861"],"range":[935,1010],"reason":"Footage uses a plate-loaded supported row machine rather than the cable seated-row in0861 GIF. Clean repetitions of another machine are not this variant."},
+    {"templateIDs":["0180","0239"],"range":[820,905],"reason":"Narrow seated cable row already represented by0239. Another source for the same movement does not establish new coverage."}
+  ],
+  "additionalSource": {
+    "sourceVideoID":"7663876801953801721",
+    "durationSeconds":1725.916009,
+    "reviewedRanges":[[980,1610],[1320,1410]],
+    "decision":"Retain full original, do not publish a new machine-leg mapping. Dense frames show lower-leg/roller occlusion and cropped motion path; not enough evidence to label an exact canonical leg-extension or leg-curl variant. No clear45-degree leg press segment found in surveyed range."
+  },
+  "rightsStatus":"developmentOnly"
+}

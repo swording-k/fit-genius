@@ -651,6 +651,12 @@
 
 // MARK: - Exercise Library
 "exercise_library_title" = "Exercises";
+"exercise_library_all_actions" = "All exercises";
+"exercise_library_tutorial_filter_format" = "Video tutorials · %d";
+"exercise_library_tutorial_results_format" = "%d exercises with video tutorials";
+"exercise_library_tutorial_badge" = "Video tutorial";
+"exercise_library_tutorial_empty" = "No playable video tutorials match these filters. Browse all exercises for animated demonstrations and instructions.";
+"exercise_library_show_all" = "Show all exercises";
 "exercise_library_search_placeholder" = "Search name / body part / muscle";
 "exercise_library_filter_all" = "All";
 "exercise_library_empty" = "No matching exercises";

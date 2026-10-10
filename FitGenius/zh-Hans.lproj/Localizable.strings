@@ -651,6 +651,12 @@
 
 // MARK: - 动作库 Exercise Library
 "exercise_library_title" = "动作库";
+"exercise_library_all_actions" = "全部动作";
+"exercise_library_tutorial_filter_format" = "有真人教学 · %d";
+"exercise_library_tutorial_results_format" = "%d 个动作有真人教学";
+"exercise_library_tutorial_badge" = "真人教学";
+"exercise_library_tutorial_empty" = "当前条件下暂无可播放的真人教学，可查看全部动作的动图与说明。";
+"exercise_library_show_all" = "查看全部动作";
 "exercise_library_search_placeholder" = "搜索动作名 / 部位 / 肌肉";
 "exercise_library_filter_all" = "全部";
 "exercise_library_empty" = "没有匹配的动作";

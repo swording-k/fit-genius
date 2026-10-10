@@ -57,7 +57,7 @@ enum ExerciseCatalogSeed {
         guard let url = Bundle.main.url(forResource: "exercises_seed", withExtension: "json") else { return }
         do {
             let items = try JSONDecoder().decode([ExerciseSeedItem].self, from: Data(contentsOf: url))
-            let reviewedIDs: Set<String> = ["0194", "0378", "0430"]
+            let reviewedIDs: Set<String> = ["0194", "0378", "0430", "0129"]
             let corrections = Dictionary(uniqueKeysWithValues: items
                 .filter { reviewedIDs.contains($0.id) }.map { ($0.id, $0) })
             var changed = false

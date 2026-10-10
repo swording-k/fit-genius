@@ -18,6 +18,13 @@ struct ExerciseTutorialCatalog {
         clips.filter { $0.exerciseTemplateIDs.contains(exerciseTemplateID) }
     }
 
+    /// Uses the same build-filtered catalog as details; source links are not videos.
+    var playableTemplateIDs: Set<String> {
+        Set(clips.filter {
+            $0.rightsStatus != .externalLinkOnly && $0.resolvedPlaybackURL() != nil
+        }.flatMap(\.exerciseTemplateIDs))
+    }
+
     static func visibleClips(_ clips: [ExerciseTutorialClip], isDebug: Bool) -> [ExerciseTutorialClip] {
         clips.filter { clip in
             switch clip.rightsStatus {
